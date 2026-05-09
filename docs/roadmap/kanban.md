@@ -2,10 +2,10 @@
 
 **Last Updated**: 2026-05-09  
 **Current Phase**: MVP - Phase 2 (Authentication)  
-**Velocity**: 14 pts completed (3 + 5 + 3 + 3)  
+**Velocity**: 16 pts completed (3 + 5 + 3 + 3 + 2)  
 **Total Tickets**: 32  
 **Total Effort**: ~106 story points  
-**Completed**: 4 / 32 (14 / 106 pts)  
+**Completed**: 5 / 32 (16 / 106 pts)  
 
 ---
 
@@ -47,6 +47,7 @@
 - [x] [TEST-101](tickets/TEST-101-test-infrastructure.md) - Test Infrastructure Setup (5 pts)
 - [x] [USR-104](tickets/USR-104-password-security.md) - Password Hashing & Security (3 pts)
 - [x] [USR-105](tickets/USR-105-jwt-token-management.md) - JWT Token Management (3 pts)
+- [x] [USR-106](tickets/USR-106-auth-middleware.md) - Auth Middleware (2 pts)
 
 ### 🎯 Ready to Start (Phase 2 - Authentication)
 
@@ -142,10 +143,10 @@
 
 | Status | Count | Points |
 |--------|-------|--------|
-| Backlog (Ready) | 28 | 92 |
+| Backlog (Ready) | 27 | 90 |
 | In Progress | 0 | 0 |
 | Under Review | 0 | 0 |
-| Completed | 4 | 14 |
+| Completed | 5 | 16 |
 
 ---
 

@@ -442,24 +442,48 @@ docker-compose down
 
 ### 8.1 Security
 
-**Authentication**:
-- JWT tokens stored in httpOnly cookies
-- Tokens include user ID and expiration (e.g., 24 hours)
-- Refresh tokens for extended sessions
+**Authentication Architecture**:
+
+The application uses stateless JWT-based authentication implemented in two layers:
+
+1. **Password Hashing Layer** (`src/lib/auth/password.ts` - USR-104):
+   - Passwords hashed with bcryptjs (cost factor 10)
+   - Async hashing prevents event loop blocking
+   - Functions: `hashPassword(password): Promise<string>`, `verifyPassword(password, hash): Promise<boolean>`
+   - Never stored or logged in plain text
+   - Salted automatically by bcrypt
+
+2. **JWT Token Layer** (`src/lib/auth/jwt.ts` - USR-105):
+   - JWT tokens created with `generateToken(userId, email): string`
+   - Token payload includes: `userId`, `email`, `iat` (issued-at), `exp` (expiration)
+   - Tokens verified with `verifyToken(token): JWTPayload | null`
+   - Decoding without verification available via `decodeToken(token): JWTPayload | null`
+   - Expiration: 24 hours (configurable via `JWT_EXPIRATION` env var)
+   - Secret key: from `JWT_SECRET` env var (minimum 32 characters enforced)
+
+**Authentication Flow**:
+- User registers with email + password → password hashed → user stored in DB
+- User logs in → credentials verified → JWT generated → stored in httpOnly cookie
+- Protected requests → JWT extracted from cookie → verified → request proceeds
+- Token expiration → 401 Unauthorized → user redirected to login
 
 **Authorization**:
 - API endpoints verify JWT and user ownership of resources
 - Users can only access/modify their own recipes and profile
+- Protected routes middleware validates JWT on every request
 
-**Password Security**:
-- Passwords hashed with bcrypt (cost factor 10)
-- Never transmitted in plain text
-- Salted and unique per user
+**JWT Secret Management**:
+- Required: minimum 32 characters (enforced at runtime)
+- Should be: strong random string, never committed to repo
+- Environment: `process.env.JWT_SECRET` (set in .env.local or Docker secrets)
+- Validation: throws error if missing or too short (fail-fast pattern)
 
 **API Security**:
 - HTTPS enforced in production
 - CORS configured to allow local/RPi access
+- httpOnly cookies prevent XSS token theft
 - Rate limiting on auth endpoints (future)
+- No plain-text tokens in logs or responses
 
 ### 8.2 Error Handling
 
