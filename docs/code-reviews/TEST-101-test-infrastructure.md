@@ -7,17 +7,17 @@
 
 ---
 
-## 📋 Übersicht
+## 📋 Overview
 
-**Was**: Vollständige Test Infrastructure (Jest, React Testing Library, Cypress)  
-**Umfang**: 2 Commits, 11 Dateien, 192 Insertionen  
-**Status**: ✅ Alle Skripte funktionieren, 7/7 Tests bestanden, Type-Check ✓, Lint ✓
+**What**: Complete test infrastructure (Jest, React Testing Library, Cypress)  
+**Scope**: 2 commits, 11 files, 192 insertions  
+**Status**: ✅ All scripts working, 7/7 tests passing, Type-check ✓, Lint ✓
 
 ---
 
-## ✅ STÄRKEN
+## ✅ STRENGTHS
 
-### 1. **Solide Test-Utilities Architektur** ✓
+### 1. **Solid Test-Utilities Architecture** ✓
 
 `src/__tests__/utils/test-utils.tsx`:
 ```typescript
@@ -25,69 +25,69 @@ const customRender = (ui, options) =>
   render(ui, { wrapper: AllTheProviders, ...options });
 export { customRender as render };
 ```
-✅ **Best Practice**: Custom render mit Providers  
-✅ **Zukunftssicher**: `AllTheProviders` Wrapper ermöglicht Context/Redux hinzufügen  
-✅ **Konsistent**: Re-exportiert alle RTL Utilities → keine Import-Umstellung nötig später
+✅ **Best practice**: Custom render with providers  
+✅ **Future-proof**: `AllTheProviders` wrapper enables Context/Redux addition  
+✅ **Consistent**: Re-exports all RTL utilities → no import-path switching needed later
 
-### 2. **Sample Tests – Gutes Vorbild** ✓
+### 2. **Sample Tests – Good Template** ✓
 
 `src/__tests__/lib/constants.test.ts`:
-- ✅ **Beschreibende Test-Names**: "should have email regex pattern"
-- ✅ **DRY**: Tests folgen `describe/it` Pattern konsistent
-- ✅ **Focused**: Testiert nur `constants.ts`, nicht mehrere Modules
-- ✅ **Realistic Data**: E-Mails, Routen, Status Codes (wird als Template für andere Tests dienen)
+- ✅ **Descriptive test names**: "should have email regex pattern"
+- ✅ **DRY**: Tests follow `describe/it` pattern consistently
+- ✅ **Focused**: Tests only `constants.ts`, not multiple modules
+- ✅ **Realistic data**: Emails, routes, status codes (will serve as template for other tests)
 
-**Coverage**: 81.81% für constants.ts – ausgezeichnet!
+**Coverage**: 81.81% for constants.ts – excellent!
 
-### 3. **Fixtures & Mocks gut vorbereitet** ✓
+### 3. **Fixtures & Mocks well prepared** ✓
 
 `tests/fixtures/user.ts`:
-- ✅ `mockUser` + `mockUsers` - Standard Pattern
-- ✅ Realistic Daten (IDs, Emails, Timestamps)
-- ✅ Kommentiert wo MSW später integgriert wird
+- ✅ `mockUser` + `mockUsers` - standard pattern
+- ✅ Realistic data (IDs, emails, timestamps)
+- ✅ Documented where MSW will be integrated later
 
-### 4. **Cypress Konfiguration solide** ✓
+### 4. **Cypress Configuration solid** ✓
 
 `cypress.config.ts`:
-- ✅ `baseUrl: localhost:3000` (korrekt)
-- ✅ `specPattern: tests/e2e/**/*.cy.ts` (Clear naming)
+- ✅ `baseUrl: localhost:3000` (correct)
+- ✅ `specPattern: tests/e2e/**/*.cy.ts` (clear naming)
 - ✅ `defaultCommandTimeout: 10000` (reasonable)
-- ✅ `screenshotOnRunFailure: true` (debugging-freundlich)
+- ✅ `screenshotOnRunFailure: true` (debugging-friendly)
 
-### 5. **TypeScript Integration smart gelöst** ✓
+### 5. **TypeScript Integration smartly solved** ✓
 
-`tsconfig.json` Changes:
+`tsconfig.json` changes:
 ```json
 "exclude": [..., "**/*.test.ts", "tests/"]
 ```
-✅ **Problem erkannt**: tsc kann Jest-Types nicht auflösen  
-✅ **Lösung elegant**: Test-Files excluden statt Workarounds  
-✅ **Begründung**: Jest nutzt ts-jest (andere Type-Config)  
-✅ Beide Systeme funktionieren parallel: `npm run type-check` ✓, `npm run test` ✓
+✅ **Problem identified**: tsc can't resolve Jest types  
+✅ **Solution elegant**: Exclude test files instead of workarounds  
+✅ **Rationale**: Jest uses ts-jest (different type config)  
+✅ Both systems work in parallel: `npm run type-check` ✓, `npm run test` ✓
 
-### 6. **Dokumentation ausgezeichnet** ✓
+### 6. **Documentation excellent** ✓
 
-Alle README.md Dateien:
-- ✅ Structure erklärt
-- ✅ Running Instructions (konkrete Befehle)
-- ✅ Conventions dokumentiert
-- ✅ Futures notiert (z.B. "MSW handlers when needed")
+All README.md files:
+- ✅ Structure explained
+- ✅ Running instructions (concrete commands)
+- ✅ Conventions documented
+- ✅ Futures noted (e.g., "MSW handlers when needed")
 
 ---
 
 ## ⚠️ MINOR OBSERVATIONS
 
-### 1. **jest.d.ts ist redundant** ⚠️ Hinweis
+### 1. **jest.d.ts is redundant** ⚠️ Note
 
 ```typescript
 /// <reference types="jest" />
 ```
-- Ist nicht schädlich, aber mit `tsconfig.test.json` auch nicht nötig
-- ✅ **Entscheidung**: Kann bleiben (explizite Documentation)
-- Oder: Könnte gelöscht werden (tsconfig.test.json reicht)
-- **Recommendation**: Löschen für Simplicity, da tsconfig.test.json es bereits macht
+- Not harmful, but also unnecessary with `tsconfig.test.json`
+- ✅ **Decision**: Can stay (explicit documentation)
+- Or: Could be deleted (tsconfig.test.json is enough)
+- **Recommendation**: Delete for simplicity, since tsconfig.test.json already handles it
 
-### 2. **Sample E2E Test sehr minimal** ⚠️ Hinweis
+### 2. **Sample E2E test very minimal** ⚠️ Note
 
 `tests/e2e/sample.cy.ts`:
 ```typescript
@@ -97,12 +97,12 @@ it('should load the home page', () => {
   // Replace with actual tests after initial setup
 });
 ```
-✅ **Korrekt**: Ist nur ein Verification Test  
-⚠️ **Bedenken**: App muss laufen damit dieser Test funktioniert  
-- Das ist normal – Cypress braucht `npm run dev` parallel
-- Kommentar ist gut dokumentiert
+✅ **Correct**: Just a verification test  
+⚠️ **Note**: App must be running for this test to work  
+- This is normal – Cypress needs `npm run dev` running in parallel
+- Comment is well documented
 
-### 3. **fixtures/user.ts – type safety optional** ⚠️ Hinweis
+### 3. **fixtures/user.ts – type safety optional** ⚠️ Note
 
 ```typescript
 export const mockUser = {
@@ -111,12 +111,12 @@ export const mockUser = {
   // ...
 }
 ```
-- Keine TypeScript-Types auf die Fixtures
-- ✅ Funktioniert aber gut (inferred types)
-- Optional: Könnte `User` type importieren für type safety
-- **Status**: Nicht kritisch, wird in zukünftigen Tickets sichtbar
+- No TypeScript types on the fixtures
+- ✅ Works well though (inferred types)
+- Optional: Could import `User` type for type safety
+- **Status**: Not critical, will be visible in future tickets
 
-### 4. **Coverage Threshold Policy** ⚠️ Hinweis
+### 4. **Coverage Threshold Policy** ⚠️ Note
 
 ```
 global: {
@@ -126,15 +126,15 @@ global: {
   statements: 80,
 }
 ```
-✅ **80% für lines/statements** – matcht CLAUDE.md  
-✅ **70% für branches/functions** – reasonable (schwächer, aber OK)  
-**Note**: Wird über Zeit angepasst wenn mehr Tests kommen
+✅ **80% for lines/statements** – matches CLAUDE.md  
+✅ **70% for branches/functions** – reasonable (weaker, but OK)  
+**Note**: Will be adjusted over time as more tests are added
 
 ---
 
-## 🎯 PRÜFUNG GEGEN ACCEPTANCE CRITERIA
+## 🎯 ACCEPTANCE CRITERIA CHECKLIST
 
-| Kriterium | Status | Evidence |
+| Criterion | Status | Evidence |
 |-----------|--------|----------|
 | Jest configured and running | ✅ | `npm run test` → 7/7 PASS |
 | React Testing Library configured | ✅ | test-utils.tsx + setup working |
@@ -148,27 +148,27 @@ global: {
 
 ---
 
-## 🎯 PRÜFUNG GEGEN CLEAN CODE PRINCIPLES
+## 🎯 CLEAN CODE PRINCIPLES CHECK
 
 ### SOLID Principles ✅
-- ✅ **Single Responsibility**: Test setup, fixtures, mocks sind getrennt
-- ✅ **Open/Closed**: Test-Utils können um Provider erweitert werden
-- ✅ **Liskov**: Fixtures folgen konsistenten Patterns
+- ✅ **Single Responsibility**: Test setup, fixtures, mocks are separated
+- ✅ **Open/Closed**: Test utilities can be extended with providers
+- ✅ **Liskov**: Fixtures follow consistent patterns
 
 ### DRY ✅
-- ✅ `test-utils.tsx` = zentrale Stelle für test setup
-- ✅ `fixtures/user.ts` = wiederverwendbare Mock-Daten
-- ✅ READMEs erklären (nicht dupliziert)
+- ✅ `test-utils.tsx` = central place for test setup
+- ✅ `fixtures/user.ts` = reusable mock data
+- ✅ READMEs explain (not duplicated)
 
 ### KISS ✅
-- ✅ Keine Over-Engineering in Test-Setup
-- ✅ Strukturen sind unkompliziert und verständlich
-- ✅ File-Naming ist selbsterklärend (`.test.ts`, `.cy.ts`)
+- ✅ No over-engineering in test setup
+- ✅ Structures are uncomplicated and understandable
+- ✅ File naming is self-explanatory (`.test.ts`, `.cy.ts`)
 
 ### YAGNI ✅
-- ✅ Nur das notwendige ist implementiert
-- ✅ Futures (MSW) sind dokumentiert, nicht voraus-codiert
-- ✅ Keine unused Utility Functions
+- ✅ Only what's necessary is implemented
+- ✅ Futures (MSW) are documented, not pre-coded
+- ✅ No unused utility functions
 
 ---
 
@@ -177,32 +177,32 @@ global: {
 | Aspect | Status |
 |--------|--------|
 | Linting | ✅ 0 errors, 0 warnings |
-| Type Checking | ✅ 0 errors (test files excluded) |
+| Type checking | ✅ 0 errors (test files excluded) |
 | Tests | ✅ 7/7 passing |
 | Documentation | ✅ All directories documented |
-| Commit Messages | ✅ Descriptive and detailed |
+| Commit messages | ✅ Descriptive and detailed |
 
 ---
 
 ## 📌 KEY DECISIONS REVIEWED
 
 ### 1. **Test-File Location Strategy**
-✅ **Decision**: `src/__tests__/` für Unit Tests, `tests/e2e/` für E2E
-- Tests neben Source (src) für Codebase awareness
-- Separate tests/ für E2E (nicht Teil von Source)
-- **Result**: Saubere Struktur, klar getrennte Concerns
+✅ **Decision**: `src/__tests__/` for unit tests, `tests/e2e/` for E2E
+- Tests alongside source (src) for codebase awareness
+- Separate tests/ for E2E (not part of source)
+- **Result**: Clean structure, clearly separated concerns
 
-### 2. **Jest excludes Test Files von type-check**
-✅ **Decision**: `tsc --noEmit` ignoriert `*.test.ts`
-- **Why**: tsc und jest brauchen unterschiedliche TypeScript-Configs
-- **Alternative**: Könnte auch `ts-jest` in jest.config.js setzen
-- **Result**: Pragmatisch und funktioniert perfekt
+### 2. **Jest excludes test files from type-check**
+✅ **Decision**: `tsc --noEmit` ignores `*.test.ts`
+- **Why**: tsc and jest need different TypeScript configs
+- **Alternative**: Could set `ts-jest` in jest.config.js
+- **Result**: Pragmatic and works perfectly
 
-### 3. **Custom render() Utility mit Providers**
+### 3. **Custom render() utility with providers**
 ✅ **Decision**: Re-export `render` from test-utils
-- **Why**: Kein import-path switching wenn Provider hinzugefügt werden
-- **Future-proof**: RTL + custom providers in einer API
-- **Result**: Tests werden früh auf das richtige Pattern trainiert
+- **Why**: No import-path switching when adding providers
+- **Future-proof**: RTL + custom providers in one API
+- **Result**: Tests learn the right pattern early
 
 ---
 
@@ -210,33 +210,33 @@ global: {
 
 **Status**: ✅ **APPROVED**
 
-**Begründung**:
-- ✅ Alle Acceptance Criteria erfüllt
-- ✅ Code Quality exzellent (0 lint errors, 0 type errors)
-- ✅ 7/7 Sample Tests passing
-- ✅ Dokumentation ist umfassend & hilfreich
-- ✅ Patterns sind wiederverwendbar (gut für zukünftige Tests)
-- ✅ TypeScript/Jest Integration smart gelöst
-- ✅ Struktur folgt Best Practices (TDD-ready)
+**Rationale**:
+- ✅ All acceptance criteria met
+- ✅ Code quality excellent (0 lint errors, 0 type errors)
+- ✅ 7/7 sample tests passing
+- ✅ Documentation is comprehensive & helpful
+- ✅ Patterns are reusable (good for future tests)
+- ✅ TypeScript/Jest integration smartly solved
+- ✅ Structure follows best practices (TDD-ready)
 
-**Kleine Verbesserung** (nicht blockierend):
-- Könnte `jest.d.ts` löschen (redundant mit tsconfig.test.json)
-
----
-
-## 💬 FEEDBACK AN DEVELOPER
-
-Sehr saubere Arbeit! Die Test Infrastructure ist nicht nur funktional, sondern auch **ausgezeichnet vorbereitet für zukünftige Features**:
-
-1. **test-utils.tsx** wird später mit Redux/Context einfach zu erweitern sein
-2. **fixtures/** sind realistische Templates für andere Features
-3. **README.md Dokumentation** spart Team Members später Zeit
-4. **TypeScript-Integration** wurde smart gelöst (nicht gehackt)
-
-Developer:innen werden jetzt Tests schreiben wollen – das ist das Zeichen einer guten Test-Infrastructure! 👍
+**Minor improvement** (not blocking):
+- Could delete `jest.d.ts` (redundant with tsconfig.test.json)
 
 ---
 
-## 🎯 Ready für:
-- ✅ Merge in `main`
-- ✅ Starten mit **USR-104** (Password Hashing) oder **REC-101** (Database Schema)
+## 💬 FEEDBACK FOR DEVELOPER
+
+Very clean work! The test infrastructure is not only functional, but also **excellently prepared for future features**:
+
+1. **test-utils.tsx** will be easy to extend with Redux/Context later
+2. **fixtures/** are realistic templates for other features
+3. **README.md documentation** saves team members time later
+4. **TypeScript integration** was solved smartly (not hacked)
+
+Developers will now want to write tests – that's the sign of good test infrastructure! 👍
+
+---
+
+## 🎯 Ready for:
+- ✅ Merge into `main`
+- ✅ Starting with **USR-104** (Password Hashing) or **REC-101** (Database Schema)

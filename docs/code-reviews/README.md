@@ -1,14 +1,14 @@
 # Code Reviews
 
-Dokumentation aller Ticket Code Reviews während der Projektentwicklung.
+Documentation of all ticket code reviews during project development.
 
 ## Purpose
 
-Jeder Ticket durchläuft einen Code Review bevor er in `main` gemerged wird. Dieses Verzeichnis speichert die Reviews für:
+Every ticket goes through a code review before being merged into `main`. This directory stores reviews for:
 
-- Historisches Verständnis (warum wurde diese Entscheidung getroffen?)
-- Learning Purposes (Patterns die in zukünftigen Reviews helfen)
-- Accountability & Quality Assurance
+- Historical understanding (why was this decision made?)
+- Learning purposes (patterns that help with future reviews)
+- Accountability & quality assurance
 
 ---
 
@@ -17,14 +17,14 @@ Jeder Ticket durchläuft einen Code Review bevor er in `main` gemerged wird. Die
 ### Phase 1: Infrastructure
 
 - [INFRA-102: Next.js Project Structure](INFRA-102-project-structure.md) - ✅ APPROVED
-  - Projektstruktur (app, components, lib, api, types, styles)
-  - TypeScript Konfiguration mit Path Aliases
+  - Project structure (app, components, lib, api, types, styles)
+  - TypeScript configuration with path aliases
   - Status: Merged in main
 
 - [TEST-101: Test Infrastructure Setup](TEST-101-test-infrastructure.md) - ✅ APPROVED
   - Jest + React Testing Library + Cypress
-  - Test Utilities und Sample Tests
-  - Coverage Reporting
+  - Test utilities and sample tests
+  - Coverage reporting
   - Status: Ready to merge
 
 ### Phase 2: Authentication
@@ -41,42 +41,42 @@ Jeder Ticket durchläuft einen Code Review bevor er in `main` gemerged wird. Die
 
 ---
 
-## Review Checklist
+## Review Template
 
-Alle Reviews folgen diesem Template:
+All reviews follow this structure:
 
-- ✅ **Übersicht**: Was, Umfang, Risiko
-- ✅ **SOLID Principles**: Single Responsibility, Open/Closed, Liskov Substitution, Interface Segregation, Dependency Inversion
+- ✅ **Overview**: What, scope, risk
+- ✅ **SOLID Principles**: SRP, OCP, LSP, ISP, DIP
 - ✅ **Clean Code**: DRY, KISS, YAGNI
-- ✅ **Acceptance Criteria**: Erfüllt?
-- ✅ **Code Quality**: Linting, Type-Check, Tests
-- ✅ **Key Decisions**: Warum wurden bestimmte Ansätze gewählt?
-- ✅ **Approval**: Status und Begründung
-- ✅ **Feedback**: Konstruktive Hinweise für Developer
+- ✅ **Acceptance Criteria**: Are they met?
+- ✅ **Code Quality**: Linting, type-check, tests
+- ✅ **Key Decisions**: Why these approaches?
+- ✅ **Approval Status**: Status and rationale
+- ✅ **Feedback**: Constructive notes for developers
 
 ---
 
 ## Review Process
 
-1. **Developer erstellt Ticket-Branch**
-2. **Implementierung & lokale Tests**
-3. **Code Review durchführen**
-4. **Approval oder Feedback**
-5. **Merge in main**
-6. **Review dokumentieren** (diese Datei)
+1. **Developer creates ticket branch**
+2. **Implementation & local testing**
+3. **Code review conducted**
+4. **Approval or feedback**
+5. **Merge into main**
+6. **Document review** (this directory)
 
 ---
 
-## Metrics (wird aktualisiert)
+## Metrics (updated as we go)
 
-- Total Reviews: 2
+- Total reviews: 2
 - Approved: 2
-- Requested Changes: 0
-- Average Review Time: TBD
+- Requested changes: 0
+- Average review time: TBD
 
 ---
 
 ## See Also
 
-- [CLAUDE.md](../CLAUDE.md) - Code Review Process & Criteria
-- [Kanban Board](../roadmap/kanban.md) - Status all Tickets
+- [CLAUDE.md](../CLAUDE.md) - Code review process & criteria
+- [Kanban Board](../roadmap/kanban.md) - Status of all tickets
