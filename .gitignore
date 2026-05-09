@@ -21,6 +21,17 @@ dist/
 build/
 .next/
 out/
+coverage/
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+.data/
+postgres_data/
+
+# Docker
+docker-compose.local.yml
 
 # Logs
 *.log
@@ -30,3 +41,4 @@ yarn-error.log*
 
 # OS
 Thumbs.db
+.DS_Store
