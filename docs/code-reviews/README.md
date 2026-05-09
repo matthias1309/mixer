@@ -29,7 +29,25 @@ Every ticket goes through a code review before being merged into `main`. This di
 
 ### Phase 2: Authentication
 
-*(Future)*
+- [USR-104: Password Hashing & Security](USR-104.md) - ✅ APPROVED
+  - bcryptjs-based password hashing utility
+  - Async API to prevent event loop blocking
+  - 100% test coverage, cost factor 10 for strong security
+  - Status: Merged in main
+
+- [USR-105: JWT Token Management](USR-105.md) - ✅ APPROVED
+  - JWT token generation and verification with 24h expiration
+  - Secret validation (minimum 32 characters required)
+  - Proper error handling (returns null instead of throwing)
+  - 93.75% test coverage (12 tests)
+  - Status: Merged in main
+
+- [USR-106: Auth Middleware & Protected Routes](USR-106.md) - ✅ APPROVED
+  - Middleware for extracting and validating JWT tokens from cookies
+  - Error differentiation: 401 for missing/invalid, 403 for expired tokens
+  - Token forwarding via custom headers (x-user-id, x-user-email)
+  - 100% test coverage, follows Next.js 15 patterns
+  - Status: Merged in main
 
 ### Phase 3: Recipe Management
 
@@ -69,10 +87,10 @@ All reviews follow this structure:
 
 ## Metrics (updated as we go)
 
-- Total reviews: 2
-- Approved: 2
+- Total reviews: 5
+- Approved: 5
 - Requested changes: 0
-- Average review time: TBD
+- Average review time: ~1 hour per ticket
 
 ---
 
