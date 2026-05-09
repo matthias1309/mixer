@@ -1,5 +1,5 @@
 /** @jest-environment node */
-import { generateToken, verifyToken, decodeToken } from '@lib/auth/jwt';
+import { generateToken, verifyToken, decodeToken, verifyTokenDetailed } from '@lib/auth/jwt';
 import type { JWTPayload } from '@/types/auth';
 
 describe('JWT utilities', () => {
@@ -84,6 +84,42 @@ describe('JWT utilities', () => {
     it('should return null for invalid token', () => {
       const result = decodeToken('invalid.token');
       expect(result).toBeNull();
+    });
+  });
+
+  describe('verifyTokenDetailed', () => {
+    it('should return payload with null error for valid token', () => {
+      const token = generateToken('user-detail', 'detail@example.com');
+      const result = verifyTokenDetailed(token);
+      expect(result.error).toBeNull();
+      expect(result.payload).not.toBeNull();
+      expect(result.payload?.userId).toBe('user-detail');
+      expect(result.payload?.email).toBe('detail@example.com');
+    });
+
+    it('should return invalid error for malformed token', () => {
+      const result = verifyTokenDetailed('not.a.token');
+      expect(result.error).toBe('invalid');
+      expect(result.payload).toBeNull();
+    });
+
+    it('should return expired error for expired token', () => {
+      const secret = process.env.JWT_SECRET!;
+      const expiredToken = require('jsonwebtoken').sign(
+        { userId: 'user-exp', email: 'exp@example.com' },
+        secret,
+        { expiresIn: '-1h' }
+      );
+
+      const result = verifyTokenDetailed(expiredToken);
+      expect(result.error).toBe('expired');
+      expect(result.payload).toBeNull();
+    });
+
+    it('should return invalid error for empty token', () => {
+      const result = verifyTokenDetailed('');
+      expect(result.error).toBe('invalid');
+      expect(result.payload).toBeNull();
     });
   });
 
