@@ -3,8 +3,10 @@
     "target": "es2020",
     "useDefineForClassFields": true,
     "lib": ["es2020", "dom", "dom.iterable"],
+    "types": ["jest", "@testing-library/jest-dom", "node"],
     "module": "esnext",
     "skipLibCheck": true,
+    "noImplicitAny": false,
     "strict": true,
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
@@ -29,5 +31,5 @@
     ]
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "**/*.test.ts", "**/*.test.tsx", "**/*.spec.ts", "**/*.spec.tsx", "tests/"]
 }
