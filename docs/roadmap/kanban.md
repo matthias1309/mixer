@@ -2,9 +2,10 @@
 
 **Last Updated**: 2026-05-09  
 **Current Phase**: MVP - Phase 1  
-**Velocity**: TBD (to be calculated after first sprint)  
+**Velocity**: 3 pts completed (will calculate after more tickets done)  
 **Total Tickets**: 32  
 **Total Effort**: ~106 story points  
+**Completed**: 1 / 32 (3 / 106 pts)  
 
 ---
 
@@ -41,8 +42,10 @@
 
 ## 📊 Kanban Board Status
 
+### ✅ Completed (Phase 1 - Infrastructure)
+- [x] [INFRA-102](tickets/INFRA-102-project-structure.md) - Next.js Project Structure (3 pts)
+
 ### 🎯 Ready to Start (Phase 1 - Infrastructure)
-- [ ] [INFRA-102](tickets/INFRA-102-project-structure.md) - Next.js Project Structure (3 pts)
 - [ ] [TEST-101](tickets/TEST-101-test-infrastructure.md) - Test Infrastructure Setup (5 pts)
 
 ### 🔐 Ready (Phase 2 - Authentication)
@@ -137,10 +140,10 @@
 
 | Status | Count | Points |
 |--------|-------|--------|
-| Backlog (Ready) | 32 | 106 |
+| Backlog (Ready) | 31 | 103 |
 | In Progress | 0 | 0 |
 | Under Review | 0 | 0 |
-| Completed | 0 | 0 |
+| Completed | 1 | 3 |
 
 ---
 
