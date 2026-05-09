@@ -61,6 +61,8 @@ mixer/
 │   │   └── future/            # Future feature requirements
 │   ├── roadmap/               # Project planning
 │   │   └── kanban.md
+│   ├── code-reviews/          # Code review reports for each ticket
+│   │   └── [TICKET-ID].md
 │   ├── decisions/             # Architecture Decision Records (ADRs)
 │   └── learnings/             # Code review learnings
 ├── src/
@@ -122,6 +124,11 @@ A feature is complete when:
   - YAGNI (no over-engineering)?
   - Adequate test coverage?
   - Documentation updated?
+- **After approval**: Save review report to `docs/code-reviews/[TICKET-ID].md`
+  - Document strengths, observations, and approval status
+  - Include acceptance criteria checklist
+  - Record key decisions made
+  - This creates project history and learning reference
 
 ### Architecture Decisions
 - Document decisions in Architecture Decision Records (ADRs)
