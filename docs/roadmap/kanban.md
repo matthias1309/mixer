@@ -1,11 +1,11 @@
 # Recipe Manager - Kanban Board & Project Roadmap
 
 **Last Updated**: 2026-05-09  
-**Current Phase**: MVP - Phase 1  
-**Velocity**: 8 pts completed (3 + 5 from first sprint)  
+**Current Phase**: MVP - Phase 2 (Authentication)  
+**Velocity**: 11 pts completed (3 + 5 + 3)  
 **Total Tickets**: 32  
 **Total Effort**: ~106 story points  
-**Completed**: 2 / 32 (8 / 106 pts)  
+**Completed**: 3 / 32 (11 / 106 pts)  
 
 ---
 
@@ -45,9 +45,9 @@
 ### ✅ Completed (Phase 1 - Infrastructure)
 - [x] [INFRA-102](tickets/INFRA-102-project-structure.md) - Next.js Project Structure (3 pts)
 - [x] [TEST-101](tickets/TEST-101-test-infrastructure.md) - Test Infrastructure Setup (5 pts)
+- [x] [USR-104](tickets/USR-104-password-security.md) - Password Hashing & Security (3 pts)
 
 ### 🎯 Ready to Start (Phase 2 - Authentication)
-- [ ] [USR-104](tickets/USR-104-password-security.md) - Password Hashing & Security (3 pts)
 
 ### 🔐 Ready (Phase 2 - Authentication)
 - [ ] [USR-104](tickets/USR-104-password-security.md) - Password Hashing & Security (3 pts)
@@ -141,10 +141,10 @@
 
 | Status | Count | Points |
 |--------|-------|--------|
-| Backlog (Ready) | 30 | 98 |
+| Backlog (Ready) | 29 | 95 |
 | In Progress | 0 | 0 |
 | Under Review | 0 | 0 |
-| Completed | 2 | 8 |
+| Completed | 3 | 11 |
 
 ---
 
