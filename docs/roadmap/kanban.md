@@ -2,10 +2,10 @@
 
 **Last Updated**: 2026-05-09  
 **Current Phase**: MVP - Phase 2 (Authentication)  
-**Velocity**: 11 pts completed (3 + 5 + 3)  
+**Velocity**: 14 pts completed (3 + 5 + 3 + 3)  
 **Total Tickets**: 32  
 **Total Effort**: ~106 story points  
-**Completed**: 3 / 32 (11 / 106 pts)  
+**Completed**: 4 / 32 (14 / 106 pts)  
 
 ---
 
@@ -42,10 +42,11 @@
 
 ## 📊 Kanban Board Status
 
-### ✅ Completed (Phase 1 - Infrastructure)
+### ✅ Completed (Phase 1-2)
 - [x] [INFRA-102](tickets/INFRA-102-project-structure.md) - Next.js Project Structure (3 pts)
 - [x] [TEST-101](tickets/TEST-101-test-infrastructure.md) - Test Infrastructure Setup (5 pts)
 - [x] [USR-104](tickets/USR-104-password-security.md) - Password Hashing & Security (3 pts)
+- [x] [USR-105](tickets/USR-105-jwt-token-management.md) - JWT Token Management (3 pts)
 
 ### 🎯 Ready to Start (Phase 2 - Authentication)
 
@@ -141,10 +142,10 @@
 
 | Status | Count | Points |
 |--------|-------|--------|
-| Backlog (Ready) | 29 | 95 |
+| Backlog (Ready) | 28 | 92 |
 | In Progress | 0 | 0 |
 | Under Review | 0 | 0 |
-| Completed | 3 | 11 |
+| Completed | 4 | 14 |
 
 ---
 
