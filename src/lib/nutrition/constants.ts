@@ -1,5 +1,3 @@
-// src/lib/nutrition/constants.ts
-
 export const NUTRIENT_NAMES = {
   kcal: 'kcal',
   sugar: 'Sugar',
