@@ -18,3 +18,20 @@ export const registerUser = (email: string, password: string): void => {
   cy.get('button[type="submit"]').click();
   cy.url().should('include', '/dashboard');
 };
+
+/**
+ * Login a user and verify result
+ * @param shouldFail - If true, expects error message instead of dashboard redirect
+ */
+export const loginUser = (email: string, password: string, shouldFail = false): void => {
+  cy.visit('http://localhost:3000/login');
+  cy.get('input[type="email"]').type(email);
+  cy.get('input[type="password"]').type(password);
+  cy.get('button[type="submit"]').click();
+
+  if (shouldFail) {
+    cy.contains('Invalid email or password').should('be.visible');
+  } else {
+    cy.url().should('include', '/dashboard');
+  }
+};
