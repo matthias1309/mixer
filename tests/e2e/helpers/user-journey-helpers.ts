@@ -35,3 +35,43 @@ export const loginUser = (email: string, password: string, shouldFail = false): 
     cy.url().should('include', '/dashboard');
   }
 };
+
+/**
+ * Create a new recipe and verify successful creation
+ * Extracts and returns the recipe ID from the URL
+ */
+export const createRecipe = (data: RecipeData): number => {
+  cy.contains('Create Recipe').click();
+  cy.url().should('include', '/recipes/new');
+
+  // Fill recipe form
+  cy.get('input').first().type(data.name);
+  cy.get('textarea').first().type(data.description);
+  cy.get('textarea').eq(1).type(data.instructions);
+  cy.get('input[type="number"]').first().clear().type(data.servings.toString());
+
+  // Add ingredients
+  data.ingredients.forEach((ingredient) => {
+    cy.contains('Add Ingredient').click();
+    cy.get('input[placeholder="Ingredient name"]').last().type(ingredient.name);
+    cy.get('input[placeholder="Qty"]').last().type(ingredient.quantity.toString());
+  });
+
+  // Submit form
+  cy.contains('Create Recipe').click();
+
+  // Verify on recipe detail page and extract recipe ID
+  cy.url().should('match', /\/recipes\/\d+$/);
+  cy.contains(data.name).should('be.visible');
+
+  // Extract recipe ID from URL
+  let recipeId = 0;
+  cy.url().then((url) => {
+    const match = url.match(/\/recipes\/(\d+)$/);
+    if (match) {
+      recipeId = parseInt(match[1], 10);
+    }
+  });
+
+  return recipeId;
+};
