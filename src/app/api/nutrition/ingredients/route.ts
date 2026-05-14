@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getDatabase } from '@/lib/db/client';
+import { getDatabase } from '@/lib/db/init';
 
 export async function GET(request: NextRequest) {
   try {
-    const db = await getDatabase();
+    const db = getDatabase();
 
-    const ingredients = await db.all(
+    const ingredients = db.prepare(
       'SELECT * FROM ingredients ORDER BY category, name'
-    );
+    ).all();
 
     return NextResponse.json({
       status: 200,

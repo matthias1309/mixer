@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyAuth } from '@/lib/auth/middleware';
-import { getDatabase } from '@/lib/db/client';
+import { getDatabase } from '@/lib/db/init';
 import { calculateRecipeNutrients } from '@/lib/nutrition/calculator';
 import { NUTRIENT_KEYS } from '@/lib/nutrition/types';
 
@@ -25,25 +25,23 @@ export async function POST(
       );
     }
 
-    const db = await getDatabase();
+    const db = getDatabase();
 
     // Fetch recipe and verify ownership
-    const recipe = await db.get(
-      'SELECT * FROM recipes WHERE id = ? AND creator_id = ?',
-      [recipeId, user.id]
-    );
+    const recipe = db.prepare(
+      'SELECT * FROM recipes WHERE id = ? AND creator_id = ?'
+    ).get(recipeId, user.id) as any;
 
     if (!recipe) {
       return NextResponse.json({ error: 'Recipe not found' }, { status: 404 });
     }
 
     // Fetch recipe ingredients
-    const recipeIngredients = await db.all(
+    const recipeIngredients = db.prepare(
       `SELECT id, recipe_id, ingredient_id, amount, unit, calculated_base_amount
        FROM recipe_ingredients
-       WHERE recipe_id = ?`,
-      [recipeId]
-    );
+       WHERE recipe_id = ?`
+    ).all(recipeId) as any[];
 
     if (recipeIngredients.length === 0) {
       return NextResponse.json(
@@ -54,12 +52,11 @@ export async function POST(
 
     // Fetch ingredient details
     const ingredientMap: Record<number, any> = {};
+    const ingredientStmt = db.prepare('SELECT * FROM ingredients WHERE id = ?');
+    
     for (const ing of recipeIngredients) {
       if (!ingredientMap[ing.ingredient_id]) {
-        const ingredient = await db.get(
-          'SELECT * FROM ingredients WHERE id = ?',
-          [ing.ingredient_id]
-        );
+        const ingredient = ingredientStmt.get(ing.ingredient_id) as any;
         ingredientMap[ing.ingredient_id] = ingredient;
       }
     }
@@ -71,39 +68,48 @@ export async function POST(
       portions
     );
 
-    // Prepare update/insert values for all 14 nutrients
-    const nutrientColumns = NUTRIENT_KEYS.map(key => `total_${key}, per_portion_${key}`).join(', ');
-    const nutrientValues = NUTRIENT_KEYS.flatMap(key => [
-      nutrients.total[key as keyof typeof nutrients.total],
-      nutrients.per_portion[key as keyof typeof nutrients.per_portion],
-    ]);
-
     // Store/update in database
-    const existing = await db.get(
-      'SELECT id FROM recipe_nutrients WHERE recipe_id = ?',
-      [recipeId]
-    );
+    const existing = db.prepare(
+      'SELECT id FROM recipe_nutrients WHERE recipe_id = ?'
+    ).get(recipeId) as any;
 
     if (existing) {
-      const updateSet = NUTRIENT_KEYS.flatMap(key => 
+      const updateClauses = NUTRIENT_KEYS.flatMap(key => 
         [`total_${key} = ?`, `per_portion_${key} = ?`]
       ).join(', ');
 
-      await db.run(
+      const values = NUTRIENT_KEYS.flatMap(key => [
+        nutrients.total[key as keyof typeof nutrients.total],
+        nutrients.per_portion[key as keyof typeof nutrients.per_portion],
+      ]);
+
+      db.prepare(
         `UPDATE recipe_nutrients SET
-          portions = ?, ${updateSet}, last_calculated = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
-         WHERE recipe_id = ?`,
-        [...[portions], ...nutrientValues, recipeId]
-      );
+          portions = ?, ${updateClauses}, last_calculated = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
+         WHERE recipe_id = ?`
+      ).run(portions, ...values, recipeId);
     } else {
-      const columns = ['recipe_id', 'portions', ...NUTRIENT_KEYS.flatMap(key => [`total_${key}`, `per_portion_${key}`]), 'last_calculated'];
+      const columns = [
+        'recipe_id', 'portions',
+        ...NUTRIENT_KEYS.flatMap(key => [`total_${key}`, `per_portion_${key}`]),
+        'last_calculated'
+      ];
       const placeholders = Array(columns.length).fill('?').join(', ');
 
-      await db.run(
+      const values = [
+        recipeId,
+        portions,
+        ...NUTRIENT_KEYS.flatMap(key => [
+          nutrients.total[key as keyof typeof nutrients.total],
+          nutrients.per_portion[key as keyof typeof nutrients.per_portion],
+        ]),
+        new Date().toISOString(),
+      ];
+
+      db.prepare(
         `INSERT INTO recipe_nutrients (${columns.join(', ')})
-         VALUES (${placeholders})`,
-        [recipeId, portions, ...nutrientValues, new Date().toISOString()]
-      );
+         VALUES (${placeholders})`
+      ).run(...values);
     }
 
     return NextResponse.json({ status: 200, data: nutrients });
