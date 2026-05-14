@@ -68,3 +68,61 @@ describe('User Journey - Login Errors', () => {
     journeyHelpers.loginUser('nonexistent@example.com', 'SomePassword123', true);
   });
 });
+
+describe('User Journey - Recipe Validation', () => {
+  beforeEach(() => {
+    const testEmail = `user-validation-${Date.now()}@example.com`;
+    const testPassword = 'SecurePassword123';
+    journeyHelpers.registerUser(testEmail, testPassword);
+  });
+
+  it('should show error for empty recipe name', () => {
+    cy.contains('Create Recipe').click();
+    cy.url().should('include', '/recipes/new');
+
+    // Leave name empty, fill other fields
+    cy.get('textarea').first().type('A test recipe');
+    cy.get('textarea').eq(1).type('1. Mix\n2. Cook\n3. Serve');
+    cy.get('input[type="number"]').first().clear().type('2');
+    cy.contains('Add Ingredient').click();
+    cy.get('input[placeholder="Ingredient name"]').type('Tomato');
+    cy.get('input[placeholder="Qty"]').type('2');
+
+    // Try to submit without name
+    cy.contains('Create Recipe').click();
+    cy.contains(/name|required/i).should('be.visible');
+  });
+
+  it('should show error for invalid servings', () => {
+    cy.contains('Create Recipe').click();
+    cy.url().should('include', '/recipes/new');
+
+    // Fill form but set invalid servings
+    cy.get('input').first().type('Test Recipe');
+    cy.get('textarea').first().type('A test recipe');
+    cy.get('textarea').eq(1).type('1. Mix\n2. Cook\n3. Serve');
+    cy.get('input[type="number"]').first().clear().type('0');
+    cy.contains('Add Ingredient').click();
+    cy.get('input[placeholder="Ingredient name"]').type('Tomato');
+    cy.get('input[placeholder="Qty"]').type('2');
+
+    // Try to submit with invalid servings
+    cy.contains('Create Recipe').click();
+    cy.contains(/servings|greater|valid/i).should('be.visible');
+  });
+
+  it('should show error for recipe without ingredients', () => {
+    cy.contains('Create Recipe').click();
+    cy.url().should('include', '/recipes/new');
+
+    // Fill form but don't add ingredients
+    cy.get('input').first().type('Test Recipe');
+    cy.get('textarea').first().type('A test recipe');
+    cy.get('textarea').eq(1).type('1. Mix\n2. Cook\n3. Serve');
+    cy.get('input[type="number"]').first().clear().type('2');
+
+    // Try to submit without ingredients
+    cy.contains('Create Recipe').click();
+    cy.contains(/ingredient|require/i).should('be.visible');
+  });
+});
