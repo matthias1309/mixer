@@ -238,6 +238,10 @@ export const CONVERSION_SEEDS = [
   { ingredient_name: 'Milch (Vollmilch)', unit: 'Tasse', amount_in_base_unit: 240 },
 ];
 
+/**
+ * Seed ingredients table with nutritional data
+ * @param db - Database instance
+ */
 export async function seedIngredients(db: any) {
   const existingCount = await db.get(
     'SELECT COUNT(*) as count FROM ingredients'
@@ -283,6 +287,10 @@ export async function seedIngredients(db: any) {
   console.log(`✓ Seeded ${INGREDIENT_SEEDS.length} ingredients`);
 }
 
+/**
+ * Seed ingredient conversions table with unit conversion data
+ * @param db - Database instance
+ */
 export async function seedConversions(db: any) {
   const existingCount = await db.get(
     'SELECT COUNT(*) as count FROM ingredient_conversions'

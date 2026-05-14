@@ -14,6 +14,14 @@ const DEFAULT_CONVERSIONS: Record<string, Record<string, number>> = {
   'Milch (Vollmilch)': { 'ml': 1 },
 };
 
+/**
+ * Convert amount from any unit to base amount (in grams/ml)
+ * @param amount - Quantity of the ingredient
+ * @param unit - Unit of measurement
+ * @param ingredient - Ingredient data with base unit and size
+ * @returns Amount in base unit (grams or ml)
+ * @throws Error if unit is unknown
+ */
 export function convertToBaseAmount(
   amount: number,
   unit: string,
@@ -35,6 +43,13 @@ export function convertToBaseAmount(
   );
 }
 
+/**
+ * Calculate per-portion value from total
+ * @param totalValue - Total nutrient value
+ * @param portions - Number of portions
+ * @returns Per-portion value rounded to 2 decimals
+ * @throws Error if portions <= 0
+ */
 export function calculatePerPortion(
   totalValue: number,
   portions: number
@@ -43,6 +58,11 @@ export function calculatePerPortion(
   return parseFloat((totalValue / portions).toFixed(2));
 }
 
+/**
+ * Normalize nutrient value to 2 decimal places, treating null as 0
+ * @param value - Nutrient value or null
+ * @returns Normalized numeric value with 2 decimals
+ */
 export function normalizeNutrientValue(value: number | null): number {
   return value === null ? 0 : parseFloat(value.toFixed(2));
 }

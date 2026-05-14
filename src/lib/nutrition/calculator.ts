@@ -1,6 +1,14 @@
 import { RecipeIngredient, Ingredient, Nutrients, RecipeNutrients, NUTRIENT_KEYS } from './types';
 import { normalizeNutrientValue } from './conversions';
 
+/**
+ * Calculate total and per-portion nutrients for a recipe
+ * @param recipeIngredients - Array of recipe ingredients with amounts
+ * @param ingredientMap - Map of ingredient IDs to ingredient data
+ * @param portions - Number of portions for the recipe
+ * @returns RecipeNutrients with total and per-portion calculations
+ * @throws Error if portions <= 0
+ */
 export function calculateRecipeNutrients(
   recipeIngredients: RecipeIngredient[],
   ingredientMap: Record<number, Ingredient>,
