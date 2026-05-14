@@ -58,7 +58,7 @@ export async function authMiddlewareWithRefresh(request: NextRequest) {
   };
 }
 
-export function setTokenCookie(response: NextResponse, token: string) {
+export function setTokenCookie<T>(response: NextResponse<T>, token: string): NextResponse<T> {
   response.cookies.set('sessionToken', token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
@@ -70,7 +70,7 @@ export function setTokenCookie(response: NextResponse, token: string) {
   return response;
 }
 
-export function clearTokenCookie(response: NextResponse) {
+export function clearTokenCookie<T>(response: NextResponse<T>): NextResponse<T> {
   response.cookies.set('sessionToken', '', {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',

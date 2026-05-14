@@ -31,11 +31,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   async function checkAuth() {
     try {
-      // Try to fetch user info from an endpoint or check cookie
-      // For now, assume if we get here, user might be logged in
-      // Cookie is automatically sent with requests
-      setIsLoading(false);
+      const response = await fetch('/api/auth/me', {
+        method: 'GET',
+        credentials: 'include',
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setUser(data.user);
+      } else {
+        setUser(null);
+      }
     } catch (err) {
+      console.error('Auth check failed:', err);
+      setUser(null);
+    } finally {
       setIsLoading(false);
     }
   }
@@ -44,7 +54,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setError(null);
     setIsLoading(true);
     try {
-      const { data, error: apiError } = await apiCall('/auth/login', {
+      const { data, error: apiError } = await apiCall<{ user: User }>('/auth/login', {
         method: 'POST',
         body: JSON.stringify({ email, password }),
       });
@@ -54,7 +64,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         throw new Error(apiError);
       }
 
-      setUser(data?.user);
+      setUser(data?.user || null);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed');
       throw err;
@@ -67,7 +77,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setError(null);
     setIsLoading(true);
     try {
-      const { data, error: apiError } = await apiCall('/auth/register', {
+      const { data, error: apiError } = await apiCall<{ user: User }>('/auth/register', {
         method: 'POST',
         body: JSON.stringify({ email, password }),
       });
@@ -77,7 +87,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         throw new Error(apiError);
       }
 
-      setUser(data?.user);
+      setUser(data?.user || null);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Registration failed');
       throw err;

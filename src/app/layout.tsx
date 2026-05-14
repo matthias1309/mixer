@@ -1,13 +1,10 @@
+'use client';
+
 import type { Metadata } from 'next';
 import { AuthProvider } from '../contexts/AuthContext';
 import { FilterProvider } from '../contexts/FilterContext';
 import { Navigation } from '../components/Navigation';
 import '../styles/globals.css';
-
-export const metadata: Metadata = {
-  title: 'Recipe Manager',
-  description: 'Community recipe management with ingredient filtering',
-};
 
 export default function RootLayout({
   children,

@@ -15,7 +15,11 @@ export async function apiCall<T>(
     const data: T = await response.json();
 
     if (!response.ok) {
-      return { error: data.error || 'Request failed', status: response.status };
+      const errorMessage =
+        typeof data === 'object' && data !== null && 'error' in data
+          ? (data as any).error
+          : 'Request failed';
+      return { error: errorMessage, status: response.status };
     }
 
     return { data, status: response.status };
