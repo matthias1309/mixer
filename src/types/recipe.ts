@@ -1,5 +1,7 @@
 // Recipe types
 
+import { RecipeNutrients } from '@/lib/nutrition/types';
+
 export interface Ingredient {
   id: number;
   recipe_id: number;
@@ -25,6 +27,8 @@ export interface Recipe {
   is_duplicate: boolean;
   created_at: string;
   updated_at: string;
+  // Include nutrients in recipe
+  nutrients?: RecipeNutrients;
 }
 
 export interface RecipeWithIngredients extends Recipe {
