@@ -18,4 +18,30 @@ describe('POST /api/auth/logout', () => {
     expect(cookieHeader).toContain('sessionToken=');
     expect(cookieHeader).toContain('Max-Age=0');
   });
+
+  test('should include logged out message in response body', async () => {
+    const request = new NextRequest('http://localhost:3000/api/auth/logout', {
+      method: 'POST',
+    });
+
+    const response = await POST(request);
+    const data = await response.json();
+
+    expect(data.message).toBe('Logged out successfully');
+    expect(data).toHaveProperty('message');
+    expect(data.error).toBeUndefined();
+  });
+
+  test('should set secure httpOnly cookie with HttpOnly and Strict flags', async () => {
+    const request = new NextRequest('http://localhost:3000/api/auth/logout', {
+      method: 'POST',
+    });
+
+    const response = await POST(request);
+
+    const cookieHeader = response.headers.get('set-cookie');
+    expect(cookieHeader).toContain('sessionToken');
+    expect(cookieHeader).toContain('HttpOnly');
+    expect(cookieHeader).toContain('SameSite=strict');
+  });
 });

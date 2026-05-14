@@ -69,3 +69,15 @@ export function setTokenCookie(response: NextResponse, token: string) {
 
   return response;
 }
+
+export function clearTokenCookie(response: NextResponse) {
+  response.cookies.set('sessionToken', '', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
+    maxAge: 0,
+    path: '/',
+  });
+
+  return response;
+}

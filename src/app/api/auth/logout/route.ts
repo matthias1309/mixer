@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { clearTokenCookie } from '../../../../lib/auth/middleware';
 
 // POST /api/auth/logout
 export async function POST(request: NextRequest) {
@@ -8,17 +9,10 @@ export async function POST(request: NextRequest) {
       { status: 200 }
     );
 
-    // Clear the session token cookie
-    response.cookies.set('sessionToken', '', {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 0, // Expire immediately
-      path: '/',
-    });
+    clearTokenCookie(response);
 
     return response;
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Logout error:', error);
     return NextResponse.json(
       { error: 'Logout failed' },
