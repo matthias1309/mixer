@@ -210,7 +210,16 @@ A single Next.js application that handles both frontend and backend. This is cho
 │  │     Next.js API Routes (Backend)     │  │
 │  │  - /api/auth/* (login, register)     │  │
 │  │  - /api/recipes/* (CRUD operations)  │  │
+│  │  - /api/recipes/:id/calculate (NEW)  │  │
+│  │  - /api/nutrition/* (ingredients)    │  │
 │  │  - /api/users/* (user profile)       │  │
+│  └──────────────────────────────────────┘  │
+│                                             │
+│  ┌──────────────────────────────────────┐  │
+│  │    Business Logic & Calculations     │  │
+│  │  - Nutrition engine (calculator)     │  │
+│  │  - Unit conversions                  │  │
+│  │  - Ingredient management             │  │
 │  └──────────────────────────────────────┘  │
 │                                             │
 │  ┌──────────────────────────────────────┐  │
@@ -256,7 +265,12 @@ src/
 │   ├── recipes/
 │   │   ├── route.ts         # GET (list), POST (create)
 │   │   └── [id]/
-│   │       └── route.ts     # GET, PUT, DELETE
+│   │       ├── route.ts     # GET, PUT, DELETE
+│   │       └── calculate/
+│   │           └── route.ts # POST - Calculate nutrients
+│   ├── nutrition/
+│   │   └── ingredients/
+│   │       └── route.ts     # GET - List all ingredients
 │   └── users/
 │       └── profile.ts
 │
@@ -282,13 +296,19 @@ src/
 │   │   ├── client.ts        # API client helper
 │   │   └── endpoints.ts     # API routes
 │   ├── db/
-│   │   ├── client.ts        # Database connection
-│   │   ├── queries.ts       # Database queries
-│   │   └── migrations.ts    # Schema migrations
+│   │   ├── init.ts          # Database initialization
+│   │   ├── migrations/      # SQL migrations
+│   │   ├── seeds/           # Seed data (ingredients)
+│   │   └── models/          # Data models
 │   ├── auth/
 │   │   ├── jwt.ts           # JWT utilities
 │   │   ├── password.ts      # Password hashing
 │   │   └── middleware.ts    # Auth middleware
+│   ├── nutrition/           # NEW: Nutrition module
+│   │   ├── types.ts         # Ingredient, Nutrients, RecipeNutrients types
+│   │   ├── constants.ts     # Nutrient names, units
+│   │   ├── calculator.ts    # Core calculation engine
+│   │   └── conversions.ts   # Unit conversion utilities
 │   └── utils/
 │       ├── validation.ts
 │       ├── helpers.ts
@@ -352,6 +372,35 @@ User                Browser              Server              Database
   │                   │◀──200 + JSON array─│                    │
   │                   │─Render recipe list│                    │
   │◀──Show results────│                    │                    │
+```
+
+### 6.3 Nutrient Calculation Flow (NEW)
+
+```
+User              Browser              Server                      Database
+  │                 │                    │                            │
+  ├──Open recipe───▶│                    │                            │
+  │                 │─POST /api/recipes/[id]/calculate──▶             │
+  │                 │       { portions: 2 }              │             │
+  │                 │       [JWT token]  │─Verify JWT   │             │
+  │                 │                    │─Fetch recipe ingredients ──▶
+  │                 │                    │◀─recipe_ingredients       │
+  │                 │                    │─Fetch ingredient data ────▶
+  │                 │                    │◀─ingredient records      │
+  │                 │                    │                            │
+  │                 │                    │ calculateRecipeNutrients() │
+  │                 │                    │ - Iterate ingredients     │
+  │                 │                    │ - Apply conversions       │
+  │                 │                    │ - Sum all 14 nutrients    │
+  │                 │                    │ - Calculate per-portion   │
+  │                 │                    │                            │
+  │                 │                    │─Store in recipe_nutrients─▶
+  │                 │◀─200 + nutrients──│◀─Success                 │
+  │                 │ {total_kcal: 500, │                            │
+  │                 │  per_portion_kcal:250│                          │
+  │                 │  total_protein: 20 │                            │
+  │                 │  ...}              │                            │
+  │◀─Display nutrition──│                    │                            │
 ```
 
 ---
@@ -535,7 +584,57 @@ The application uses stateless JWT-based authentication implemented in two layer
 - Visual regressions (future)
 - Location: `tests/e2e/`
 
-### 8.5 Logging and Monitoring
+### 8.5 Nutrition Calculation Architecture (NEW)
+
+**Design Pattern**: Database-driven ingredient management with server-side on-demand calculation
+
+**Components**:
+
+1. **Data Layer** (`src/db/migrations/001_create_nutrition_tables.sql`):
+   - `ingredients`: ~300 pre-seeded ingredients with nutrient data per 100g standard
+   - `ingredient_conversions`: Unit conversions (grams, pieces, tablespoons, etc.)
+   - `recipe_ingredients`: Join table linking recipes to ingredients with amounts
+   - `recipe_nutrients`: Cached calculation results (total + per-portion for all 14 nutrients)
+
+2. **Type System** (`src/lib/nutrition/types.ts`):
+   - `Ingredient`: Database record with 14 nutrient fields (kcal, protein, fat, etc.)
+   - `Nutrients`: Map of all 14 nutrient values (kcal, sugar, fat, protein, carbohydrates, fiber, sodium, calcium, vitamin_d, magnesium, vitamin_b6, vitamin_b12, vitamin_e, zinc)
+   - `RecipeNutrients`: Calculation result with total and per-portion values
+
+3. **Calculation Engine** (`src/lib/nutrition/calculator.ts`):
+   - `calculateRecipeNutrients()`: Core algorithm
+   - For each recipe ingredient: `(baseAmount / ingredient.base_size) * nutrientValue`
+   - Handles missing data (null → 0)
+   - Normalizes all results to 2 decimal places
+   - Per-portion = total / portions
+
+4. **Unit Conversions** (`src/lib/nutrition/conversions.ts`):
+   - Predefined conversion factors (grams → base unit multiplier)
+   - Supports: grams, pieces (Stück), tablespoons (EL), teaspoons (TL), cups, etc.
+   - Formula: `amount * multiplier * ingredient.base_size = baseAmount in grams`
+   - Error handling for unknown units
+
+**API Design**:
+- `GET /api/nutrition/ingredients`: List all ingredients with nutrient data
+- `POST /api/recipes/:id/calculate-nutrients`: Trigger calculation for a recipe
+  - Request: `{ portions: number }`
+  - Response: `RecipeNutrients` with total and per-portion calculations
+  - Stores result in `recipe_nutrients` table for caching
+
+**Performance Considerations**:
+- Calculation is on-demand (not background job)
+- Results cached in `recipe_nutrients` table
+- Single DB call per ingredient (N+1 risk mitigated with prepared statement reuse)
+- No external APIs (all data local)
+- Suitable for MVP scope (future: consider worker threads for heavy calculation)
+
+**Future Enhancements**:
+- Nutrition-based recipe filtering (find recipes matching calorie/macro targets)
+- Meal planning with nutritional summaries
+- Shopping list with nutritional totals
+- User-defined custom ingredients with nutritional data
+
+### 8.6 Logging and Monitoring
 
 **Logging**:
 - Console logs for development
@@ -642,8 +741,16 @@ See `docs/decisions/` for Architecture Decision Records (ADRs).
 
 ## Document Information
 
-- **Version**: 1.0
-- **Last Updated**: 2026-05-09
+- **Version**: 1.1
+- **Last Updated**: 2026-05-14
 - **Status**: Active
 - **Review Frequency**: Quarterly or after major architecture changes
-- **Next Review**: 2026-08-09
+- **Next Review**: 2026-08-14
+
+## Recent Changes (v1.1)
+
+- Added Nutrition Module architecture (Section 5, 6.3, 8.5)
+- Documented ingredient database with pre-seeded data (~300 ingredients)
+- Added nutrient calculation flow and API design
+- Included unit conversion system and type definitions
+- Updated building block view with nutrition components
