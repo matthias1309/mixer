@@ -1,5 +1,5 @@
 import { getDatabase } from '../init';
-import { Recipe, RecipeListItem, CreateIngredientRequest, Ingredient } from '../../types';
+import { Recipe, RecipeListItem, CreateIngredientRequest, Ingredient } from '@/types';
 
 export class RecipeModel {
   static create(

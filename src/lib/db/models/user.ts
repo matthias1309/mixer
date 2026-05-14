@@ -1,5 +1,5 @@
 import { getDatabase } from '../init';
-import { User, UserPublic } from '../../types';
+import { User, UserPublic } from '@/types';
 
 export class UserModel {
   static create(email: string, passwordHash: string): User {

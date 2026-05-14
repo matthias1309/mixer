@@ -29,7 +29,7 @@ export function authMiddleware(req: NextRequest): NextResponse {
   }
 
   const requestHeaders = new Headers(req.headers);
-  requestHeaders.set('x-user-id', result.payload!.userId);
+  requestHeaders.set('x-user-id', result.payload!.sub);
   requestHeaders.set('x-user-email', result.payload!.email);
 
   return NextResponse.next({ request: { headers: requestHeaders } });

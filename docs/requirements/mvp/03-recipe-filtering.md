@@ -33,12 +33,13 @@
 
 - **Description**: Users should be able to track which ingredients they have available
 - **Acceptance Criteria**:
-  - User sees a list of all unique ingredients from their recipes
+  - User sees a list of all unique ingredients from ALL recipes (all users)
   - User can toggle ingredients as "available" or "not available"
   - Selected ingredients are visually distinguished (checked, highlighted)
-  - Ingredient list is easy to scan (sorted alphabetically)
+  - Ingredient list is easy to scan (sorted alphabetically, case-insensitive)
   - User can see which ingredients are currently selected
   - Selection state is remembered during the current session
+  - Ingredient names are normalized: whitespace trimmed, single spaces, case-insensitive matching
 
 ### FR-302: Recipe Filtering by Ingredients
 
@@ -46,13 +47,15 @@
 - **Acceptance Criteria**:
   - When user selects ingredients, recipe list updates in real-time
   - Recipes are shown ONLY if they contain ALL selected ingredients
+  - Filters across ALL recipes (from all users), not just user's own recipes
   - If no recipes match, user sees helpful message: "No recipes found with these ingredients"
   - Filter works correctly with:
     - 1 ingredient selected
     - Multiple ingredients selected
     - All ingredients selected
   - Recipe count updates to show number of matching recipes
-  - Performance: filtering < 500ms even with many recipes
+  - Performance: filtering < 500ms even with many recipes (100+ recipes, 200+ ingredients)
+  - Ingredient matching is case-insensitive and whitespace-normalized
 
 ### FR-303: Filter UI Component
 
@@ -131,6 +134,24 @@
 - **Requirement**: Filter should work smoothly on mobile devices
 - **Measurement**: Test on various screen sizes
 - **Target**: No layout issues, responsive design, touch-friendly
+
+### NFR-406: Security - XSS Protection
+
+- **Requirement**: Filter input must be protected against Cross-Site Scripting (XSS) attacks
+- **Measurement**: Code review, security testing
+- **Target**: All ingredient filter input is properly escaped before display
+
+### NFR-407: Security - SQL Injection Protection
+
+- **Requirement**: Database filter queries must be protected against SQL injection
+- **Measurement**: Code review, use of parameterized queries
+- **Target**: 100% of filter queries use parameterized queries or ORM protection, no string concatenation
+
+### NFR-408: Security - HTTPS/Encryption in Transit
+
+- **Requirement**: All filter data must be encrypted in transit
+- **Measurement**: TLS/SSL configuration review
+- **Target**: All filter endpoints use HTTPS only, secure flag on cookies
 
 ---
 
@@ -271,18 +292,26 @@
 - Search logic (if implemented)
 
 **Integration Tests**:
-- GET /api/recipes/ingredients: returns unique ingredient list
-- GET /api/recipes?ingredients=x,y,z: returns filtered recipes
-- Edge case: no recipes match
-- Edge case: all recipes match
-- Edge case: only 1 recipe
-- Performance test: large recipe collection (100+ recipes)
+- GET /api/recipes/ingredients: returns unique ingredient list from all recipes (case-insensitive, whitespace-normalized)
+- GET /api/recipes?ingredients=x,y,z: returns filtered recipes where all ingredients are present
+- Edge case: no recipes match → empty result
+- Edge case: all recipes match → all recipes returned
+- Edge case: only 1 recipe → correct filtering
+- Edge case: ingredient with different case (Tomato vs tomato) → matches correctly
+- Edge case: ingredient with extra whitespace (olive  oil vs olive oil) → matches correctly
+- Performance test: large recipe collection (100+ recipes, 200+ ingredients) → <500ms
+- XSS protection: ingredient names with HTML → properly escaped
+- SQL injection: special characters in filter parameters → no SQL injection vulnerability
+- Concurrent filtering: multiple users filter simultaneously → results consistent
 
 **E2E Tests** (Cypress):
-- Complete filter flow: open app → see ingredients → select 2 ingredients → see filtered recipes
-- No match: select ingredients → no recipes found → clear filter → recipes reappear
+- Complete filter flow: open app → see ingredients from all recipes → select 2 ingredients → see filtered recipes
+- No match: select ingredients that don't exist together → no recipes found → clear filter → recipes reappear
 - Detail and back: select ingredients → click recipe → view detail → back → filter still active
-- Mobile: filter works on mobile screen size
+- Case-insensitive: select "tomato" → matches "Tomato", "TOMATO", "tomato" correctly
+- Whitespace handling: "olive  oil" (double space) matches "olive oil" (single space)
+- Concurrent users: user1 filters while user2 creates new recipe → filter includes new recipe immediately
+- Mobile: filter works on mobile screen size (responsive, touch-friendly)
 
 **Test Coverage Target**: 80%+ for filtering code
 
@@ -332,6 +361,12 @@
 - Q: Should ingredient whitespace be normalized? A: Yes (trim, single spaces)
 - Q: Should we support partial ingredient matches? A: No, exact match for MVP
 - Q: What if recipe has "olive oil" and user selects "oil"? A: Won't match (exact match)
+- Q: Whose recipes are filtered? A: All recipes from all users (community model)
+- Q: Whose ingredients are shown in filter? A: All unique ingredients from all recipes
+- Decision: Filter ingredients come from ALL recipes (not just user's own)
+- Decision: Ingredient matching is case-insensitive and whitespace-normalized
+- Decision: Filter includes recipes from all users (community-based filtering)
 - Future enhancement: Ingredient aliases (oil = olive oil, butter = margarine, etc.)
+- Future enhancement: Search within ingredient list
 - Note: Shopping list generation is separate feature that could build on filter
 - Note: Nutrient-based filtering (Phase 2) will be separate implementation

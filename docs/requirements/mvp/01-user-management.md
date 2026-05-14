@@ -55,6 +55,8 @@
   - User is redirected to dashboard after login
   - Login state persists across page refreshes
   - User can log out
+  - Token is automatically refreshed on each request (as long as user is active)
+  - If user is inactive for 1 hour, token expires and user must log in again
 
 ### FR-103: User Logout
 
@@ -102,9 +104,11 @@
 - **Requirement**: JWT tokens must be secure and properly validated
 - **Measurement**: Token validation tests, security review
 - **Target**: 
-  - Token expiration: 24 hours
+  - Token is automatically refreshed on each active request (sliding window)
+  - Token expires after 1 hour of inactivity
   - Stored in httpOnly, secure cookies
   - Verified on every protected request
+  - Token cannot be accessed via JavaScript (httpOnly flag prevents this)
 
 ### NFR-203: Performance - Authentication Response Time
 
@@ -123,6 +127,24 @@
 - **Requirement**: Passwords should never be transmitted or logged in plain text
 - **Measurement**: Code review, log inspection
 - **Target**: 100% - zero instances of plain text passwords
+
+### NFR-206: Security - XSS Protection
+
+- **Requirement**: User input must be protected against Cross-Site Scripting (XSS) attacks
+- **Measurement**: Code review, security testing
+- **Target**: All user input (email, password) is properly escaped/sanitized before output
+
+### NFR-207: Security - SQL Injection Protection
+
+- **Requirement**: Database queries must be protected against SQL injection
+- **Measurement**: Code review, use of parameterized queries
+- **Target**: 100% of database queries use parameterized queries or ORM protection, no string concatenation
+
+### NFR-208: Security - HTTPS/Encryption in Transit
+
+- **Requirement**: All communication must be encrypted in transit
+- **Measurement**: TLS/SSL configuration review
+- **Target**: All authentication endpoints (login, register, logout) use HTTPS only, secure flag on cookies
 
 ---
 
@@ -271,9 +293,13 @@
 - Registration endpoint: password hashing → token issued
 - Login endpoint: valid credentials → JWT issued
 - Login endpoint: invalid credentials → error
-- Login endpoint: expired token → 401
+- Login endpoint: token refresh → token renewed on active request
+- Login endpoint: token expiration → 401 after 1h inactivity
 - Protected endpoints without token → 401
 - Protected endpoints with valid token → access granted
+- Token refresh: concurrent requests → token refreshed correctly (no race condition)
+- XSS protection: HTML in email → properly escaped
+- SQL injection: special characters in email/password → no SQL injection
 
 **E2E Tests** (Cypress):
 - Complete registration: form → submission → logged in → dashboard
@@ -325,7 +351,11 @@
 ## 12. Notes and Open Questions
 
 - Q: Should we implement "Remember Me" checkbox? A: Not in MVP
-- Q: What's the token expiration duration? A: 24 hours for MVP
+- Q: What's the token expiration duration? A: 1 hour inactivity timeout with automatic refresh on each request (sliding window)
 - Q: Should we support multiple concurrent sessions? A: Single session for MVP
 - Decision: httpOnly cookies are more secure than localStorage for JWT
+- Decision: Token refresh on each request (sliding window) to keep users logged in during active sessions
+- Decision: Whitespace in email/ingredient inputs will be normalized (trim, single spaces)
 - Note: Password reset will require email integration (future phase)
+- Note: All user input will be escaped to prevent XSS attacks
+- Note: All database queries will use parameterized queries to prevent SQL injection

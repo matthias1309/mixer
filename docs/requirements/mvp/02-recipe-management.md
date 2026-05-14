@@ -51,21 +51,23 @@
 
 ### FR-202: View Recipe List
 
-- **Description**: Users should see a list of their recipes
+- **Description**: Users should see a list of recipes from all users (community recipes)
 - **Acceptance Criteria**:
-  - Dashboard displays all recipes created by the logged-in user
+  - Dashboard displays all recipes created by all users (not just logged-in user)
   - Each recipe shows:
     - Recipe name
     - Number of ingredients
     - Short description (truncated if needed)
+    - Creator name (who created this recipe)
   - Recipes can be sorted by:
     - Date created (newest first, default)
     - Name (A-Z)
     - Number of ingredients
   - User can search recipes by name (basic text search)
-  - Pagination or infinite scroll for large recipe lists (10+ recipes)
+  - Pagination: 10 recipes per page (not infinite scroll)
   - Empty state shows helpful message if no recipes exist
   - List loads quickly (< 500ms)
+  - Duplicate recipes are deduplicated: if recipe already exists (exact name + ingredients + instructions), only show once
 
 ### FR-203: View Recipe Detail
 
@@ -73,6 +75,7 @@
 - **Acceptance Criteria**:
   - Clicking recipe opens detailed view with:
     - Recipe name
+    - Creator name (who created this recipe)
     - Description
     - Full ingredients list with quantities
     - Detailed instructions
@@ -116,13 +119,14 @@
 - **Acceptance Criteria**:
   - Recipe name: required, 1-100 characters
   - Description: optional, max 500 characters
-  - Ingredients: required, minimum 1, maximum 50
-  - Ingredient name: required, 1-100 characters
-  - Ingredient quantity: required, positive number
+  - Ingredients: optional (can be empty), but if provided minimum 1, maximum 50
+  - Ingredient name: required (if ingredient added), 1-100 characters
+  - Ingredient quantity: required (if ingredient added), positive number
   - Ingredient unit: optional, predefined list (g, ml, tbsp, tsp, cup, etc.)
-  - Instructions: required, 1-2000 characters
+  - Instructions: optional, max 2000 characters (can be empty)
   - Servings: optional, positive integer, default 1
   - Clear error messages for each validation failure
+  - Ingredient names are normalized: whitespace trimmed, single spaces between words
 
 ---
 
@@ -163,6 +167,30 @@
 - **Requirement**: Recipe creation/edit form should be intuitive
 - **Measurement**: User testing, usability review
 - **Target**: First-time users can create a recipe without help
+
+### NFR-307: Security - XSS Protection
+
+- **Requirement**: User recipe input must be protected against Cross-Site Scripting (XSS) attacks
+- **Measurement**: Code review, security testing
+- **Target**: All recipe fields (name, description, ingredients, instructions) are properly escaped before display
+
+### NFR-308: Security - SQL Injection Protection
+
+- **Requirement**: Database queries must be protected against SQL injection
+- **Measurement**: Code review, use of parameterized queries
+- **Target**: 100% of recipe queries use parameterized queries or ORM protection, no string concatenation
+
+### NFR-309: Security - HTTPS/Encryption in Transit
+
+- **Requirement**: All recipe data must be encrypted in transit
+- **Measurement**: TLS/SSL configuration review
+- **Target**: All recipe endpoints use HTTPS only, secure flag on cookies
+
+### NFR-310: Data Integrity - Duplicate Detection
+
+- **Requirement**: Identical recipes should be deduplicated automatically
+- **Measurement**: Database constraints, validation logic
+- **Target**: Two recipes with same name, ingredients, and instructions are stored as one (first creator wins)
 
 ---
 
@@ -342,20 +370,31 @@
 
 **Integration Tests**:
 - POST /api/recipes: valid input → recipe created
-- GET /api/recipes: list user's recipes with pagination
+- GET /api/recipes: list all recipes (from all users) with pagination (10 per page)
 - GET /api/recipes/[id]: fetch single recipe
 - PUT /api/recipes/[id]: valid update → recipe modified
 - DELETE /api/recipes/[id]: deletion → recipe removed
 - Authorization: non-owner cannot modify recipe
+- Authorization: non-owner cannot delete recipe
 - Validation errors: invalid input → 400 Bad Request
 - Not found: invalid ID → 404
+- Deduplication: create recipe → create identical recipe → returns existing recipe
+- Concurrent edits: two users edit same recipe simultaneously → last-write-wins (no race condition)
+- Creator attribution: recipe shows correct creator name
+- XSS protection: HTML in recipe name/description → properly escaped, not executed
+- SQL injection: special characters in recipe fields → no SQL injection vulnerability
 
 **E2E Tests** (Cypress):
 - Complete create recipe flow: form → validation → submission → detail view
-- Browse recipes: list → search → sort → click → detail
+- Browse recipes: list shows all recipes from all users → pagination works (10 per page)
+- Search recipes: search by name → filtered results
+- Sort recipes: sort by name/date/ingredients → correct order
+- View creator: recipe detail shows who created the recipe
 - Edit recipe: detail → edit → modify fields → save → verify changes
 - Delete recipe: detail → delete → confirm → not in list anymore
 - Authorization: login as user1 → can't edit user2's recipe
+- Deduplication: create recipe → logout → login as user2 → create identical recipe → see only one in list
+- Concurrent users: user1 creates recipe while user2 views list → user2 sees it immediately
 
 **Test Coverage Target**: 80%+ for recipe-related code
 
@@ -403,7 +442,13 @@
 
 - Q: Should recipes have categories/tags? A: Future feature
 - Q: Should we store nutritional info with recipes? A: Future - Phase 2 (nutrient filtering)
-- Q: Can users share recipes? A: Future feature
+- Q: Can users share recipes? A: Yes - all recipes are visible to all users (community model)
 - Q: Should we support recipe images? A: Future feature
-- Decision: Recipe names don't need to be unique per user (duplicate recipe names allowed)
+- Decision: All recipes are visible to all users (community recipe database, not personal)
+- Decision: Recipes are deduplicated based on exact match: name + ingredients + instructions
+- Decision: Only the first creator's name is shown (when deduplicated)
+- Decision: Recipe fields can be incomplete (no required fields except name)
+- Decision: Ingredient names are normalized (trim whitespace, single spaces)
+- Decision: All recipe input is escaped to prevent XSS attacks
+- Decision: All database queries use parameterized queries to prevent SQL injection
 - Note: Photo-based recipe import will require significant additional infrastructure
