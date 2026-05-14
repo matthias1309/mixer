@@ -65,9 +65,13 @@ export class RecipeModel {
   ): { recipes: RecipeListItem[]; total: number } {
     const db = getDatabase();
 
-    let orderBy = 'recipes.created_at DESC';
-    if (sortBy === 'name') orderBy = 'recipes.name ASC';
-    if (sortBy === 'ingredients') orderBy = 'COUNT(ingredients.id) ASC';
+    // Safe mapping of sort parameter
+    const sortByMap: Record<string, string> = {
+      'date': 'recipes.created_at DESC',
+      'name': 'recipes.name ASC',
+      'ingredients': 'COUNT(ingredients.id) ASC',
+    };
+    const orderBy = sortByMap[sortBy] || sortByMap['date'];
 
     const offset = (page - 1) * pageSize;
 
@@ -127,7 +131,9 @@ export class RecipeModel {
         .map(i => i.name)
         .sort();
 
-      if (JSON.stringify(recipeIngs) === JSON.stringify(normalizedIngredients)) {
+      // Direct array comparison (arrays are sorted)
+      if (recipeIngs.length === normalizedIngredients.length &&
+          recipeIngs.every((val, idx) => val === normalizedIngredients[idx])) {
         return recipe;
       }
     }
