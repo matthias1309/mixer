@@ -18,7 +18,17 @@
       "Bash(curl -s -X POST http://localhost:3000/api/recipes -H 'Content-Type: application/json' -b /tmp/cookies3.txt -d '{ *)",
       "Bash(curl -s http://localhost:3000/api/recipes -b /tmp/cookies3.txt)",
       "Bash(curl -s http://localhost:3000/api/recipes/1 -b /tmp/cookies3.txt)",
-      "Bash(curl -s http://localhost:3000/api/recipes?ingredients=pasta -b /tmp/cookies3.txt)"
+      "Bash(curl -s http://localhost:3000/api/recipes?ingredients=pasta -b /tmp/cookies3.txt)",
+      "Bash(sqlite3 :memory:)",
+      "Bash(grep -E \"\\\\.\\(ts|tsx\\)$\")",
+      "Skill(superpowers:finishing-a-development-branch)",
+      "Skill(superpowers:finishing-a-development-branch:*)",
+      "Bash(git push *)",
+      "Skill(superpowers:requesting-code-review)",
+      "Skill(superpowers:requesting-code-review:*)",
+      "Skill(superpowers:using-superpowers)",
+      "Skill(superpowers:using-superpowers:*)",
+      "Bash(git show *)"
     ]
   },
   "enabledPlugins": {
