@@ -1,8 +1,3 @@
-interface ApiResponse<T> {
-  data?: T;
-  error?: string;
-}
-
 export async function apiCall<T>(
   endpoint: string,
   options?: RequestInit
@@ -17,7 +12,7 @@ export async function apiCall<T>(
       credentials: 'include', // Include cookies for auth
     });
 
-    const data = await response.json();
+    const data: T = await response.json();
 
     if (!response.ok) {
       return { error: data.error || 'Request failed', status: response.status };
@@ -25,7 +20,8 @@ export async function apiCall<T>(
 
     return { data, status: response.status };
   } catch (error) {
-    return { error: 'Network error', status: 0 };
+    const message = error instanceof Error ? error.message : 'Unknown network error';
+    return { error: `Network error: ${message}`, status: 0 };
   }
 }
 

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useState, useEffect, ReactNode } from 'react';
+import { apiCall } from '../lib/api';
 
 export interface User {
   id: number;
@@ -43,7 +44,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setError(null);
     setIsLoading(true);
     try {
-      const { data, error: apiError } = await (await import('../lib/api')).apiCall('/auth/login', {
+      const { data, error: apiError } = await apiCall('/auth/login', {
         method: 'POST',
         body: JSON.stringify({ email, password }),
       });
@@ -66,7 +67,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setError(null);
     setIsLoading(true);
     try {
-      const { data, error: apiError } = await (await import('../lib/api')).apiCall('/auth/register', {
+      const { data, error: apiError } = await apiCall('/auth/register', {
         method: 'POST',
         body: JSON.stringify({ email, password }),
       });
@@ -88,7 +89,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   async function logout() {
     setError(null);
     try {
-      const { error: apiError } = await (await import('../lib/api')).apiCall('/auth/logout', {
+      const { error: apiError } = await apiCall('/auth/logout', {
         method: 'POST',
       });
 
