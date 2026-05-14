@@ -2,9 +2,14 @@ import fs from 'fs';
 import path from 'path';
 import Database from 'better-sqlite3';
 
-const dbPath = process.env.DATABASE_URL || '.data/app.db';
+function getDbPath(): string {
+  return process.env.DATABASE_URL || '.data/app.db';
+}
 
 export function initializeDatabase() {
+  // Read dbPath at runtime, not at module load time
+  const dbPath = getDbPath();
+
   // Ensure .data directory exists
   const dir = path.dirname(dbPath);
   if (!fs.existsSync(dir)) {
