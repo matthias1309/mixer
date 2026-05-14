@@ -244,6 +244,7 @@ export async function seedIngredients(db: any) {
   );
 
   if (existingCount.count > 0) {
+    // eslint-disable-next-line no-console
     console.log('Ingredients already seeded, skipping...');
     return;
   }
@@ -278,6 +279,7 @@ export async function seedIngredients(db: any) {
     );
   }
 
+  // eslint-disable-next-line no-console
   console.log(`✓ Seeded ${INGREDIENT_SEEDS.length} ingredients`);
 }
 
@@ -287,6 +289,7 @@ export async function seedConversions(db: any) {
   );
 
   if (existingCount.count > 0) {
+    // eslint-disable-next-line no-console
     console.log('Conversions already seeded, skipping...');
     return;
   }
@@ -306,5 +309,6 @@ export async function seedConversions(db: any) {
     }
   }
 
+  // eslint-disable-next-line no-console
   console.log(`✓ Seeded conversions`);
 }
