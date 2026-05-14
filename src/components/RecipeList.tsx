@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { RecipeCard, RecipeCardProps } from './RecipeCard';
 import { useFilter } from '../hooks/useFilter';
 
@@ -20,11 +20,7 @@ export function RecipeList() {
   const [error, setError] = useState('');
   const { selectedIngredients } = useFilter();
 
-  useEffect(() => {
-    fetchRecipes();
-  }, [page, selectedIngredients]);
-
-  async function fetchRecipes() {
+  const fetchRecipes = useCallback(async () => {
     setIsLoading(true);
     setError('');
 
@@ -54,7 +50,11 @@ export function RecipeList() {
     } finally {
       setIsLoading(false);
     }
-  }
+  }, [page, selectedIngredients]);
+
+  useEffect(() => {
+    fetchRecipes();
+  }, [fetchRecipes]);
 
   if (isLoading) {
     return <div className="text-center py-8">Loading recipes...</div>;

@@ -1,6 +1,5 @@
 'use client';
 
-import type { Metadata } from 'next';
 import { ProtectedRoute } from '../../components/ProtectedRoute';
 import { RecipeList } from '../../components/RecipeList';
 import { IngredientFilter } from '../../components/IngredientFilter';
