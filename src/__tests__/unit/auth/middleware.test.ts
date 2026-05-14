@@ -6,7 +6,6 @@ import jwt from 'jsonwebtoken';
 describe('Auth Middleware', () => {
   beforeAll(() => {
     process.env.JWT_SECRET = 'test-secret-key-must-be-32-chars';
-    process.env.JWT_EXPIRATION = '24h';
   });
 
   describe('authMiddleware', () => {
@@ -20,7 +19,7 @@ describe('Auth Middleware', () => {
     it('should return 401 when token cookie is empty', () => {
       const url = new URL('http://localhost:3000/api/recipes');
       const req = new NextRequest(url, {
-        headers: { cookie: 'token=' },
+        headers: { cookie: 'sessionToken=' },
       });
       const res = authMiddleware(req);
 
@@ -30,7 +29,7 @@ describe('Auth Middleware', () => {
     it('should return 401 for malformed token', () => {
       const url = new URL('http://localhost:3000/api/recipes');
       const req = new NextRequest(url, {
-        headers: { cookie: 'token=not.a.valid.token' },
+        headers: { cookie: 'sessionToken=not.a.valid.token' },
       });
       const res = authMiddleware(req);
 
@@ -40,14 +39,14 @@ describe('Auth Middleware', () => {
     it('should return 403 for expired token', () => {
       const secret = process.env.JWT_SECRET!;
       const expiredToken = jwt.sign(
-        { userId: 'user-123', email: 'test@example.com' },
+        { sub: 'user-123', email: 'test@example.com', type: 'access' },
         secret,
         { expiresIn: '-1h' }
       );
 
       const url = new URL('http://localhost:3000/api/recipes');
       const req = new NextRequest(url, {
-        headers: { cookie: `token=${expiredToken}` },
+        headers: { cookie: `sessionToken=${expiredToken}` },
       });
       const res = authMiddleware(req);
 
@@ -57,14 +56,14 @@ describe('Auth Middleware', () => {
     it('should return NextResponse.next() for valid token', () => {
       const secret = process.env.JWT_SECRET!;
       const token = jwt.sign(
-        { userId: 'user-456', email: 'valid@example.com' },
+        { sub: 'user-456', email: 'valid@example.com', type: 'access' },
         secret,
-        { expiresIn: '24h' }
+        { expiresIn: '1h' }
       );
 
       const url = new URL('http://localhost:3000/api/recipes');
       const req = new NextRequest(url, {
-        headers: { cookie: `token=${token}` },
+        headers: { cookie: `sessionToken=${token}` },
       });
       const res = authMiddleware(req);
 
@@ -78,14 +77,14 @@ describe('Auth Middleware', () => {
     it('should return 401 for invalid token signature', () => {
       const wrongSecret = 'wrong-secret-key-must-be-32-chars';
       const token = jwt.sign(
-        { userId: 'user-789', email: 'wrong@example.com' },
+        { sub: 'user-789', email: 'wrong@example.com', type: 'access' },
         wrongSecret,
-        { expiresIn: '24h' }
+        { expiresIn: '1h' }
       );
 
       const url = new URL('http://localhost:3000/api/recipes');
       const req = new NextRequest(url, {
-        headers: { cookie: `token=${token}` },
+        headers: { cookie: `sessionToken=${token}` },
       });
       const res = authMiddleware(req);
 

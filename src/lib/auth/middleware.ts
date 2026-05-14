@@ -4,7 +4,7 @@ import { verifyToken, refreshToken } from '@lib/auth/tokenRefresh';
 import { HTTP_STATUS } from '@lib/constants';
 
 export function authMiddleware(req: NextRequest): NextResponse {
-  const tokenCookie = req.cookies.get('token');
+  const tokenCookie = req.cookies.get('sessionToken');
 
   if (!tokenCookie?.value) {
     return NextResponse.json(

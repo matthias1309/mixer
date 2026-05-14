@@ -1,11 +1,11 @@
 /** @jest-environment node */
-import { generateToken, verifyToken, decodeToken, verifyTokenDetailed } from '@lib/auth/jwt';
+import { verifyToken, decodeToken, verifyTokenDetailed } from '@lib/auth/jwt';
+import { generateToken } from '@lib/auth/tokenRefresh';
 import type { JWTPayload } from '@/types/auth';
 
 describe('JWT utilities', () => {
   beforeAll(() => {
     process.env.JWT_SECRET = 'test-secret-key-must-be-32-chars';
-    process.env.JWT_EXPIRATION = '24h';
   });
 
   describe('generateToken', () => {
@@ -15,18 +15,13 @@ describe('JWT utilities', () => {
       expect(token.length).toBeGreaterThan(0);
     });
 
-    it('should include userId and email in payload', () => {
+    it('should include sub, email, and type in payload', () => {
       const token = generateToken('user-123', 'test@example.com');
       const decoded = decodeToken(token);
       expect(decoded).not.toBeNull();
-      expect(decoded?.userId).toBe('user-123');
+      expect(decoded?.sub).toBe('user-123');
       expect(decoded?.email).toBe('test@example.com');
-    });
-
-    it('should be deterministic (same inputs = same token)', () => {
-      const token1 = generateToken('user-123', 'test@example.com');
-      const token2 = generateToken('user-123', 'test@example.com');
-      expect(token1).toBe(token2);
+      expect(decoded?.type).toBe('access');
     });
 
     it('should include iat and exp claims', () => {
@@ -44,7 +39,7 @@ describe('JWT utilities', () => {
       const token = generateToken('user-456', 'valid@example.com');
       const payload = verifyToken(token);
       expect(payload).not.toBeNull();
-      expect(payload?.userId).toBe('user-456');
+      expect(payload?.sub).toBe('user-456');
       expect(payload?.email).toBe('valid@example.com');
     });
 
@@ -57,7 +52,7 @@ describe('JWT utilities', () => {
       // Manually create an expired token by setting exp to past timestamp
       const secret = process.env.JWT_SECRET!;
       const expiredToken = require('jsonwebtoken').sign(
-        { userId: 'user-789', email: 'expired@example.com' },
+        { sub: 'user-789', email: 'expired@example.com', type: 'access' },
         secret,
         { expiresIn: '-1h' } // Expired 1 hour ago
       );
@@ -77,7 +72,7 @@ describe('JWT utilities', () => {
       const token = generateToken('user-999', 'decode@example.com');
       const decoded = decodeToken(token);
       expect(decoded).not.toBeNull();
-      expect(decoded?.userId).toBe('user-999');
+      expect(decoded?.sub).toBe('user-999');
       expect(decoded?.email).toBe('decode@example.com');
     });
 
@@ -93,7 +88,7 @@ describe('JWT utilities', () => {
       const result = verifyTokenDetailed(token);
       expect(result.error).toBeNull();
       expect(result.payload).not.toBeNull();
-      expect(result.payload?.userId).toBe('user-detail');
+      expect(result.payload?.sub).toBe('user-detail');
       expect(result.payload?.email).toBe('detail@example.com');
     });
 
@@ -106,7 +101,7 @@ describe('JWT utilities', () => {
     it('should return expired error for expired token', () => {
       const secret = process.env.JWT_SECRET!;
       const expiredToken = require('jsonwebtoken').sign(
-        { userId: 'user-exp', email: 'exp@example.com' },
+        { sub: 'user-exp', email: 'exp@example.com', type: 'access' },
         secret,
         { expiresIn: '-1h' }
       );
