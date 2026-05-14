@@ -1,216 +1,276 @@
-# Recipe Manager
+# Recipe Manager MVP
 
-A multi-user recipe management web application with ingredient-based filtering, designed to help users discover recipes they can cook with ingredients they have on hand.
+A community recipe management application with ingredient-based filtering. Built with Next.js 14+, React, and TypeScript.
 
-## Features (MVP)
+## Features
 
-- **User Management**: Register, login, and manage your profile with JWT authentication
-- **Recipe Management**: Create, read, update, and delete recipes with ingredients and instructions
-- **Ingredient Filtering**: Filter recipes by available ingredients to discover what you can cook
-- **Multi-User Support**: Each user has their own recipe collection and profile
+### User Authentication
+- User registration with email/password
+- Login/logout with JWT-based auth
+- Automatic token refresh (1h inactivity timeout)
+- Protected routes for authenticated users
 
-## Tech Stack
+### Recipe Management
+- Create, view, edit, delete recipes
+- Recipes are community-accessible (all users see all recipes)
+- Automatic recipe deduplication
+- Ingredient management with normalization
+- Recipe details include creator name and timestamps
 
-- **Frontend**: Next.js 15 with React 19 and TypeScript
-- **Backend**: Next.js API Routes (Node.js)
-- **Database**: SQLite (development), PostgreSQL (production)
-- **Authentication**: JWT-based
-- **Testing**: Jest + React Testing Library + Cypress
-- **Containerization**: Docker
+### Ingredient Filtering
+- Filter recipes by ingredients you have on hand
+- Multiple ingredient selection
+- AND logic (recipes must have ALL selected ingredients)
+- Real-time recipe list updates
+- Unique ingredient list across all recipes
 
-## Quick Start
+### Frontend
+- Responsive design (mobile-first)
+- Next.js 14+ with App Router
+- React Context for state management
+- Tailwind CSS styling
+- E2E tests with Cypress
+
+## Getting Started
 
 ### Prerequisites
-
-- Node.js 18+
+- Node.js 18+ 
 - npm or yarn
 
-### Development Setup
+### Installation
 
 ```bash
 # Install dependencies
 npm install
 
-# Create environment file
-cp .env.example .env.local
-# Update .env.local with your values (especially JWT_SECRET)
+# Copy environment template
+cp .env.local.example .env.local
 
-# Start development server
+# Run development server
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser.
+Open [http://localhost:3000](http://localhost:3000)
 
-### Running Tests
+### Testing
 
 ```bash
-# Unit and integration tests
+# Run unit tests
 npm run test
 
-# Watch mode
-npm run test:watch
-
-# Coverage report
+# Run unit tests with coverage
 npm run test:coverage
 
-# E2E tests
+# Run E2E tests (Cypress UI)
 npm run test:e2e
+
+# Run E2E tests (headless)
+npm run test:e2e:headless
 ```
 
-### Code Quality
+## Architecture
 
-```bash
-# Linting
-npm run lint
+### Backend (API Routes)
+- 8 RESTful endpoints
+- SQLite (local) / PostgreSQL (production)
+- JWT authentication with sliding-window refresh
+- Parameterized SQL queries (SQL injection protection)
+- Request validation and error handling
 
-# Format code
-npm run format
+### Frontend (React + Next.js)
+- Authentication pages (login, register)
+- Dashboard with recipe list and filtering
+- Recipe detail, create, and edit pages
+- Ingredient filter component
+- Protected routes for authenticated pages
+- E2E tests for critical user flows
 
-# Type checking
-npm run type-check
-```
-
-## Production Deployment
-
-### On Raspberry Pi with Docker
-
-```bash
-# Build and run with docker-compose
-docker-compose up -d
-
-# View logs
-docker-compose logs -f app
-
-# Stop containers
-docker-compose down
-```
-
-See `docker-compose.yml` for configuration details.
+### State Management
+- AuthContext - User auth state
+- FilterContext - Ingredient selection state
+- Custom hooks for component access
 
 ## Project Structure
 
 ```
 mixer/
-├── docs/                    # Documentation
-│   ├── architecture/        # Arc42 architecture documentation
-│   ├── requirements/        # Req42 requirements documentation
-│   └── roadmap/            # Project planning and kanban board
-├── src/                    # Application source code
-│   ├── app/               # Next.js app directory (routes, layouts)
-│   ├── components/        # React components
-│   ├── lib/              # Utilities and helpers
-│   ├── api/              # API route handlers
-│   ├── types/            # TypeScript type definitions
-│   ├── styles/           # CSS and styling
-│   └── __tests__/        # Unit and integration tests
+├── src/
+│   ├── app/                    # Next.js App Router pages
+│   │   ├── layout.tsx         # Root layout with providers
+│   │   ├── page.tsx           # Home page
+│   │   ├── login/             # Login page
+│   │   ├── register/          # Register page
+│   │   ├── dashboard/         # Recipe list (protected)
+│   │   ├── recipes/           # Recipe routes
+│   │   │   ├── [id]/          # Detail and edit
+│   │   │   └── new/           # Create
+│   │   └── api/               # API routes
+│   ├── components/             # React components
+│   │   ├── forms/             # Form components
+│   │   ├── Navigation.tsx      # Header
+│   │   ├── RecipeList.tsx      # Recipe grid
+│   │   ├── RecipeCard.tsx      # Recipe item
+│   │   ├── IngredientFilter.tsx# Filter UI
+│   │   ├── ProtectedRoute.tsx  # Auth guard
+│   │   └── ...
+│   ├── contexts/              # React Context providers
+│   │   ├── AuthContext.tsx     # User auth state
+│   │   └── FilterContext.tsx   # Ingredient selection
+│   ├── hooks/                 # Custom React hooks
+│   │   ├── useAuth.ts         # Access auth context
+│   │   └── useFilter.ts       # Access filter context
+│   ├── lib/                   # Utilities
+│   │   ├── api.ts             # API client
+│   │   └── validation.ts      # Form validation
+│   ├── styles/                # CSS
+│   │   └── globals.css        # Tailwind imports
+│   └── __tests__/             # Unit tests
 ├── tests/
-│   ├── e2e/             # Cypress E2E tests
-│   └── fixtures/        # Test data and mocks
-├── docker-compose.yml   # Production Docker setup
-├── jest.config.js       # Jest configuration
-├── next.config.js       # Next.js configuration
-└── tsconfig.json        # TypeScript configuration
+│   └── e2e/                   # E2E tests (Cypress)
+├── cypress/                   # Cypress configuration
+├── docs/
+│   ├── architecture/          # Arc42 documentation
+│   ├── requirements/          # Requirements (Req42)
+│   ├── superpowers/           # Plans and specs
+│   └── IMPLEMENTATION_NOTES.md# Implementation details
+├── package.json
+├── tsconfig.json
+├── next.config.js
+├── tailwind.config.ts
+├── cypress.config.ts
+└── .env.local.example         # Environment template
 ```
 
-## Documentation
+## Deployment
 
-### For Developers
-
-- **Architecture**: See `docs/architecture/arc42.md` for system architecture, design decisions, and deployment information
-- **Requirements**: See `docs/requirements/` for detailed feature requirements and specifications
-- **Roadmap**: See `docs/roadmap/kanban.md` for project plan, tickets, and progress tracking
-
-### Key Documents
-
-- `.claude/CLAUDE.md` - Project guidelines, development methodology, and important constraints
-- `docs/requirements/req42-template.md` - Requirements documentation template and structure
-- `docs/roadmap/kanban.md` - Kanban board with tickets for MVP features
-
-## Development Methodology
-
-This project follows the **V-Model** development approach with **Lean-Agile** practices:
-
-1. **Requirements** → Detailed in Req42 format (see `docs/requirements/`)
-2. **Architecture** → Documented in Arc42 format (see `docs/architecture/`)
-3. **Implementation** → TDD approach with comprehensive tests
-4. **Testing** → Unit (80%+ coverage target), integration, and E2E tests
-5. **Review** → Code review focusing on clean code principles (DRY, KISS, YAGNI)
-6. **Feedback Loop** → Learnings feed back into future decisions
-
-### Code Quality Standards
-
-- **Minimum Test Coverage**: 80%
-- **Clean Code Principles**:
-  - DRY (Don't Repeat Yourself)
-  - KISS (Keep It Simple, Stupid)
-  - YAGNI (You Aren't Gonna Need It)
-- **Definition of Done**:
-  - All acceptance criteria met
-  - Tests written and passing
-  - Code reviewed and approved
-  - Documentation updated
-
-## Contribution Guidelines
-
-See `.claude/CLAUDE.md` for detailed contribution guidelines including:
-
-- Commit conventions
-- Code style requirements
-- Testing requirements
-- Code review checklist
-- Definition of done
-
-## Environment Variables
-
-Copy `.env.example` to `.env.local` and update:
-
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `NODE_ENV` | Development or production | `development` |
-| `JWT_SECRET` | Secret key for JWT signing (min 32 chars) | `your-secret-key-change-in-production` |
-| `JWT_EXPIRATION` | JWT token expiration time | `24h` |
-| `DATABASE_URL` | Database connection string | `file:./.data/app.db` |
-| `CORS_ORIGIN` | Allowed CORS origin | `http://localhost:3000` |
-
-## Troubleshooting
-
-### Database Issues
-
+### Local Development
 ```bash
-# Reset SQLite database (development only)
-rm .data/app.db
-npm run dev  # Will recreate database
+npm run dev
 ```
 
-### Port Already in Use
-
+### Production Build
 ```bash
-# Change port in npm scripts or use:
-PORT=3001 npm run dev
+npm run build
+npm run start
 ```
 
-## Future Phases
+### Docker (Raspberry Pi)
+```bash
+docker-compose up -d
+```
 
-### Phase 2: Enhancements
+## Technology Stack
+
+### Frontend
+- **Framework**: Next.js 14+
+- **Language**: TypeScript (strict mode)
+- **Styling**: Tailwind CSS
+- **State**: React Context API
+- **Testing**: Cypress (E2E), Jest (unit)
+- **HTTP**: fetch API
+
+### Backend
+- **Framework**: Next.js API Routes
+- **Database**: SQLite (dev) / PostgreSQL (prod)
+- **Auth**: JWT with sliding-window refresh
+- **Security**: Bcrypt (password hashing)
+
+## API Endpoints
+
+### Authentication
+- `POST /api/auth/register` - Register new user
+- `POST /api/auth/login` - User login
+- `POST /api/auth/logout` - User logout
+
+### Recipes
+- `GET /api/recipes` - List recipes (paginated, searchable, filterable)
+- `POST /api/recipes` - Create recipe
+- `GET /api/recipes/:id` - Get recipe detail
+- `PUT /api/recipes/:id` - Update recipe (owner only)
+- `DELETE /api/recipes/:id` - Delete recipe (owner only)
+
+### Filtering
+- `GET /api/recipes/ingredients` - List unique ingredients
+
+## Security
+
+### XSS Protection
+- React auto-escapes JSX
+- No innerHTML usage
+- Input validation on forms
+
+### SQL Injection Prevention
+- Parameterized SQL queries
+- ORM-style model layer (better-sqlite3)
+
+### CSRF Protection
+- httpOnly cookies with SameSite=strict
+- POST requests require token from cookie
+
+### Authentication
+- Passwords hashed with bcrypt (cost 10)
+- JWT tokens auto-refresh on each request
+- 1-hour inactivity timeout
+
+## Development
+
+### Code Style
+- TypeScript strict mode
+- ESLint for linting
+- Prettier for formatting
+
+### Testing Requirements
+- 80%+ code coverage target
+- Unit tests for business logic
+- Integration tests for APIs
+- E2E tests for user flows
+
+### Git Workflow
+- Feature branches from main
+- Conventional commits
+- Pull request reviews
+- Merge to main when approved
+
+## Known Limitations
+
+### MVP Scope
+- Single-session authentication (no concurrent logins)
+- No password reset
+- No advanced user profiles
+- No recipe ratings/reviews
+- No images/media
+- Community-read-only (recipes shared but not rated)
+
+### Performance
+- Designed for <100 recipes, <200 ingredients
+- Pagination required for large collections
+- No caching layer (future optimization)
+
+## Future Enhancements
+
+### Phase 2
+- Recipe ratings and reviews
+- User profiles with preferences
 - Nutrient-based filtering
-- Recipe import from external APIs
-- Meal planning features
+- Ingredient substitution suggestions
 
-### Phase 3: Advanced
+### Phase 3
 - Photo-based ingredient recognition
 - Recipe recommendation engine
-- Advanced nutrition tracking
+- Meal planning
+- Shopping list generation
+
+## Support
+
+For issues or questions:
+- Check IMPLEMENTATION_NOTES.md for architecture details
+- Review requirements in docs/requirements/mvp/
+- See Arc42 documentation in docs/architecture/
 
 ## License
 
-Private project
+MIT
 
-## Contact
+## Contributors
 
-- Developer: Matthias Bender
-- Email: mbender1309@googlemail.com
-
----
-
-**Last Updated**: 2026-05-09  
-**Version**: 0.1.0 (MVP in development)
+- Matthias Bender
