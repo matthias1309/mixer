@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyTokenDetailed } from '@lib/auth/jwt';
+import { verifyToken, refreshToken } from '@lib/auth/tokenRefresh';
 import { HTTP_STATUS } from '@lib/constants';
 
 export function authMiddleware(req: NextRequest): NextResponse {
@@ -33,4 +34,38 @@ export function authMiddleware(req: NextRequest): NextResponse {
   requestHeaders.set('x-user-email', result.payload!.email);
 
   return NextResponse.next({ request: { headers: requestHeaders } });
+}
+
+export async function authMiddlewareWithRefresh(request: NextRequest) {
+  const token = request.cookies.get('sessionToken')?.value;
+
+  if (!token) {
+    return null;
+  }
+
+  const payload = verifyToken(token);
+  if (!payload) {
+    return null;
+  }
+
+  // Token is valid, refresh it (sliding window)
+  const newToken = refreshToken(payload.sub, payload.email);
+
+  return {
+    userId: payload.sub,
+    email: payload.email,
+    newToken,
+  };
+}
+
+export function setTokenCookie(response: NextResponse, token: string) {
+  response.cookies.set('sessionToken', token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
+    maxAge: 60 * 60, // 1 hour
+    path: '/',
+  });
+
+  return response;
 }
