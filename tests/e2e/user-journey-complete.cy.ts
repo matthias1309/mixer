@@ -46,3 +46,25 @@ describe('User Journey - Happy Path', () => {
     cy.url().should('include', '/dashboard');
   });
 });
+
+describe('User Journey - Login Errors', () => {
+  beforeEach(() => {
+    // Create a test user for login tests
+    const testEmail = `user-login-${Date.now()}@example.com`;
+    const testPassword = 'SecurePassword123';
+    journeyHelpers.registerUser(testEmail, testPassword);
+    journeyHelpers.logoutUser();
+
+    // Store for use in tests
+    cy.wrap(testEmail).as('testEmail');
+    cy.wrap(testPassword).as('testPassword');
+  });
+
+  it('should show error for wrong password', function () {
+    journeyHelpers.loginUser(this.testEmail, 'WrongPassword123', true);
+  });
+
+  it('should show error for non-existent user', () => {
+    journeyHelpers.loginUser('nonexistent@example.com', 'SomePassword123', true);
+  });
+});
