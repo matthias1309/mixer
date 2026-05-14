@@ -240,12 +240,12 @@ export const CONVERSION_SEEDS = [
 
 /**
  * Seed ingredients table with nutritional data
- * @param db - Database instance
+ * @param db - Database instance (better-sqlite3 Database)
  */
-export async function seedIngredients(db: any) {
-  const existingCount = await db.get(
+export function seedIngredients(db: any) {
+  const existingCount = db.prepare(
     'SELECT COUNT(*) as count FROM ingredients'
-  );
+  ).get() as { count: number };
 
   if (existingCount.count > 0) {
     // eslint-disable-next-line no-console
@@ -253,33 +253,34 @@ export async function seedIngredients(db: any) {
     return;
   }
 
+  const stmt = db.prepare(`
+    INSERT INTO ingredients (
+      name, category, base_unit, base_size,
+      kcal, sugar, fat, protein, carbohydrates, fiber, sodium,
+      calcium, vitamin_d, magnesium, vitamin_b6, vitamin_b12, vitamin_e, zinc
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `);
+
   for (const ingredient of INGREDIENT_SEEDS) {
-    await db.run(
-      `INSERT INTO ingredients (
-        name, category, base_unit, base_size,
-        kcal, sugar, fat, protein, carbohydrates, fiber, sodium,
-        calcium, vitamin_d, magnesium, vitamin_b6, vitamin_b12, vitamin_e, zinc
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [
-        ingredient.name,
-        ingredient.category,
-        ingredient.base_unit,
-        ingredient.base_size,
-        ingredient.kcal,
-        ingredient.sugar,
-        ingredient.fat,
-        ingredient.protein,
-        ingredient.carbohydrates,
-        ingredient.fiber,
-        ingredient.sodium,
-        ingredient.calcium,
-        ingredient.vitamin_d,
-        ingredient.magnesium,
-        ingredient.vitamin_b6,
-        ingredient.vitamin_b12,
-        ingredient.vitamin_e,
-        ingredient.zinc,
-      ]
+    stmt.run(
+      ingredient.name,
+      ingredient.category,
+      ingredient.base_unit,
+      ingredient.base_size,
+      ingredient.kcal,
+      ingredient.sugar,
+      ingredient.fat,
+      ingredient.protein,
+      ingredient.carbohydrates,
+      ingredient.fiber,
+      ingredient.sodium,
+      ingredient.calcium,
+      ingredient.vitamin_d,
+      ingredient.magnesium,
+      ingredient.vitamin_b6,
+      ingredient.vitamin_b12,
+      ingredient.vitamin_e,
+      ingredient.zinc
     );
   }
 
@@ -289,12 +290,12 @@ export async function seedIngredients(db: any) {
 
 /**
  * Seed ingredient conversions table with unit conversion data
- * @param db - Database instance
+ * @param db - Database instance (better-sqlite3 Database)
  */
-export async function seedConversions(db: any) {
-  const existingCount = await db.get(
+export function seedConversions(db: any) {
+  const existingCount = db.prepare(
     'SELECT COUNT(*) as count FROM ingredient_conversions'
-  );
+  ).get() as { count: number };
 
   if (existingCount.count > 0) {
     // eslint-disable-next-line no-console
@@ -302,18 +303,17 @@ export async function seedConversions(db: any) {
     return;
   }
 
+  const ingredientStmt = db.prepare('SELECT id FROM ingredients WHERE name = ?');
+  const convStmt = db.prepare(`
+    INSERT INTO ingredient_conversions (ingredient_id, unit, amount_in_base_unit)
+    VALUES (?, ?, ?)
+  `);
+
   for (const conv of CONVERSION_SEEDS) {
-    const ingredient = await db.get(
-      'SELECT id FROM ingredients WHERE name = ?',
-      [conv.ingredient_name]
-    );
+    const ingredient = ingredientStmt.get(conv.ingredient_name) as { id: number } | undefined;
 
     if (ingredient) {
-      await db.run(
-        `INSERT INTO ingredient_conversions (ingredient_id, unit, amount_in_base_unit)
-         VALUES (?, ?, ?)`,
-        [ingredient.id, conv.unit, conv.amount_in_base_unit]
-      );
+      convStmt.run(ingredient.id, conv.unit, conv.amount_in_base_unit);
     }
   }
 

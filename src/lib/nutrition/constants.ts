@@ -45,6 +45,10 @@ export const COMMON_UNITS = [
   'Tasse',  // cup
 ] as const;
 
+// Cycle-based filtering constants (Sub-Project 3: Cycle Tracking)
+// Purpose: Menstrual cycle tracking and cycle-based recipe filtering
+// These are defined here for consistency with nutrition constants module
+// See: docs/superpowers/plans/2026-05-14-cycle-tracking-implementation.md
 export const CYCLE_LENGTH_MIN = 21;
 export const CYCLE_LENGTH_MAX = 35;
 export const DEFAULT_CYCLE_LENGTH = 28;
