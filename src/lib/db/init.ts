@@ -40,5 +40,6 @@ export function getDatabase(): Database.Database {
 }
 
 declare global {
+  // eslint-disable-next-line no-var
   var db: Database.Database | undefined;
 }
