@@ -1,21 +1,25 @@
 // User types
 
 export interface User {
-  id: string;
+  id: number;
   email: string;
-  passwordHash: string;
-  createdAt: Date;
-  updatedAt: Date;
+  password_hash: string;
+  created_at: string;
+  updated_at: string;
 }
 
-export interface UserProfile {
-  id: string;
+export interface UserPublic {
+  id: number;
   email: string;
-  createdAt: Date;
-  updatedAt: Date;
+  created_at: string;
 }
 
-export interface UpdateUserRequest {
-  email?: string;
-  password?: string;
+export interface RegisterRequest {
+  email: string;
+  password: string;
+}
+
+export interface LoginRequest {
+  email: string;
+  password: string;
 }
