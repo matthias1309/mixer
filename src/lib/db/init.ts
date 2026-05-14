@@ -35,11 +35,12 @@ export function initializeDatabase() {
       description TEXT,
       instructions TEXT,
       servings INTEGER DEFAULT 1,
-      user_id INTEGER NOT NULL,
+      creator_id INTEGER NOT NULL,
       canonical_id INTEGER,
+      is_duplicate INTEGER DEFAULT 0,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (user_id) REFERENCES users(id),
+      FOREIGN KEY (creator_id) REFERENCES users(id),
       FOREIGN KEY (canonical_id) REFERENCES recipes(id)
     );
 
@@ -52,8 +53,9 @@ export function initializeDatabase() {
       FOREIGN KEY (recipe_id) REFERENCES recipes(id) ON DELETE CASCADE
     );
 
-    CREATE INDEX IF NOT EXISTS idx_recipes_user_id ON recipes(user_id);
+    CREATE INDEX IF NOT EXISTS idx_recipes_creator_id ON recipes(creator_id);
     CREATE INDEX IF NOT EXISTS idx_recipes_canonical_id ON recipes(canonical_id);
+    CREATE INDEX IF NOT EXISTS idx_recipes_is_duplicate ON recipes(is_duplicate);
     CREATE INDEX IF NOT EXISTS idx_ingredients_recipe_id ON ingredients(recipe_id);
   `;
 
