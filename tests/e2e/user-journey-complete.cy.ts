@@ -126,3 +126,88 @@ describe('User Journey - Recipe Validation', () => {
     cy.contains(/ingredient|require/i).should('be.visible');
   });
 });
+
+describe('User Journey - Permissions', () => {
+  it('User2 cannot edit User1\'s recipe', () => {
+    // USER 1: Register and create recipe
+    const user1Email = `user1-${Date.now()}@example.com`;
+    const user1Password = 'SecurePassword123';
+    journeyHelpers.registerUser(user1Email, user1Password);
+
+    const recipeData = {
+      name: 'User1 Recipe',
+      description: 'A recipe by user 1',
+      instructions: '1. Mix\n2. Cook',
+      servings: 2,
+      ingredients: [{ name: 'Tomato', quantity: 2 }],
+    };
+
+    journeyHelpers.createRecipe(recipeData);
+
+    // Get recipe ID
+    let recipeId = 0;
+    cy.url().then((url) => {
+      const match = url.match(/\/recipes\/(\d+)$/);
+      if (match) {
+        recipeId = parseInt(match[1], 10);
+      }
+    });
+
+    // USER 1: Logout
+    cy.then(() => {
+      journeyHelpers.logoutUser();
+    });
+
+    // USER 2: Register with different email
+    const user2Email = `user2-${Date.now()}@example.com`;
+    const user2Password = 'SecurePassword123';
+    journeyHelpers.registerUser(user2Email, user2Password);
+
+    // USER 2: Try to access User1's recipe edit page
+    cy.then(() => {
+      journeyHelpers.verifyNoAccess(recipeId);
+    });
+  });
+
+  it('User2 cannot delete User1\'s recipe', () => {
+    // USER 1: Register and create recipe
+    const user1Email = `user1-delete-${Date.now()}@example.com`;
+    const user1Password = 'SecurePassword123';
+    journeyHelpers.registerUser(user1Email, user1Password);
+
+    const recipeData = {
+      name: 'User1 Recipe Delete Test',
+      description: 'A recipe by user 1',
+      instructions: '1. Mix\n2. Cook',
+      servings: 2,
+      ingredients: [{ name: 'Tomato', quantity: 2 }],
+    };
+
+    journeyHelpers.createRecipe(recipeData);
+
+    // Get recipe ID
+    let recipeId = 0;
+    cy.url().then((url) => {
+      const match = url.match(/\/recipes\/(\d+)$/);
+      if (match) {
+        recipeId = parseInt(match[1], 10);
+      }
+    });
+
+    // USER 1: Logout
+    cy.then(() => {
+      journeyHelpers.logoutUser();
+    });
+
+    // USER 2: Register with different email
+    const user2Email = `user2-delete-${Date.now()}@example.com`;
+    const user2Password = 'SecurePassword123';
+    journeyHelpers.registerUser(user2Email, user2Password);
+
+    // USER 2: Try to access User1's recipe detail and verify no delete button
+    cy.then(() => {
+      cy.visit(`http://localhost:3000/recipes/${recipeId}`);
+      cy.contains('Delete Recipe').should('not.exist');
+    });
+  });
+});
