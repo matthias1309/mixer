@@ -555,7 +555,7 @@ describe('Recipe CRUD API', () => {
   });
 
   describe('DELETE /api/recipes/[id] - Delete recipe', () => {
-    test('should delete recipe by owner and return 200', async () => {
+    test('should delete recipe by owner and return 204', async () => {
       const recipe = RecipeModel.create('To Delete', user1Id);
       const recipeId = recipe.id;
 
@@ -568,7 +568,7 @@ describe('Recipe CRUD API', () => {
 
       const response = await DELETE_RECIPE(request, { params: Promise.resolve({ id: String(recipeId) }) });
 
-      expect(response.status).toBe(200);
+      expect(response.status).toBe(204);
 
       // Verify deleted
       const deleted = RecipeModel.findById(recipeId);

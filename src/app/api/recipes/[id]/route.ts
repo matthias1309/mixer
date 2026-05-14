@@ -279,10 +279,7 @@ export async function DELETE(request: NextRequest, props: { params: Params }) {
     // Delete recipe
     RecipeModel.delete(recipeId);
 
-    let response = NextResponse.json(
-      {},
-      { status: HTTP_STATUS.OK }
-    );
+    let response = new NextResponse(null, { status: HTTP_STATUS.NO_CONTENT });
 
     // Refresh token
     response = setTokenCookie(response, auth.newToken);
