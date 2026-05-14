@@ -86,9 +86,15 @@ export function IngredientFilter() {
             {selectedIngredients.map((ingredient) => (
               <span
                 key={ingredient}
-                className="inline-block bg-blue-100 text-blue-800 text-sm px-2 py-1 rounded"
+                className="inline-flex items-center gap-1 bg-blue-100 text-blue-800 text-sm px-2 py-1 rounded"
               >
                 {ingredient}
+                <button
+                  onClick={() => toggleIngredient(ingredient)}
+                  className="ml-1 text-blue-600 hover:text-blue-800 font-bold"
+                >
+                  ×
+                </button>
               </span>
             ))}
           </div>
