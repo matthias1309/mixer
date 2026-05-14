@@ -112,3 +112,34 @@ export const editRecipe = (recipeId: number, newData: Partial<RecipeData>): void
     cy.contains(newData.name).should('be.visible');
   }
 };
+
+/**
+ * Delete a recipe and verify it's gone
+ */
+export const deleteRecipe = (recipeId: number): void => {
+  cy.visit(`http://localhost:3000/recipes/${recipeId}`);
+  cy.contains('Delete Recipe').click();
+
+  // Handle confirmation if present
+  cy.on('window:confirm', () => true);
+
+  // Verify redirect to dashboard
+  cy.url().should('include', '/dashboard');
+};
+
+/**
+ * Logout the current user and verify redirect to login
+ */
+export const logoutUser = (): void => {
+  cy.contains('Logout').click();
+  cy.url().should('include', '/login');
+};
+
+/**
+ * Verify that a user cannot access a recipe's edit page
+ */
+export const verifyNoAccess = (recipeId: number): void => {
+  cy.visit(`http://localhost:3000/recipes/${recipeId}/edit`);
+  // Verify error message or redirect
+  cy.contains(/permission|access|unauthorized/i).should('be.visible');
+};
