@@ -1,5 +1,3 @@
-// src/lib/nutrition/types.ts
-
 export interface Ingredient {
   id: number;
   name: string;
@@ -72,7 +70,18 @@ export interface RecipeNutrients {
 export type NutrientKey = keyof Nutrients;
 
 export const NUTRIENT_KEYS: NutrientKey[] = [
-  'kcal', 'sugar', 'fat', 'protein', 'carbohydrates', 'fiber',
-  'sodium', 'calcium', 'vitamin_d', 'magnesium', 'vitamin_b6',
-  'vitamin_b12', 'vitamin_e', 'zinc'
+  'kcal',
+  'sugar',
+  'fat',
+  'protein',
+  'carbohydrates',
+  'fiber',
+  'sodium',
+  'calcium',
+  'vitamin_d',
+  'magnesium',
+  'vitamin_b6',
+  'vitamin_b12',
+  'vitamin_e',
+  'zinc',
 ];
