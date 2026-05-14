@@ -22,13 +22,16 @@ build/
 .next/
 out/
 coverage/
+.coverage/
 *.tsbuildinfo
 
 # Database
+.data/
 *.db
+*.db-journal
+*.db-wal
 *.sqlite
 *.sqlite3
-.data/
 postgres_data/
 
 # Docker
