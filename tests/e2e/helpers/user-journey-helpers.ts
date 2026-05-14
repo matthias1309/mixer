@@ -75,3 +75,40 @@ export const createRecipe = (data: RecipeData): number => {
 
   return recipeId;
 };
+
+/**
+ * Edit an existing recipe with partial data and verify changes
+ */
+export const editRecipe = (recipeId: number, newData: Partial<RecipeData>): void => {
+  cy.visit(`http://localhost:3000/recipes/${recipeId}/edit`);
+  cy.url().should('include', `/recipes/${recipeId}/edit`);
+
+  // Update name if provided
+  if (newData.name) {
+    cy.get('input').first().clear().type(newData.name);
+  }
+
+  // Update description if provided
+  if (newData.description) {
+    cy.get('textarea').first().clear().type(newData.description);
+  }
+
+  // Update instructions if provided
+  if (newData.instructions) {
+    cy.get('textarea').eq(1).clear().type(newData.instructions);
+  }
+
+  // Update servings if provided
+  if (newData.servings) {
+    cy.get('input[type="number"]').first().clear().type(newData.servings.toString());
+  }
+
+  // Submit form
+  cy.contains('Update Recipe').click();
+
+  // Verify on recipe detail page and changes are visible
+  cy.url().should('include', `/recipes/${recipeId}`);
+  if (newData.name) {
+    cy.contains(newData.name).should('be.visible');
+  }
+};
