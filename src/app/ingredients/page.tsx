@@ -30,20 +30,20 @@ export default function IngredientsPage() {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to load ingredients');
+        throw new Error('Fehler beim Laden von Zutaten');
       }
 
       const data = await response.json();
       setIngredients(data.ingredients);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load ingredients');
+      setError(err instanceof Error ? err.message : 'Fehler beim Laden von Zutaten');
     } finally {
       setLoading(false);
     }
   }
 
   async function handleDelete(id: number) {
-    if (!confirm('Are you sure you want to delete this ingredient?')) return;
+    if (!confirm('Sind Sie sicher, dass Sie diese Zutat löschen möchten?')) return;
 
     setDeleting(id);
 
@@ -54,12 +54,12 @@ export default function IngredientsPage() {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to delete ingredient');
+        throw new Error('Fehler beim Löschen der Zutat');
       }
 
       await fetchIngredients();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to delete ingredient');
+      setError(err instanceof Error ? err.message : 'Fehler beim Löschen der Zutat');
       setDeleting(null);
     }
   }
@@ -68,12 +68,12 @@ export default function IngredientsPage() {
     <ProtectedRoute>
       <div className="max-w-6xl">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold">Manage Ingredients</h1>
+          <h1 className="text-3xl font-bold">Zutaten verwalten</h1>
           <a
             href="/ingredients/new"
             className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
           >
-            + New Ingredient
+            + Zutat hinzufügen
           </a>
         </div>
 
@@ -82,7 +82,7 @@ export default function IngredientsPage() {
         <div className="bg-white p-4 rounded-lg shadow mb-6">
           <input
             type="text"
-            placeholder="Search ingredients..."
+            placeholder="Zutaten durchsuchen..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full border rounded px-3 py-2 focus:outline-blue-500"
@@ -90,10 +90,10 @@ export default function IngredientsPage() {
         </div>
 
         {loading ? (
-          <div className="text-center py-8">Loading ingredients...</div>
+          <div className="text-center py-8">Zutaten werden geladen...</div>
         ) : ingredients.length === 0 ? (
           <div className="bg-white p-8 rounded-lg shadow text-center text-gray-500">
-            No ingredients found. {search ? 'Try a different search.' : 'Create one to get started.'}
+            Keine Zutaten vorhanden. {search ? 'Versuchen Sie eine andere Suche.' : 'Erstellen Sie eine Zutat, um zu beginnen.'}
           </div>
         ) : (
           <div className="bg-white rounded-lg shadow overflow-x-auto">
@@ -101,12 +101,12 @@ export default function IngredientsPage() {
               <thead className="border-b bg-gray-50">
                 <tr>
                   <th className="px-4 py-3 text-left text-sm font-semibold">Name</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold">Category</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold">Kategorie</th>
                   <th className="px-4 py-3 text-center text-sm font-semibold">kcal</th>
                   <th className="px-4 py-3 text-center text-sm font-semibold">Protein (g)</th>
-                  <th className="px-4 py-3 text-center text-sm font-semibold">Fat (g)</th>
-                  <th className="px-4 py-3 text-center text-sm font-semibold">Carbs (g)</th>
-                  <th className="px-4 py-3 text-right text-sm font-semibold">Actions</th>
+                  <th className="px-4 py-3 text-center text-sm font-semibold">Fett (g)</th>
+                  <th className="px-4 py-3 text-center text-sm font-semibold">Kohlenhydrate (g)</th>
+                  <th className="px-4 py-3 text-right text-sm font-semibold">Aktionen</th>
                 </tr>
               </thead>
               <tbody>
@@ -134,14 +134,14 @@ export default function IngredientsPage() {
                           href={`/ingredients/${ingredient.id}/edit`}
                           className="text-blue-600 hover:underline text-sm"
                         >
-                          Edit
+                          Bearbeiten
                         </a>
                         <button
                           onClick={() => handleDelete(ingredient.id)}
                           disabled={deleting === ingredient.id}
                           className="text-red-600 hover:underline text-sm disabled:opacity-50"
                         >
-                          {deleting === ingredient.id ? 'Deleting...' : 'Delete'}
+                          {deleting === ingredient.id ? 'Wird gelöscht...' : 'Löschen'}
                         </button>
                       </div>
                     </td>

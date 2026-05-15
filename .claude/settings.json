@@ -64,7 +64,8 @@
       "Bash(mv USR-102-user-login.md done/)",
       "Bash(mv USR-103-user-logout.md done/)",
       "Bash(curl -s http://localhost:3000/dashboard)",
-      "Bash(npx tsc *)"
+      "Bash(npx tsc *)",
+      "Bash(pkill -f \"next dev\")"
     ],
     "additionalDirectories": [
       "/private/tmp",

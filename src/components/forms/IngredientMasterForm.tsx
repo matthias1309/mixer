@@ -41,13 +41,13 @@ export function IngredientMasterForm({ initialData, isEditing = false }: Ingredi
     setIsLoading(true);
 
     if (!name.trim()) {
-      setError('Ingredient name is required');
+      setError('Zutatname ist erforderlich');
       setIsLoading(false);
       return;
     }
 
     if (name.length > 255) {
-      setError('Ingredient name must be at most 255 characters');
+      setError('Zutatname darf höchstens 255 Zeichen lang sein');
       setIsLoading(false);
       return;
     }
@@ -90,12 +90,12 @@ export function IngredientMasterForm({ initialData, isEditing = false }: Ingredi
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to save ingredient');
+        throw new Error(data.error || 'Fehler beim Speichern der Zutat');
       }
 
       router.push(`/ingredients`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save ingredient');
+      setError(err instanceof Error ? err.message : 'Fehler beim Speichern der Zutat');
     } finally {
       setIsLoading(false);
     }
@@ -122,7 +122,7 @@ export function IngredientMasterForm({ initialData, isEditing = false }: Ingredi
   return (
     <form onSubmit={handleSubmit} className="max-w-4xl bg-white p-6 rounded-lg shadow">
       <h1 className="text-2xl font-bold mb-6">
-        {isEditing ? 'Edit Ingredient' : 'Create New Ingredient'}
+        {isEditing ? 'Zutat bearbeiten' : 'Neue Zutat erstellen'}
       </h1>
 
       {error && <div className="bg-red-100 text-red-700 p-3 rounded mb-4">{error}</div>}
@@ -130,10 +130,10 @@ export function IngredientMasterForm({ initialData, isEditing = false }: Ingredi
       <div className="space-y-4">
         {/* Basic Info */}
         <div className="border-b pb-4">
-          <h2 className="text-lg font-semibold mb-3">Basic Information</h2>
+          <h2 className="text-lg font-semibold mb-3">Grundinformationen</h2>
 
           <div>
-            <label className="block text-sm font-medium mb-1">Name *</label>
+            <label className="block text-sm font-medium mb-1">Zutatname *</label>
             <input
               type="text"
               value={name}
@@ -147,12 +147,12 @@ export function IngredientMasterForm({ initialData, isEditing = false }: Ingredi
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1 mt-3">Category</label>
+            <label className="block text-sm font-medium mb-1 mt-3">Kategorie</label>
             <input
               type="text"
               value={category}
               onChange={(e) => setCategory(e.target.value)}
-              placeholder="e.g., Vegetables, Proteins, Grains"
+              placeholder="z.B. Gemüse, Proteine, Getreide"
               className="w-full border rounded px-3 py-2 focus:outline-blue-500"
               disabled={isLoading}
             />
@@ -160,7 +160,7 @@ export function IngredientMasterForm({ initialData, isEditing = false }: Ingredi
 
           <div className="grid grid-cols-2 gap-4 mt-3">
             <div>
-              <label className="block text-sm font-medium mb-1">Base Unit</label>
+              <label className="block text-sm font-medium mb-1">Basiseinheit</label>
               <input
                 type="text"
                 value={baseUnit}
@@ -171,7 +171,7 @@ export function IngredientMasterForm({ initialData, isEditing = false }: Ingredi
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Base Size</label>
+              <label className="block text-sm font-medium mb-1">Basisgröße</label>
               <input
                 type="number"
                 value={baseSize}
@@ -186,7 +186,7 @@ export function IngredientMasterForm({ initialData, isEditing = false }: Ingredi
 
         {/* Nutrients */}
         <div>
-          <h2 className="text-lg font-semibold mb-3">Nutritional Values (per {baseSize}g)</h2>
+          <h2 className="text-lg font-semibold mb-3">Nährwerte (pro {baseSize}g)</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             {nutrientInputs.map((nutrient) => (
               <div key={nutrient.label}>
@@ -218,7 +218,7 @@ export function IngredientMasterForm({ initialData, isEditing = false }: Ingredi
             disabled={isLoading}
             className="flex-1 bg-blue-600 text-white py-2 rounded hover:bg-blue-700 disabled:opacity-50"
           >
-            {isLoading ? 'Saving...' : isEditing ? 'Update Ingredient' : 'Create Ingredient'}
+            {isLoading ? 'Speichern...' : isEditing ? 'Zutat aktualisieren' : 'Zutat erstellen'}
           </button>
           <button
             type="button"
@@ -226,7 +226,7 @@ export function IngredientMasterForm({ initialData, isEditing = false }: Ingredi
             className="px-4 py-2 border rounded hover:bg-gray-50"
             disabled={isLoading}
           >
-            Cancel
+            Abbrechen
           </button>
         </div>
       </div>
