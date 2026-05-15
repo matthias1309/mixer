@@ -47,25 +47,25 @@ export function RecipeForm({ initialData, isEditing = false }: RecipeFormProps) 
     }
 
     if (description.length > 500) {
-      setError('Description must be max 500 characters');
+      setError('Beschreibung muss maximal 500 Zeichen lang sein');
       setIsLoading(false);
       return;
     }
 
     if (instructions.length > 2000) {
-      setError('Instructions must be max 2000 characters');
+      setError('Anweisungen müssen maximal 2000 Zeichen lang sein');
       setIsLoading(false);
       return;
     }
 
     if (servings < 1) {
-      setError('Servings must be at least 1');
+      setError('Portionen müssen mindestens 1 sein');
       setIsLoading(false);
       return;
     }
 
     if (ingredients.length > 50) {
-      setError('Maximum 50 ingredients allowed');
+      setError('Maximal 50 Zutaten erlaubt');
       setIsLoading(false);
       return;
     }
@@ -90,13 +90,13 @@ export function RecipeForm({ initialData, isEditing = false }: RecipeFormProps) 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to save recipe');
+        throw new Error(data.error || 'Rezept konnte nicht gespeichert werden');
       }
 
       // Redirect to recipe detail
       router.push(`/recipes/${data.id || initialData?.id}`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save recipe');
+      setError(err instanceof Error ? err.message : 'Rezept konnte nicht gespeichert werden');
     } finally {
       setIsLoading(false);
     }
@@ -190,7 +190,7 @@ export function RecipeForm({ initialData, isEditing = false }: RecipeFormProps) 
               <div key={idx} className="flex gap-2">
                 <input
                   type="text"
-                  placeholder="Ingredient name"
+                  placeholder="Zutatname"
                   value={ing.name}
                   onChange={(e) => updateIngredient(idx, 'name', e.target.value)}
                   maxLength={100}
@@ -199,7 +199,7 @@ export function RecipeForm({ initialData, isEditing = false }: RecipeFormProps) 
                 />
                 <input
                   type="number"
-                  placeholder="Qty"
+                  placeholder="Menge"
                   value={ing.quantity}
                   onChange={(e) => updateIngredient(idx, 'quantity', parseFloat(e.target.value))}
                   step="0.1"
@@ -209,7 +209,7 @@ export function RecipeForm({ initialData, isEditing = false }: RecipeFormProps) 
                 />
                 <input
                   type="text"
-                  placeholder="Unit"
+                  placeholder="Einheit"
                   value={ing.unit}
                   onChange={(e) => updateIngredient(idx, 'unit', e.target.value)}
                   className="w-20 border rounded px-3 py-2 text-sm"

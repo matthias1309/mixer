@@ -24,13 +24,13 @@ export default function EditIngredientPage() {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to load ingredient');
+        throw new Error('Zutat konnte nicht geladen werden');
       }
 
       const data = await response.json();
       setIngredient(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load ingredient');
+      setError(err instanceof Error ? err.message : 'Zutat konnte nicht geladen werden');
     } finally {
       setLoading(false);
     }
@@ -45,7 +45,7 @@ export default function EditIngredientPage() {
   }
 
   if (!ingredient) {
-    return <div className="text-center py-8">Ingredient not found</div>;
+    return <div className="text-center py-8">Zutat nicht gefunden</div>;
   }
 
   return (

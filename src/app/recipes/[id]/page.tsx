@@ -49,12 +49,12 @@ export default function RecipeDetailPage() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Recipe not found');
+        throw new Error(data.error || 'Rezept nicht gefunden');
       }
 
       setRecipe(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load recipe');
+      setError(err instanceof Error ? err.message : 'Rezept konnte nicht geladen werden');
     } finally {
       setIsLoading(false);
     }
@@ -72,12 +72,12 @@ export default function RecipeDetailPage() {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to delete recipe');
+        throw new Error('Rezept konnte nicht gelöscht werden');
       }
 
       router.push('/dashboard');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to delete recipe');
+      setError(err instanceof Error ? err.message : 'Rezept konnte nicht gelöscht werden');
       setIsDeleting(false);
     }
   }
@@ -91,7 +91,7 @@ export default function RecipeDetailPage() {
   }
 
   if (!recipe) {
-    return <div className="text-center py-8">Recipe not found</div>;
+    return <div className="text-center py-8">Rezept nicht gefunden</div>;
   }
 
   return (
@@ -100,7 +100,7 @@ export default function RecipeDetailPage() {
         <div className="flex justify-between items-start mb-4">
           <div>
             <h1 className="text-3xl font-bold">{recipe.name}</h1>
-            <p className="text-gray-600">by {recipe.creatorName}</p>
+            <p className="text-gray-600">von {recipe.creatorName}</p>
           </div>
           {recipe.canEdit && (
             <div className="flex gap-2">
@@ -108,14 +108,14 @@ export default function RecipeDetailPage() {
                 href={`/recipes/${recipe.id}/edit`}
                 className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
               >
-                Edit
+                Bearbeiten
               </a>
               <button
                 onClick={handleDelete}
                 disabled={isDeleting}
                 className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 disabled:opacity-50"
               >
-                {isDeleting ? 'Deleting...' : 'Delete'}
+                {isDeleting ? 'Wird gelöscht...' : 'Löschen'}
               </button>
             </div>
           )}
@@ -123,13 +123,13 @@ export default function RecipeDetailPage() {
 
         {recipe.description && (
           <div className="mb-6">
-            <h2 className="text-lg font-bold mb-2">Description</h2>
+            <h2 className="text-lg font-bold mb-2">Beschreibung</h2>
             <p className="text-gray-700">{recipe.description}</p>
           </div>
         )}
 
         <div className="mb-6">
-          <h2 className="text-lg font-bold mb-2">Ingredients (Servings: {recipe.servings})</h2>
+          <h2 className="text-lg font-bold mb-2">Zutaten (Portionen: {recipe.servings})</h2>
           <ul className="space-y-1">
             {recipe.ingredients.map((ing) => {
               const isSelected = selectedIngredients.includes(ing.name.toLowerCase());
@@ -163,9 +163,9 @@ export default function RecipeDetailPage() {
                 { key: 'fiber', label: 'Ballaststoffe', unit: 'g' },
                 { key: 'sodium', label: 'Natrium', unit: 'mg' },
                 { key: 'calcium', label: 'Calcium', unit: 'mg' },
-                { key: 'iron', label: 'Iron', unit: 'mg' },
+                { key: 'iron', label: 'Eisen', unit: 'mg' },
                 { key: 'magnesium', label: 'Magnesium', unit: 'mg' },
-                { key: 'zinc', label: 'Zinc', unit: 'mg' },
+                { key: 'zinc', label: 'Zink', unit: 'mg' },
                 { key: 'vitamin_d', label: 'Vitamin D', unit: 'mcg' },
                 { key: 'vitamin_e', label: 'Vitamin E', unit: 'mg' },
                 { key: 'vitamin_b6', label: 'Vitamin B6', unit: 'mg' },
@@ -188,15 +188,15 @@ export default function RecipeDetailPage() {
 
         {recipe.instructions && (
           <div className="mb-6">
-            <h2 className="text-lg font-bold mb-2">Instructions</h2>
+            <h2 className="text-lg font-bold mb-2">Anweisungen</h2>
             <p className="text-gray-700 whitespace-pre-wrap">{recipe.instructions}</p>
           </div>
         )}
 
         <div className="text-sm text-gray-500 border-t pt-4">
-          <p>Created: {new Date(recipe.createdAt).toLocaleString()}</p>
+          <p>Erstellt: {new Date(recipe.createdAt).toLocaleString()}</p>
           {recipe.updatedAt !== recipe.createdAt && (
-            <p>Last updated: {new Date(recipe.updatedAt).toLocaleString()}</p>
+            <p>Zuletzt aktualisiert: {new Date(recipe.updatedAt).toLocaleString()}</p>
           )}
         </div>
       </div>

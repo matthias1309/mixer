@@ -22,14 +22,14 @@ export default function OcrReview({ uploadId, onRecipeCreated }: OcrReviewProps)
         const data = await response.json();
 
         if (!response.ok) {
-          throw new Error(data.error || 'Failed to load OCR result');
+          throw new Error(data.error || 'OCR-Ergebnis konnte nicht geladen werden');
         }
 
         if (data.data.ingredients) {
           setIngredients(data.data.ingredients);
         }
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load OCR result');
+        setError(err instanceof Error ? err.message : 'OCR-Ergebnis konnte nicht geladen werden');
       }
     };
 
@@ -38,7 +38,7 @@ export default function OcrReview({ uploadId, onRecipeCreated }: OcrReviewProps)
 
   const handleCreateRecipe = async () => {
     if (!recipeName.trim()) {
-      setError('Please enter a recipe name');
+      setError('Bitte geben Sie einen Rezeptnamen ein');
       return;
     }
 
@@ -64,13 +64,13 @@ export default function OcrReview({ uploadId, onRecipeCreated }: OcrReviewProps)
       });
 
       if (!response.ok) {
-        throw new Error('Failed to create recipe');
+        throw new Error('Rezept konnte nicht erstellt werden');
       }
 
       const data = await response.json();
       onRecipeCreated?.(data.id);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Recipe creation failed');
+      setError(err instanceof Error ? err.message : 'Rezepterstellung fehlgeschlagen');
     } finally {
       setLoading(false);
     }
@@ -78,23 +78,23 @@ export default function OcrReview({ uploadId, onRecipeCreated }: OcrReviewProps)
 
   return (
     <div className="ocr-review">
-      <h2>Review & Correct Ingredients</h2>
+      <h2>Zutaten überprüfen und korrigieren</h2>
 
       {error && <div className="error-message">{error}</div>}
 
       <div className="form-group">
-        <label htmlFor="recipe-name">Recipe Name</label>
+        <label htmlFor="recipe-name">Rezeptname</label>
         <input
           id="recipe-name"
           type="text"
           value={recipeName}
           onChange={e => setRecipeName(e.target.value)}
-          placeholder="e.g., Apfel Salat"
+          placeholder="z.B. Apfel Salat"
         />
       </div>
 
       <div className="form-group">
-        <label htmlFor="portions">Portions</label>
+        <label htmlFor="portions">Portionen</label>
         <input
           id="portions"
           type="number"
@@ -105,7 +105,7 @@ export default function OcrReview({ uploadId, onRecipeCreated }: OcrReviewProps)
       </div>
 
       <div className="ingredients-list">
-        <h3>Ingredients ({ingredients.length})</h3>
+        <h3>Zutaten ({ingredients.length})</h3>
         {ingredients.map((ing, idx) => (
           <div key={idx} className={`ingredient-item ${ing.matched ? 'matched' : 'unmatched'}`}>
             <span className="confidence">
@@ -115,7 +115,7 @@ export default function OcrReview({ uploadId, onRecipeCreated }: OcrReviewProps)
             <span className="amount">
               {ing.amount} {ing.unit}
             </span>
-            {!ing.matched && <span className="badge">⚠️ Manual review needed</span>}
+            {!ing.matched && <span className="badge">⚠️ Manuelle Überprüfung erforderlich</span>}
           </div>
         ))}
       </div>
@@ -125,7 +125,7 @@ export default function OcrReview({ uploadId, onRecipeCreated }: OcrReviewProps)
         disabled={loading || ingredients.length === 0}
         className="button primary"
       >
-        {loading ? 'Creating...' : 'Create Recipe'}
+        {loading ? 'Wird erstellt...' : 'Rezept erstellen'}
       </button>
     </div>
   );

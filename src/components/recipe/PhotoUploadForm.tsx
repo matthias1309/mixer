@@ -32,7 +32,7 @@ export default function PhotoUploadForm({ onRecipeCreated }: PhotoUploadFormProp
 
       if (!response.ok) {
         const data = await response.json();
-        throw new Error(data.error || 'Upload failed');
+        throw new Error(data.error || 'Upload fehlgeschlagen');
       }
 
       const data = await response.json();
@@ -42,7 +42,7 @@ export default function PhotoUploadForm({ onRecipeCreated }: PhotoUploadFormProp
       // Poll for completion
       pollOcrStatus(data.uploadId);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Upload failed');
+      setError(err instanceof Error ? err.message : 'Upload fehlgeschlagen');
       setStatus('error');
     }
   };
@@ -59,7 +59,7 @@ export default function PhotoUploadForm({ onRecipeCreated }: PhotoUploadFormProp
         const data = await response.json();
 
         if (!response.ok) {
-          throw new Error(data.error || 'Status check failed');
+          throw new Error(data.error || 'Statusprüfung fehlgeschlagen');
         }
 
         if (data.data.status === 'complete') {
@@ -68,10 +68,10 @@ export default function PhotoUploadForm({ onRecipeCreated }: PhotoUploadFormProp
         }
 
         if (data.data.status === 'error') {
-          throw new Error(data.data.error || 'OCR failed');
+          throw new Error(data.data.error || 'OCR fehlgeschlagen');
         }
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Status check failed');
+        setError(err instanceof Error ? err.message : 'Statusprüfung fehlgeschlagen');
         setStatus('error');
         return;
       }
@@ -80,7 +80,7 @@ export default function PhotoUploadForm({ onRecipeCreated }: PhotoUploadFormProp
       attempts++;
     }
 
-    setError('OCR processing took too long');
+    setError('OCR-Verarbeitung hat zu lange gedauert');
     setStatus('error');
   };
 
@@ -96,7 +96,7 @@ export default function PhotoUploadForm({ onRecipeCreated }: PhotoUploadFormProp
 
   return (
     <div className="ocr-upload-form">
-      <h2>Upload Recipe Photo</h2>
+      <h2>Rezeptfoto hochladen</h2>
 
       {error && (
         <div className="error-message">
@@ -107,8 +107,8 @@ export default function PhotoUploadForm({ onRecipeCreated }: PhotoUploadFormProp
 
       <div className="upload-zone">
         <label htmlFor="photo-input" className="upload-label">
-          <span>📷 Click to upload or drag & drop</span>
-          <p>JPG or PNG, max 5MB</p>
+          <span>📷 Klicken zum Hochladen oder Datei ziehen</span>
+          <p>JPG oder PNG, max 5MB</p>
         </label>
         <input
           id="photo-input"
