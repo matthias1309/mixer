@@ -82,8 +82,8 @@ async function processOcrAsync(
     const rawText = await extractTextFromImage(imageBuffer);
 
     // Get ingredients from database
-    const db = await getDatabase();
-    const ingredients = await db.all('SELECT * FROM ingredients');
+    const db = getDatabase();
+    const ingredients = db.prepare('SELECT * FROM ingredients').all();
 
     // Parse ingredients
     const parsed = parseIngredientsFromText(rawText, ingredients);
