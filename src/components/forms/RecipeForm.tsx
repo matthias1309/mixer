@@ -118,7 +118,7 @@ export function RecipeForm({ initialData, isEditing = false }: RecipeFormProps) 
 
   return (
     <form onSubmit={handleSubmit} className="max-w-2xl bg-white p-6 rounded-lg shadow">
-      <h1 className="text-2xl font-bold mb-6">{isEditing ? 'Edit Recipe' : 'Create Recipe'}</h1>
+      <h1 className="text-2xl font-bold mb-6">{isEditing ? 'Rezept bearbeiten' : 'Rezept erstellen'}</h1>
 
       {error && <div className="bg-red-100 text-red-700 p-3 rounded mb-4">{error}</div>}
 
@@ -126,7 +126,7 @@ export function RecipeForm({ initialData, isEditing = false }: RecipeFormProps) 
         {/* Name */}
         <div>
           <label className="block text-sm font-medium mb-1">
-            Recipe Name *
+            Rezeptname *
           </label>
           <input
             type="text"
@@ -142,7 +142,7 @@ export function RecipeForm({ initialData, isEditing = false }: RecipeFormProps) 
 
         {/* Description */}
         <div>
-          <label className="block text-sm font-medium mb-1">Description</label>
+          <label className="block text-sm font-medium mb-1">Beschreibung</label>
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
@@ -156,7 +156,7 @@ export function RecipeForm({ initialData, isEditing = false }: RecipeFormProps) 
 
         {/* Instructions */}
         <div>
-          <label className="block text-sm font-medium mb-1">Instructions</label>
+          <label className="block text-sm font-medium mb-1">Anleitung</label>
           <textarea
             value={instructions}
             onChange={(e) => setInstructions(e.target.value)}
@@ -170,7 +170,7 @@ export function RecipeForm({ initialData, isEditing = false }: RecipeFormProps) 
 
         {/* Servings */}
         <div>
-          <label className="block text-sm font-medium mb-1">Servings</label>
+          <label className="block text-sm font-medium mb-1">Portionen</label>
           <input
             type="number"
             value={servings}
@@ -183,7 +183,7 @@ export function RecipeForm({ initialData, isEditing = false }: RecipeFormProps) 
 
         {/* Ingredients */}
         <div>
-          <label className="block text-sm font-medium mb-2">Ingredients ({ingredients.length})</label>
+          <label className="block text-sm font-medium mb-2">Zutaten ({ingredients.length})</label>
 
           <div className="space-y-2 mb-3">
             {ingredients.map((ing, idx) => (
@@ -222,7 +222,7 @@ export function RecipeForm({ initialData, isEditing = false }: RecipeFormProps) 
                   className="bg-red-500 text-white px-3 py-2 rounded text-sm hover:bg-red-600"
                   disabled={isLoading}
                 >
-                  Remove
+                  Entfernen
                 </button>
               </div>
             ))}
@@ -234,7 +234,7 @@ export function RecipeForm({ initialData, isEditing = false }: RecipeFormProps) 
             className="bg-gray-500 text-white px-4 py-2 rounded text-sm hover:bg-gray-600"
             disabled={isLoading || ingredients.length >= 50}
           >
-            + Add Ingredient
+            + Zutat hinzufügen
           </button>
 
           <datalist id="units">
@@ -255,7 +255,7 @@ export function RecipeForm({ initialData, isEditing = false }: RecipeFormProps) 
             disabled={isLoading}
             className="flex-1 bg-blue-600 text-white py-2 rounded hover:bg-blue-700 disabled:opacity-50"
           >
-            {isLoading ? 'Saving...' : isEditing ? 'Update Recipe' : 'Create Recipe'}
+            {isLoading ? 'Speichern...' : isEditing ? 'Rezept aktualisieren' : 'Rezept erstellen'}
           </button>
           <button
             type="button"
@@ -263,7 +263,7 @@ export function RecipeForm({ initialData, isEditing = false }: RecipeFormProps) 
             className="px-4 py-2 border rounded hover:bg-gray-50"
             disabled={isLoading}
           >
-            Cancel
+            Abbrechen
           </button>
         </div>
       </div>
