@@ -13,18 +13,27 @@ export function Navigation() {
           🍳 Recipe Manager
         </Link>
 
-        <div className="flex gap-4">
+        <div className="flex gap-6">
           {user ? (
             <>
               <span className="text-sm">{user.email}</span>
+              <Link href="/" className="hover:underline">
+                Startseite
+              </Link>
               <Link href="/dashboard" className="hover:underline">
-                Dashboard
+                Übersicht
+              </Link>
+              <Link href="/ingredients" className="hover:underline">
+                Zutaten
+              </Link>
+              <Link href="/cycle" className="hover:underline">
+                Zyklus-Verfolgung
               </Link>
               <button
                 onClick={() => logout()}
                 className="bg-red-600 px-3 py-1 rounded hover:bg-red-700"
               >
-                Logout
+                Abmelden
               </button>
             </>
           ) : (
