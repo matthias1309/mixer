@@ -32,4 +32,25 @@ export class UserModel {
       created_at: user.created_at,
     };
   }
+
+  static saveCycle(userId: number, lastMenstruationDate: string, cycleLengthDays: number) {
+    const db = getDatabase();
+    const stmt = db.prepare(`
+      INSERT INTO user_cycles (user_id, last_menstruation_date, cycle_length_days)
+      VALUES (?, ?, ?)
+      ON CONFLICT(user_id) DO UPDATE SET
+        last_menstruation_date = excluded.last_menstruation_date,
+        cycle_length_days = excluded.cycle_length_days,
+        updated_at = CURRENT_TIMESTAMP
+    `);
+
+    stmt.run(userId, lastMenstruationDate, cycleLengthDays);
+    return this.getCycle(userId);
+  }
+
+  static getCycle(userId: number) {
+    const db = getDatabase();
+    const stmt = db.prepare('SELECT * FROM user_cycles WHERE user_id = ?');
+    return (stmt.get(userId) as any) || null;
+  }
 }

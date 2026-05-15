@@ -58,6 +58,10 @@ export default function PhotoUploadForm({ onRecipeCreated }: PhotoUploadFormProp
         });
         const data = await response.json();
 
+        if (!response.ok) {
+          throw new Error(data.error || 'Status check failed');
+        }
+
         if (data.data.status === 'complete') {
           setStatus('reviewing');
           return;

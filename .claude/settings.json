@@ -35,7 +35,32 @@
       "Bash(rm -rf \"src/api/recipes/\\\\[id\\\\]\")",
       "Bash(mkdir -p \"src/api/recipes/[id]/phase-scores\")",
       "Bash(rm -rf \"/Users/matthias/Claude_Code/mixer/src/app/api/recipes/ocr/\\\\[uploadId\\\\]\")",
-      "Bash(mkdir -p \"/Users/matthias/Claude_Code/mixer/src/app/api/recipes/ocr/[uploadId]\")"
+      "Bash(mkdir -p \"/Users/matthias/Claude_Code/mixer/src/app/api/recipes/ocr/[uploadId]\")",
+      "Bash(lsof -ti:3000)",
+      "Bash(xargs kill -9)",
+      "Bash(curl -s http://localhost:3000)",
+      "Bash(cat)",
+      "Bash(chmod +x /tmp/test_ocr.sh)",
+      "Bash(/tmp/test_ocr.sh)",
+      "Read(//tmp/**)",
+      "Bash(curl -v http://localhost:3000/api/recipes/ocr/test-upload-id-12345)",
+      "Bash(lsof -ti:3000 | xargs kill -9 2>/dev/null || true; sleep 2; npm run dev > /tmp/dev-server.log 2>&1 & *)",
+      "Bash(grep -E \"\\\\.\\(tsx|ts\\)$\")",
+      "Bash(mkdir -p /Users/matthias/Claude_Code/mixer/src/app/api/ingredients-master && mkdir -p /Users/matthias/Claude_Code/mixer/src/app/api/ingredients-master/\\\\[id\\\\] && echo \"Directories created\")",
+      "Bash(mkdir -p /Users/matthias/Claude_Code/mixer/src/app/ingredients && mkdir -p /Users/matthias/Claude_Code/mixer/src/app/ingredients/new && mkdir -p /Users/matthias/Claude_Code/mixer/src/app/ingredients/\\\\[id\\\\]/edit && echo \"Directories created\")",
+      "Bash(rm -rf /Users/matthias/Claude_Code/mixer/src/app/api/ingredients-master/\\\\\\\\[id\\\\\\\\])",
+      "Bash(mv /Users/matthias/Claude_Code/mixer/src/app/api/ingredients-master/\\\\[id\\\\]/route.ts /Users/matthias/Claude_Code/mixer/src/app/api/ingredients-master/[id]/route.ts)",
+      "Bash(cp '/Users/matthias/Claude_Code/mixer/src/app/api/ingredients-master/\\\\[id\\\\]/route.ts' '/Users/matthias/Claude_Code/mixer/src/app/api/ingredients-master/[id]/route.ts')",
+      "Bash(rm -rf '/Users/matthias/Claude_Code/mixer/src/app/api/ingredients-master/\\\\[id\\\\]')",
+      "Bash(cp '/Users/matthias/Claude_Code/mixer/src/app/ingredients/\\\\[id\\\\]/edit/page.tsx' '/Users/matthias/Claude_Code/mixer/src/app/ingredients/[id]/edit/page.tsx')",
+      "Bash(rm -rf '/Users/matthias/Claude_Code/mixer/src/app/ingredients/\\\\[id\\\\]')",
+      "Bash(\n# Lösche das verbliebene falsch benannte Verzeichnis\nrm -rf '/Users/matthias/Claude_Code/mixer/src/app/ingredients/\\\\[id\\\\]'\n\n# Überprüfe Final\nfind /Users/matthias/Claude_Code/mixer/src/app/ingredients -type f -name \"*.tsx\"\n)"
+    ],
+    "additionalDirectories": [
+      "/private/tmp",
+      "/Users/matthias/Claude_Code/mixer/src/app/api/ingredients-master",
+      "/Users/matthias/Claude_Code/mixer/src/app/ingredients/[id]",
+      "/Users/matthias/Claude_Code/mixer/src/app/ingredients"
     ]
   },
   "enabledPlugins": {

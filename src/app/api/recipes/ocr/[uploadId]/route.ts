@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { ocrCache } from '../route';
+import { ocrCache } from '@/lib/ocr/cache';
 
 export async function GET(
   request: NextRequest,
@@ -7,9 +7,12 @@ export async function GET(
 ) {
   try {
     const { uploadId } = await params;
+    console.log(`[OCR GET] Looking for uploadId: ${uploadId}`);
+    console.log(`[OCR GET] Cache keys:`, Array.from(ocrCache.keys()));
     const result = ocrCache.get(uploadId);
 
     if (!result) {
+      console.log(`[OCR GET] uploadId not found in cache`);
       return NextResponse.json(
         { error: 'Upload not found' },
         { status: 404 }

@@ -3,14 +3,9 @@
 import { useFilter } from '../hooks/useFilter';
 import { useState, useEffect } from 'react';
 
-interface Ingredient {
-  id: number;
-  name: string;
-}
-
 export function IngredientFilter() {
   const { selectedIngredients, toggleIngredient, clearFilters } = useFilter();
-  const [ingredients, setIngredients] = useState<Ingredient[]>([]);
+  const [ingredients, setIngredients] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -66,14 +61,14 @@ export function IngredientFilter() {
           <p className="text-gray-600 text-sm">No ingredients available</p>
         ) : (
           ingredients.map((ingredient) => (
-            <label key={ingredient.id} className="flex items-center cursor-pointer">
+            <label key={ingredient} className="flex items-center cursor-pointer">
               <input
                 type="checkbox"
-                checked={selectedIngredients.includes(ingredient.name)}
-                onChange={() => toggleIngredient(ingredient.name)}
+                checked={selectedIngredients.includes(ingredient)}
+                onChange={() => toggleIngredient(ingredient)}
                 className="w-4 h-4 text-blue-600 rounded"
               />
-              <span className="ml-2 text-gray-700">{ingredient.name}</span>
+              <span className="ml-2 text-gray-700">{ingredient}</span>
             </label>
           ))
         )}

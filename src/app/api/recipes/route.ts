@@ -13,6 +13,7 @@ export async function GET(request: NextRequest) {
     const sort = (searchParams.get('sort') || 'date') as 'date' | 'name' | 'ingredients';
     const search = searchParams.get('search') || undefined;
     const ingredients = searchParams.get('ingredients');
+    const phase = searchParams.get('phase') || undefined;
 
     // Try to refresh token if authenticated
     const auth = await authMiddlewareWithRefresh(request);
@@ -23,12 +24,24 @@ export async function GET(request: NextRequest) {
     if (ingredients) {
       const ingredientList = ingredients.split(',').filter(i => i.trim());
       if (ingredientList.length > 0) {
-        result = RecipeModel.filterByIngredients(ingredientList, page, pageSize);
+        if (phase) {
+          result = RecipeModel.filterByIngredientsWithScore(ingredientList, page, pageSize, phase);
+        } else {
+          result = RecipeModel.filterByIngredients(ingredientList, page, pageSize);
+        }
+      } else {
+        if (phase) {
+          result = RecipeModel.listAllWithScore(page, pageSize, sort, search, phase);
+        } else {
+          result = RecipeModel.listAll(page, pageSize, sort, search);
+        }
+      }
+    } else {
+      if (phase) {
+        result = RecipeModel.listAllWithScore(page, pageSize, sort, search, phase);
       } else {
         result = RecipeModel.listAll(page, pageSize, sort, search);
       }
-    } else {
-      result = RecipeModel.listAll(page, pageSize, sort, search);
     }
 
     const totalPages = Math.ceil(result.total / pageSize);

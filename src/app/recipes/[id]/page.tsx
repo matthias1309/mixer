@@ -14,6 +14,7 @@ interface RecipeDetail {
   creatorName: string;
   creatorId: number;
   ingredients: Array<{ id: number; name: string; quantity: number; unit: string | null }>;
+  nutrients?: Record<string, number>;
   canEdit: boolean;
   canDelete: boolean;
   createdAt: string;
@@ -148,6 +149,42 @@ export default function RecipeDetailPage() {
             })}
           </ul>
         </div>
+
+        {recipe.nutrients && Object.values(recipe.nutrients).some(v => v > 0) && (
+          <div className="mb-6">
+            <h2 className="text-lg font-bold mb-3">Nutritional Values</h2>
+            <div className="grid grid-cols-2 gap-4">
+              {[
+                { key: 'kcal', label: 'Calories', unit: 'kcal' },
+                { key: 'protein', label: 'Protein', unit: 'g' },
+                { key: 'fat', label: 'Fat', unit: 'g' },
+                { key: 'carbohydrates', label: 'Carbohydrates', unit: 'g' },
+                { key: 'sugar', label: 'Sugar', unit: 'g' },
+                { key: 'fiber', label: 'Fiber', unit: 'g' },
+                { key: 'sodium', label: 'Sodium', unit: 'mg' },
+                { key: 'calcium', label: 'Calcium', unit: 'mg' },
+                { key: 'iron', label: 'Iron', unit: 'mg' },
+                { key: 'magnesium', label: 'Magnesium', unit: 'mg' },
+                { key: 'zinc', label: 'Zinc', unit: 'mg' },
+                { key: 'vitamin_d', label: 'Vitamin D', unit: 'mcg' },
+                { key: 'vitamin_e', label: 'Vitamin E', unit: 'mg' },
+                { key: 'vitamin_b6', label: 'Vitamin B6', unit: 'mg' },
+                { key: 'vitamin_b12', label: 'Vitamin B12', unit: 'mcg' },
+              ].map(({ key, label, unit }) => {
+                const value = recipe.nutrients?.[key] || 0;
+                if (value === 0) return null;
+                return (
+                  <div key={key} className="bg-gray-50 p-3 rounded">
+                    <div className="text-sm text-gray-600">{label}</div>
+                    <div className="text-lg font-semibold text-gray-800">
+                      {value.toFixed(2)} {unit}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {recipe.instructions && (
           <div className="mb-6">

@@ -38,6 +38,9 @@ export async function GET(request: NextRequest, props: { params: Params }) {
     // Get ingredients
     const ingredients = RecipeModel.getIngredients(recipeId);
 
+    // Get nutrients
+    const nutrients = RecipeModel.getNutrients(recipeId);
+
     // Check permissions
     const canEdit = auth ? parseInt(auth.userId, 10) === recipe.creator_id : false;
     const canDelete = auth ? parseInt(auth.userId, 10) === recipe.creator_id : false;
@@ -52,6 +55,7 @@ export async function GET(request: NextRequest, props: { params: Params }) {
         creatorId: recipe.creator_id,
         creatorName,
         ingredients,
+        nutrients,
         canonicalId: recipe.canonical_id,
         isDuplicate: Boolean(recipe.is_duplicate),
         createdAt: recipe.created_at,
@@ -135,7 +139,7 @@ export async function PUT(request: NextRequest, props: { params: Params }) {
     }
 
     // Validate description if provided
-    if (body.description !== undefined && body.description.length > VALIDATION.RECIPE_DESCRIPTION_MAX_LENGTH) {
+    if (body.description !== undefined && body.description !== null && body.description.length > VALIDATION.RECIPE_DESCRIPTION_MAX_LENGTH) {
       return NextResponse.json(
         { error: `Description must be at most ${VALIDATION.RECIPE_DESCRIPTION_MAX_LENGTH} characters` },
         { status: HTTP_STATUS.BAD_REQUEST }
@@ -143,7 +147,7 @@ export async function PUT(request: NextRequest, props: { params: Params }) {
     }
 
     // Validate instructions if provided
-    if (body.instructions !== undefined && body.instructions.length > VALIDATION.RECIPE_INSTRUCTIONS_MAX_LENGTH) {
+    if (body.instructions !== undefined && body.instructions !== null && body.instructions.length > VALIDATION.RECIPE_INSTRUCTIONS_MAX_LENGTH) {
       return NextResponse.json(
         { error: `Instructions must be at most ${VALIDATION.RECIPE_INSTRUCTIONS_MAX_LENGTH} characters` },
         { status: HTTP_STATUS.BAD_REQUEST }

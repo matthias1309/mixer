@@ -34,6 +34,7 @@ export function RecipeForm({ initialData, isEditing = false }: RecipeFormProps) 
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    console.log('[RecipeForm] Submit clicked, isEditing:', isEditing, 'name:', name);
     setError('');
     setIsLoading(true);
 
@@ -76,6 +77,7 @@ export function RecipeForm({ initialData, isEditing = false }: RecipeFormProps) 
       const response = await fetch(url, {
         method,
         credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name,
           description: description || null,

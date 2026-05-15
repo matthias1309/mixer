@@ -1,5 +1,6 @@
 import { getDatabase } from '../init';
 import { Recipe, RecipeListItem, CreateIngredientRequest, Ingredient } from '@/types';
+import { calculateScore, AggregatedNutrients } from '@/lib/scoring/phaseScore';
 
 export class RecipeModel {
   static create(
@@ -55,6 +56,40 @@ export class RecipeModel {
     const db = getDatabase();
     const stmt = db.prepare('SELECT * FROM recipes WHERE id = ?');
     return (stmt.get(id) as Recipe) || null;
+  }
+
+  static getNutrients(recipeId: number): Record<string, number> {
+    const db = getDatabase();
+    const stmt = db.prepare(`
+      SELECT
+        SUM(COALESCE(ingredients_master.kcal, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as kcal,
+        SUM(COALESCE(ingredients_master.iron, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as iron,
+        SUM(COALESCE(ingredients_master.magnesium, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as magnesium,
+        SUM(COALESCE(ingredients_master.protein, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as protein,
+        SUM(COALESCE(ingredients_master.calcium, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as calcium,
+        SUM(COALESCE(ingredients_master.vitamin_b6, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as vitamin_b6,
+        SUM(COALESCE(ingredients_master.vitamin_b12, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as vitamin_b12,
+        SUM(COALESCE(ingredients_master.vitamin_e, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as vitamin_e,
+        SUM(COALESCE(ingredients_master.zinc, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as zinc,
+        SUM(COALESCE(ingredients_master.fiber, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as fiber,
+        SUM(COALESCE(ingredients_master.vitamin_d, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as vitamin_d,
+        SUM(COALESCE(ingredients_master.sugar, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as sugar,
+        SUM(COALESCE(ingredients_master.fat, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as fat,
+        SUM(COALESCE(ingredients_master.carbohydrates, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as carbohydrates,
+        SUM(COALESCE(ingredients_master.sodium, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as sodium
+      FROM ingredients
+      LEFT JOIN ingredients_master ON LOWER(TRIM(ingredients_master.name)) = LOWER(TRIM(ingredients.name))
+      WHERE ingredients.recipe_id = ?
+    `);
+
+    const result = stmt.get(recipeId) as Record<string, number | null>;
+
+    // Convert nulls to 0 and filter out null values
+    const nutrients: Record<string, number> = {};
+    for (const [key, value] of Object.entries(result)) {
+      nutrients[key] = value || 0;
+    }
+    return nutrients;
   }
 
   static listAll(
@@ -282,6 +317,210 @@ export class RecipeModel {
       pageSize,
       offset
     ) as RecipeListItem[];
+
+    return {
+      recipes,
+      total: countResult.total,
+    };
+  }
+
+  static listAllWithScore(
+    page: number = 1,
+    pageSize: number = 10,
+    sortBy: 'date' | 'name' | 'ingredients' = 'date',
+    search: string | undefined,
+    phase: string = 'menstruation'
+  ): { recipes: (RecipeListItem & { score: number | null })[]; total: number } {
+    const db = getDatabase();
+
+    const sortByMap: Record<string, string> = {
+      'date': 'recipes.created_at DESC',
+      'name': 'recipes.name ASC',
+      'ingredients': 'COUNT(DISTINCT ingredients.id) ASC',
+    };
+    const orderBy = sortByMap[sortBy] || sortByMap['date'];
+
+    const offset = (page - 1) * pageSize;
+    const searchParam = search ? `%${search}%` : null;
+
+    // Count total non-duplicate recipes matching search
+    const countStmt = db.prepare(`
+      SELECT COUNT(DISTINCT recipes.id) as total
+      FROM recipes
+      WHERE recipes.is_duplicate = 0
+        AND (recipes.name LIKE ? OR ? IS NULL)
+    `);
+    const countResult = countStmt.get(searchParam, searchParam) as { total: number };
+
+    // Get recipes with nutrient data from ingredients_master
+    const stmt = db.prepare(`
+      SELECT
+        recipes.id,
+        recipes.name,
+        recipes.description,
+        users.email as creatorName,
+        COUNT(DISTINCT ingredients.id) as ingredientCount,
+        recipes.created_at as createdAt,
+        SUM(COALESCE(ingredients_master.iron, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as total_iron,
+        SUM(COALESCE(ingredients_master.magnesium, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as total_magnesium,
+        SUM(COALESCE(ingredients_master.protein, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as total_protein,
+        SUM(COALESCE(ingredients_master.calcium, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as total_calcium,
+        SUM(COALESCE(ingredients_master.vitamin_b6, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as total_vitamin_b6,
+        SUM(COALESCE(ingredients_master.vitamin_b12, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as total_vitamin_b12,
+        SUM(COALESCE(ingredients_master.vitamin_e, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as total_vitamin_e,
+        SUM(COALESCE(ingredients_master.zinc, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as total_zinc,
+        SUM(COALESCE(ingredients_master.fiber, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as total_fiber,
+        SUM(COALESCE(ingredients_master.vitamin_d, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as total_vitamin_d,
+        COUNT(CASE WHEN ingredients_master.id IS NOT NULL THEN 1 END) as matched_ingredients
+      FROM recipes
+      JOIN users ON recipes.creator_id = users.id
+      LEFT JOIN ingredients ON recipes.id = ingredients.recipe_id
+      LEFT JOIN ingredients_master ON LOWER(TRIM(ingredients_master.name)) = LOWER(TRIM(ingredients.name))
+      WHERE recipes.is_duplicate = 0
+        AND (recipes.name LIKE ? OR ? IS NULL)
+      GROUP BY recipes.id
+      ORDER BY ${orderBy}
+      LIMIT ? OFFSET ?
+    `);
+
+    const rows = stmt.all(searchParam, searchParam, pageSize, offset) as any[];
+
+    const recipes = rows.map((row: any) => {
+      let score: number | null = null;
+
+      if (row.matched_ingredients > 0) {
+        const nutrients: AggregatedNutrients = {
+          iron: row.total_iron || 0,
+          magnesium: row.total_magnesium || 0,
+          protein: row.total_protein || 0,
+          calcium: row.total_calcium || 0,
+          vitamin_b6: row.total_vitamin_b6 || 0,
+          vitamin_b12: row.total_vitamin_b12 || 0,
+          vitamin_e: row.total_vitamin_e || 0,
+          zinc: row.total_zinc || 0,
+          fiber: row.total_fiber || 0,
+          vitamin_d: row.total_vitamin_d || 0,
+        };
+        score = calculateScore(nutrients, phase);
+      }
+
+      return {
+        id: row.id,
+        name: row.name,
+        description: row.description,
+        creatorName: row.creatorName,
+        ingredientCount: row.ingredientCount,
+        createdAt: row.createdAt,
+        score,
+      };
+    });
+
+    return {
+      recipes,
+      total: countResult.total,
+    };
+  }
+
+  static filterByIngredientsWithScore(
+    ingredientNames: string[],
+    page: number = 1,
+    pageSize: number = 10,
+    phase: string = 'menstruation'
+  ) {
+    const db = getDatabase();
+
+    const normalizedIngredients = ingredientNames.map(i => i.trim().toLowerCase());
+    const placeholders = normalizedIngredients.map(() => '?').join(',');
+
+    const offset = (page - 1) * pageSize;
+
+    const countStmt = db.prepare(`
+      SELECT COUNT(DISTINCT recipes.id) as total
+      FROM recipes
+      WHERE recipes.is_duplicate = 0
+        AND recipes.id IN (
+          SELECT recipe_id
+          FROM ingredients
+          WHERE LOWER(TRIM(name)) IN (${placeholders})
+          GROUP BY recipe_id
+          HAVING COUNT(DISTINCT LOWER(TRIM(name))) = ?
+        )
+    `);
+
+    const countResult = countStmt.get(...normalizedIngredients, normalizedIngredients.length) as { total: number };
+
+    const stmt = db.prepare(`
+      SELECT
+        recipes.id,
+        recipes.name,
+        recipes.description,
+        users.email as creatorName,
+        COUNT(DISTINCT ingredients.id) as ingredientCount,
+        recipes.created_at as createdAt,
+        SUM(COALESCE(ingredients_master.iron, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as total_iron,
+        SUM(COALESCE(ingredients_master.magnesium, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as total_magnesium,
+        SUM(COALESCE(ingredients_master.protein, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as total_protein,
+        SUM(COALESCE(ingredients_master.calcium, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as total_calcium,
+        SUM(COALESCE(ingredients_master.vitamin_b6, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as total_vitamin_b6,
+        SUM(COALESCE(ingredients_master.vitamin_b12, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as total_vitamin_b12,
+        SUM(COALESCE(ingredients_master.vitamin_e, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as total_vitamin_e,
+        SUM(COALESCE(ingredients_master.zinc, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as total_zinc,
+        SUM(COALESCE(ingredients_master.fiber, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as total_fiber,
+        SUM(COALESCE(ingredients_master.vitamin_d, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as total_vitamin_d,
+        COUNT(CASE WHEN ingredients_master.id IS NOT NULL THEN 1 END) as matched_ingredients
+      FROM recipes
+      JOIN users ON recipes.creator_id = users.id
+      LEFT JOIN ingredients ON recipes.id = ingredients.recipe_id
+      LEFT JOIN ingredients_master ON LOWER(TRIM(ingredients_master.name)) = LOWER(TRIM(ingredients.name))
+      WHERE recipes.is_duplicate = 0
+        AND recipes.id IN (
+          SELECT recipe_id
+          FROM ingredients
+          WHERE LOWER(TRIM(name)) IN (${placeholders})
+          GROUP BY recipe_id
+          HAVING COUNT(DISTINCT LOWER(TRIM(name))) = ?
+        )
+      GROUP BY recipes.id
+      ORDER BY recipes.created_at DESC
+      LIMIT ? OFFSET ?
+    `);
+
+    const rows = stmt.all(
+      ...normalizedIngredients,
+      normalizedIngredients.length,
+      pageSize,
+      offset
+    ) as any[];
+
+    const recipes = rows.map((row: any) => {
+      let score: number | null = null;
+
+      if (row.matched_ingredients > 0) {
+        const nutrients: AggregatedNutrients = {
+          iron: row.total_iron || 0,
+          magnesium: row.total_magnesium || 0,
+          protein: row.total_protein || 0,
+          calcium: row.total_calcium || 0,
+          vitamin_b6: row.total_vitamin_b6 || 0,
+          vitamin_b12: row.total_vitamin_b12 || 0,
+          vitamin_e: row.total_vitamin_e || 0,
+          zinc: row.total_zinc || 0,
+          fiber: row.total_fiber || 0,
+          vitamin_d: row.total_vitamin_d || 0,
+        };
+        score = calculateScore(nutrients, phase);
+      }
+
+      return {
+        id: row.id,
+        name: row.name,
+        description: row.description,
+        creatorName: row.creatorName,
+        ingredientCount: row.ingredientCount,
+        createdAt: row.createdAt,
+        score,
+      };
+    });
 
     return {
       recipes,

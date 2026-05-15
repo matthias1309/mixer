@@ -3,33 +3,41 @@
 import { ProtectedRoute } from '../../components/ProtectedRoute';
 import { RecipeList } from '../../components/RecipeList';
 import { IngredientFilter } from '../../components/IngredientFilter';
-import CycleForm from '../../components/cycle/CycleForm';
-import CycleInfo from '../../components/cycle/CycleInfo';
 import PhaseFilter from '../../components/recipe/PhaseFilter';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 // Note: Metadata cannot be exported from a client component
 // This will be handled in a layout.tsx if needed
 export default function DashboardPage() {
-  const [cycleInitialized, setCycleInitialized] = useState(false);
-  const [selectedPhase, setSelectedPhase] = useState('menstruation');
+  const [selectedPhase, setSelectedPhase] = useState<string | null>(null);
+  const [minScore, setMinScore] = useState(0);
+
+  // Load current phase on mount
+  useEffect(() => {
+    const fetchCurrentPhase = async () => {
+      try {
+        const response = await fetch('/api/users/cycle', {
+          credentials: 'include',
+        });
+        if (response.ok) {
+          const data = await response.json();
+          if (data.current_phase) {
+            setSelectedPhase(data.current_phase);
+          } else {
+            setSelectedPhase('menstruation'); // Fallback if no cycle data
+          }
+        }
+      } catch (err) {
+        setSelectedPhase('menstruation'); // Fallback if no cycle data
+      }
+    };
+    fetchCurrentPhase();
+  }, []);
 
   return (
     <ProtectedRoute>
       <div className="py-6">
         <h1 className="text-3xl font-bold mb-6">Recipe Dashboard</h1>
-
-        {/* Cycle Tracking Section */}
-        <div className="mb-8 p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border border-purple-200">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div>
-              <CycleForm onSave={() => setCycleInitialized(true)} />
-            </div>
-            <div>
-              <CycleInfo />
-            </div>
-          </div>
-        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Filter sidebar */}
@@ -42,7 +50,10 @@ export default function DashboardPage() {
               <div>
                 <h3 className="font-bold mb-2">Phase Filter</h3>
                 <PhaseFilter
-                  onFilterChange={(phase) => setSelectedPhase(phase)}
+                  onFilterChange={(phase, score) => {
+                    setSelectedPhase(phase);
+                    setMinScore(score);
+                  }}
                   currentPhase={selectedPhase}
                 />
               </div>
@@ -51,7 +62,7 @@ export default function DashboardPage() {
 
           {/* Recipe list */}
           <div className="lg:col-span-3">
-            <RecipeList />
+            <RecipeList phase={selectedPhase} minScore={minScore} />
           </div>
         </div>
 
@@ -67,6 +78,18 @@ export default function DashboardPage() {
             className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
           >
             📸 Upload from Photo
+          </a>
+          <a
+            href="/cycle"
+            className="bg-pink-600 text-white px-6 py-2 rounded hover:bg-pink-700"
+          >
+            📊 Track Your Cycle
+          </a>
+          <a
+            href="/ingredients"
+            className="bg-purple-600 text-white px-6 py-2 rounded hover:bg-purple-700"
+          >
+            🧂 Manage Ingredients
           </a>
         </div>
       </div>

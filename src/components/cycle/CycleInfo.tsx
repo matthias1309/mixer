@@ -11,10 +11,15 @@ export default function CycleInfo() {
   useEffect(() => {
     const loadCycle = async () => {
       try {
-        const response = await fetch('/api/users/cycle');
+        const response = await fetch('/api/users/cycle', {
+          credentials: 'include',
+        });
         if (response.ok) {
           const data = await response.json();
+          console.log('[CycleInfo] Loaded cycle data:', data.data);
           setCycle(data.data);
+        } else {
+          console.log('[CycleInfo] Response not ok:', response.status);
         }
       } catch (err) {
         console.error('Failed to fetch cycle:', err);

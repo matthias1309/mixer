@@ -21,6 +21,7 @@ export default function CycleForm({ onSave }: CycleFormProps) {
       const response = await fetch('/api/users/cycle', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
           last_menstruation_date: date,
           cycle_length_days: parseInt(length),

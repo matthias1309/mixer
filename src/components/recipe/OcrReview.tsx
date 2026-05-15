@@ -21,11 +21,15 @@ export default function OcrReview({ uploadId, onRecipeCreated }: OcrReviewProps)
         const response = await fetch(`/api/recipes/ocr/${uploadId}`);
         const data = await response.json();
 
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to load OCR result');
+        }
+
         if (data.data.ingredients) {
           setIngredients(data.data.ingredients);
         }
       } catch (err) {
-        setError('Failed to load OCR result');
+        setError(err instanceof Error ? err.message : 'Failed to load OCR result');
       }
     };
 
@@ -45,14 +49,15 @@ export default function OcrReview({ uploadId, onRecipeCreated }: OcrReviewProps)
       const response = await fetch('/api/recipes', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
           name: recipeName,
-          portions: portions,
+          servings: portions,
           ingredients: ingredients
-            .filter(ing => ing.ingredient_id !== null)
+            .filter(ing => ing.name !== null)
             .map(ing => ({
-              ingredient_id: ing.ingredient_id,
-              amount: ing.amount || 1,
+              name: ing.name,
+              quantity: ing.amount || 1,
               unit: ing.unit || 'Stück',
             })),
         }),
@@ -63,7 +68,7 @@ export default function OcrReview({ uploadId, onRecipeCreated }: OcrReviewProps)
       }
 
       const data = await response.json();
-      onRecipeCreated?.(data.recipe_id);
+      onRecipeCreated?.(data.id);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Recipe creation failed');
     } finally {

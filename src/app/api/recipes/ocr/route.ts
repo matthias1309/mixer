@@ -5,14 +5,7 @@ import { getValidationError } from '@/config/upload';
 import { extractTextFromImage } from '@/lib/ocr/tesseract';
 import { parseIngredientsFromText } from '@/lib/ocr/parser';
 import { getDatabase } from '@/lib/db/init';
-
-// In-memory storage for OCR results (TODO: use Redis or DB in production)
-export const ocrCache = new Map<string, {
-  status: string;
-  raw_text?: string;
-  ingredients?: any[];
-  error?: string;
-}>();
+import { ocrCache } from '@/lib/ocr/cache';
 
 export async function POST(request: NextRequest) {
   try {
@@ -48,9 +41,12 @@ export async function POST(request: NextRequest) {
     const buffer = Buffer.from(await file.arrayBuffer());
 
     // Start OCR processing (async)
+    console.log(`[OCR POST] Setting cache for uploadId: ${uploadId}`);
     ocrCache.set(uploadId, { status: 'processing' });
+    console.log(`[OCR POST] Cache size: ${ocrCache.size}, keys:`, Array.from(ocrCache.keys()));
 
     processOcrAsync(uploadId, buffer, user.userId).catch(err => {
+      console.error(`[OCR POST] Processing error for ${uploadId}:`, err);
       ocrCache.set(uploadId, {
         status: 'error',
         error: 'OCR processing failed',
@@ -58,11 +54,10 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json({
-      status: 200,
       uploadId,
       status: 'processing',
       estimatedTime: 5,
-    });
+    }, { status: 200 });
   } catch (error) {
     console.error('Upload error:', error);
     return NextResponse.json(

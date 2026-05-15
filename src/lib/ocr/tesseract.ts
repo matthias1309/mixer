@@ -12,11 +12,11 @@ export async function extractTextFromImage(
     // For now, return mock data based on image size
     // In production, integrate with real OCR service
     const mockTexts = [
-      'Pasta Carbonara\n500g spaghetti\n200g bacon\n3 eggs\n100g parmesan cheese\nSalt and pepper to taste',
-      'Vegetable Soup\n2 carrots\n3 potatoes\n1 onion\n4 cups vegetable broth\n2 cups spinach\nOlive oil, salt, pepper',
-      'Chocolate Cake\n2 cups flour\n1 cup sugar\n3/4 cup cocoa powder\n2 eggs\n1 cup milk\n1 tsp vanilla extract\n1 tsp baking powder',
-      'Caesar Salad\n1 romaine lettuce\n1/2 cup croutons\n1/4 cup parmesan\n2 tbsp caesar dressing\nBlack pepper to taste',
-      'Tomato Risotto\n300g arborio rice\n400g tomatoes\n1 onion\n4 cups chicken broth\n100g parmesan\n2 tbsp olive oil',
+      '500g Spaghetti\n200g Speck\n3 Eier\n100g Parmesan\n10g Salz\n5g Pfeffer',
+      '2 Karotten\n3 Kartoffeln\n1 Zwiebel\n400ml Gemüsebrühe\n200g Spinat\n50ml Olivenöl\n10g Salz\n5g Pfeffer',
+      '250g Mehl\n250g Zucker\n75g Kakaopulver\n2 Eier\n250ml Milch\n5ml Vanilleextrakt\n10g Backpulver',
+      '1 Kopf Salat\n100g Croutons\n50g Parmesan\n30ml Salatdressing\n5g Schwarzpfeffer',
+      '300g Risottoreis\n400g Tomaten\n1 Zwiebel\n400ml Gemüsebrühe\n100g Parmesan\n30ml Olivenöl',
     ];
 
     // Return a random mock recipe

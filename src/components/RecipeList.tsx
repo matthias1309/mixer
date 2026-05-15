@@ -12,7 +12,12 @@ interface RecipesResponse {
   totalPages: number;
 }
 
-export function RecipeList() {
+interface RecipeListProps {
+  phase?: string | null;
+  minScore?: number;
+}
+
+export function RecipeList({ phase, minScore = 0 }: RecipeListProps) {
   const [recipes, setRecipes] = useState<RecipeCardProps[]>([]);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -32,6 +37,10 @@ export function RecipeList() {
         params.set('ingredients', selectedIngredients.join(','));
       }
 
+      if (phase) {
+        params.set('phase', phase);
+      }
+
       const response = await fetch(`/api/recipes?${params}`, {
         credentials: 'include',
       });
@@ -42,7 +51,15 @@ export function RecipeList() {
         throw new Error(data.error || 'Failed to fetch recipes');
       }
 
-      setRecipes(data.recipes);
+      // Filter by minScore on client side
+      const filteredRecipes = data.recipes.filter((recipe: any) => {
+        if (recipe.score === undefined || recipe.score === null) {
+          return true; // Show recipes without scores
+        }
+        return recipe.score >= minScore;
+      });
+
+      setRecipes(filteredRecipes);
       setTotalPages(data.totalPages);
       setPage(data.page);
     } catch (err) {
@@ -50,7 +67,7 @@ export function RecipeList() {
     } finally {
       setIsLoading(false);
     }
-  }, [page, selectedIngredients]);
+  }, [page, selectedIngredients, phase, minScore]);
 
   useEffect(() => {
     fetchRecipes();
