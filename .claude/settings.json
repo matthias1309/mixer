@@ -56,7 +56,13 @@
       "Bash(rm -rf '/Users/matthias/Claude_Code/mixer/src/app/ingredients/\\\\[id\\\\]')",
       "Bash(\n# Lösche das verbliebene falsch benannte Verzeichnis\nrm -rf '/Users/matthias/Claude_Code/mixer/src/app/ingredients/\\\\[id\\\\]'\n\n# Überprüfe Final\nfind /Users/matthias/Claude_Code/mixer/src/app/ingredients -type f -name \"*.tsx\"\n)",
       "Bash(find /docs/requirements /docs/roadmap -type f 2>/dev/null | head -50)",
-      "Read(//docs/**)"
+      "Read(//docs/**)",
+      "Bash(grep -E \"\\\\.\\(md|txt\\)$\")",
+      "Bash(mv INFRA-102-project-structure.md done/)",
+      "Bash(mv TEST-101-test-infrastructure.md done/)",
+      "Bash(mv USR-101-user-registration.md done/)",
+      "Bash(mv USR-102-user-login.md done/)",
+      "Bash(mv USR-103-user-logout.md done/)"
     ],
     "additionalDirectories": [
       "/private/tmp",
