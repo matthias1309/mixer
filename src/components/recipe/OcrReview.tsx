@@ -16,21 +16,21 @@ export default function OcrReview({ uploadId, onRecipeCreated }: OcrReviewProps)
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchOcrResult();
-  }, [uploadId]);
+    const loadOcrResult = async () => {
+      try {
+        const response = await fetch(`/api/recipes/ocr/${uploadId}`);
+        const data = await response.json();
 
-  const fetchOcrResult = async () => {
-    try {
-      const response = await fetch(`/api/recipes/ocr/${uploadId}`);
-      const data = await response.json();
-
-      if (data.data.ingredients) {
-        setIngredients(data.data.ingredients);
+        if (data.data.ingredients) {
+          setIngredients(data.data.ingredients);
+        }
+      } catch (err) {
+        setError('Failed to load OCR result');
       }
-    } catch (err) {
-      setError('Failed to load OCR result');
-    }
-  };
+    };
+
+    loadOcrResult();
+  }, [uploadId]);
 
   const handleCreateRecipe = async () => {
     if (!recipeName.trim()) {
