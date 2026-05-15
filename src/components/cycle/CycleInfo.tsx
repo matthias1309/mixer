@@ -31,12 +31,12 @@ export default function CycleInfo() {
     loadCycle();
   }, []);
 
-  if (loading) return <div>Loading...</div>;
-  if (!cycle) return <div>Cycle not set. Please initialize first.</div>;
+  if (loading) return <div>Wird geladen...</div>;
+  if (!cycle) return <div>Zyklus nicht gesetzt. Bitte initialisieren Sie zuerst.</div>;
 
   return (
     <div className="cycle-info">
-      <h2>Your Cycle</h2>
+      <h2>Ihr Zyklus</h2>
 
       <div className="phase-display">
         <PhaseIndicator phase={cycle.current_phase.phase.name} />
@@ -44,19 +44,19 @@ export default function CycleInfo() {
 
       <div className="details">
         <p>
-          <strong>Day of Cycle:</strong> {cycle.current_phase.day_of_cycle + 1} of{' '}
+          <strong>Zyklustag:</strong> {cycle.current_phase.day_of_cycle + 1} von{' '}
           {cycle.cycle_length_days}
         </p>
         <p>
-          <strong>Phase:</strong> {cycle.current_phase.phase.name}
+          <strong>Aktuelle Phase:</strong> {cycle.current_phase.phase.name}
         </p>
         <p>
-          <strong>Progress:</strong>{' '}
+          <strong>Fortschritt:</strong>{' '}
           {(cycle.current_phase.cycle_progress * 100).toFixed(0)}%
         </p>
       </div>
 
-      <button onClick={() => window.location.reload()}>Refresh</button>
+      <button onClick={() => window.location.reload()}>Aktualisieren</button>
     </div>
   );
 }

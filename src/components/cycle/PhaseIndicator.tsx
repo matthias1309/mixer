@@ -5,15 +5,15 @@ interface PhaseIndicatorProps {
 }
 
 const PHASE_EMOJIS: Record<string, string> = {
-  'Menstruation': '🔴',
-  'Follicular': '🟡',
+  'Menstruell': '🔴',
+  'Follikulär': '🟡',
   'Ovulation': '🩷',
   'Luteal': '🟦',
 };
 
 const PHASE_COLORS: Record<string, string> = {
-  'Menstruation': '#ff4444',
-  'Follicular': '#ffdd00',
+  'Menstruell': '#ff4444',
+  'Follikulär': '#ffdd00',
   'Ovulation': '#ff69b4',
   'Luteal': '#4444ff',
 };

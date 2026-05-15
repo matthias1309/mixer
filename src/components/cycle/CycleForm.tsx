@@ -44,12 +44,12 @@ export default function CycleForm({ onSave }: CycleFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="cycle-form">
-      <h2>Track Your Cycle</h2>
+      <h2>Verfolgung Ihres Zyklus</h2>
 
       {error && <div className="error">{error}</div>}
 
       <div className="form-group">
-        <label htmlFor="last-date">Last Menstruation Date</label>
+        <label htmlFor="last-date">Startdatum</label>
         <input
           id="last-date"
           type="date"
@@ -60,7 +60,7 @@ export default function CycleForm({ onSave }: CycleFormProps) {
       </div>
 
       <div className="form-group">
-        <label htmlFor="cycle-length">Cycle Length (days)</label>
+        <label htmlFor="cycle-length">Zyklus-Länge (Tage)</label>
         <input
           id="cycle-length"
           type="number"
@@ -73,7 +73,7 @@ export default function CycleForm({ onSave }: CycleFormProps) {
       </div>
 
       <button type="submit" disabled={loading}>
-        {loading ? 'Saving...' : 'Save Cycle'}
+        {loading ? 'Wird gespeichert...' : 'Zyklus speichern'}
       </button>
     </form>
   );

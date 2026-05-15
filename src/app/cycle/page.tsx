@@ -11,16 +11,16 @@ export default function CyclePage() {
   return (
     <ProtectedRoute>
       <div className="max-w-4xl">
-        <h1 className="text-3xl font-bold mb-6">Cycle Tracking</h1>
+        <h1 className="text-3xl font-bold mb-6">Zyklus-Verfolgung</h1>
 
         <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border border-purple-200 p-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div>
-              <h2 className="text-xl font-bold mb-4">Set Your Cycle</h2>
+              <h2 className="text-xl font-bold mb-4">Legen Sie Ihren Zyklus fest</h2>
               <CycleForm onSave={() => setCycleInitialized(true)} />
             </div>
             <div>
-              <h2 className="text-xl font-bold mb-4">Current Cycle Info</h2>
+              <h2 className="text-xl font-bold mb-4">Aktuelle Zyklusinformationen</h2>
               <CycleInfo />
             </div>
           </div>
@@ -28,7 +28,7 @@ export default function CyclePage() {
 
         <div className="mt-6">
           <a href="/dashboard" className="text-blue-600 hover:underline">
-            ← Back to Dashboard
+            ← Zurück zum Dashboard
           </a>
         </div>
       </div>
