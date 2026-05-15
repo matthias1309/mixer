@@ -24,6 +24,21 @@ A community recipe management application with ingredient-based filtering. Built
 - Real-time recipe list updates
 - Unique ingredient list across all recipes
 
+### Nutrition Management
+- Pre-seeded database with ~300 ingredients
+- 14 nutrients per ingredient (kcal, protein, carbs, fiber, vitamins, minerals)
+- Automatic nutrient calculation for recipes
+- Per-portion nutrient breakdown
+- Unit conversions (grams, ml, pieces, cups, tablespoons, etc.)
+
+### Photo Upload & OCR
+- Upload recipe photos (JPG/PNG, max 5MB)
+- Automatic text extraction via Tesseract.js OCR (German + English)
+- Intelligent ingredient parsing with fuzzy matching
+- Manual review and correction interface
+- Confidence scoring for matched ingredients
+- Direct recipe creation from OCR results
+
 ### Frontend
 - Responsive design (mobile-first)
 - Next.js 14+ with App Router
@@ -168,6 +183,7 @@ docker-compose up -d
 - **State**: React Context API
 - **Testing**: Cypress (E2E), Jest (unit)
 - **HTTP**: fetch API
+- **OCR**: Tesseract.js (German + English)
 
 ### Backend
 - **Framework**: Next.js API Routes
@@ -191,6 +207,15 @@ docker-compose up -d
 
 ### Filtering
 - `GET /api/recipes/ingredients` - List unique ingredients
+
+### Nutrition Endpoints
+- `GET /api/nutrition/ingredients` - List all ingredients with nutrient data
+- `POST /api/recipes/:id/calculate-nutrients` - Calculate and cache recipe nutrients
+- `GET /api/recipes/:id/nutrients` - Get cached nutrients for recipe
+
+### OCR & Photo Upload
+- `POST /api/recipes/ocr` - Upload recipe photo for OCR processing
+- `GET /api/recipes/ocr/:uploadId` - Poll OCR processing status
 
 ## Security
 
