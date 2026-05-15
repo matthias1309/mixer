@@ -55,12 +55,18 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <div className="mt-6">
+        <div className="mt-6 flex gap-4">
           <a
             href="/recipes/new"
             className="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700"
           >
             + Create Recipe
+          </a>
+          <a
+            href="/recipes/upload"
+            className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
+          >
+            📸 Upload from Photo
           </a>
         </div>
       </div>
