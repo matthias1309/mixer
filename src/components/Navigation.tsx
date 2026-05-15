@@ -39,10 +39,10 @@ export function Navigation() {
           ) : (
             <>
               <Link href="/login" className="hover:underline">
-                Login
+                Anmelden
               </Link>
               <Link href="/register" className="hover:underline">
-                Register
+                Registrieren
               </Link>
             </>
           )}

@@ -1,5 +1,3 @@
-'use client';
-
 import type { Metadata } from 'next';
 import { AuthProvider } from '../contexts/AuthContext';
 import { FilterProvider } from '../contexts/FilterContext';
