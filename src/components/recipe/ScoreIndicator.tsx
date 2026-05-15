@@ -13,10 +13,10 @@ export default function ScoreIndicator({ score }: ScoreIndicatorProps) {
   };
 
   const getLabel = (s: number) => {
-    if (s >= 80) return 'Excellent';
-    if (s >= 60) return 'Very Good';
-    if (s >= 40) return 'Good';
-    return 'Fair';
+    if (s >= 80) return 'Ausgezeichnet';
+    if (s >= 60) return 'Sehr gut';
+    if (s >= 40) return 'Gut';
+    return 'Akzeptabel';
   };
 
   return (

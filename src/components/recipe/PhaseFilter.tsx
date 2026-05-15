@@ -4,9 +4,9 @@ import { useState } from 'react';
 
 const PHASES = ['none', 'menstruation', 'follicular', 'ovulation', 'luteal'];
 const PHASE_LABELS: Record<string, string> = {
-  none: 'No Cycle Filtering',
-  menstruation: 'Menstruation 🔴',
-  follicular: 'Follicular 🟡',
+  none: 'Keine Zyklus-Filterung',
+  menstruation: 'Menstruell 🔴',
+  follicular: 'Follikulär 🟡',
   ovulation: 'Ovulation 🩷',
   luteal: 'Luteal 🟦',
 };
@@ -19,7 +19,7 @@ interface PhaseFilterProps {
 export default function PhaseFilter({ onFilterChange, currentPhase }: PhaseFilterProps) {
   const [selectedPhase, setSelectedPhase] = useState(currentPhase || 'menstruation');
   const [minScore, setMinScore] = useState(50);
-  const currentPhaseLabel = currentPhase ? PHASE_LABELS[currentPhase] : 'No Cycle Data';
+  const currentPhaseLabel = currentPhase ? PHASE_LABELS[currentPhase] : 'Keine Zyklus-Daten';
 
   const handlePhaseChange = (phase: string) => {
     setSelectedPhase(phase);
@@ -34,7 +34,7 @@ export default function PhaseFilter({ onFilterChange, currentPhase }: PhaseFilte
   return (
     <div className="phase-filter space-y-4">
       <div>
-        <label className="block text-sm font-medium mb-2">Cycle Phase</label>
+        <label className="block text-sm font-medium mb-2">Zyklusphase</label>
         <select
           value={selectedPhase}
           onChange={(e) => handlePhaseChange(e.target.value)}
@@ -42,10 +42,10 @@ export default function PhaseFilter({ onFilterChange, currentPhase }: PhaseFilte
         >
           {currentPhase && (
             <option value={currentPhase}>
-              Auto: {PHASE_LABELS[currentPhase]}
+              Automatisch: {PHASE_LABELS[currentPhase]}
             </option>
           )}
-          <optgroup label="Compare with other phases">
+          <optgroup label="Mit anderen Phasen vergleichen">
             {PHASES.filter(p => p !== 'none').map(phase => (
               <option key={phase} value={phase}>
                 {PHASE_LABELS[phase]}
@@ -56,7 +56,7 @@ export default function PhaseFilter({ onFilterChange, currentPhase }: PhaseFilte
       </div>
 
       <div>
-        <label className="block text-sm font-medium mb-2">Min Score: {minScore}</label>
+        <label className="block text-sm font-medium mb-2">Min. Bewertung: {minScore}</label>
         <input
           type="range"
           min="0"

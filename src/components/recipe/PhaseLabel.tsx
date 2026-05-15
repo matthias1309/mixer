@@ -1,8 +1,8 @@
 'use client';
 
 const PHASE_INFO: Record<string, { emoji: string; label: string; color: string }> = {
-  Menstruation: { emoji: '🔴', label: 'Menstruation', color: '#ff4444' },
-  Follicular: { emoji: '🟡', label: 'Follicular', color: '#ffdd00' },
+  Menstruation: { emoji: '🔴', label: 'Menstruell', color: '#ff4444' },
+  Follicular: { emoji: '🟡', label: 'Follikulär', color: '#ffdd00' },
   Ovulation: { emoji: '🩷', label: 'Ovulation', color: '#ff69b4' },
   Luteal: { emoji: '🟦', label: 'Luteal', color: '#4444ff' },
 };
@@ -17,7 +17,7 @@ export default function PhaseLabel({ phase }: PhaseLabelProps) {
 
   return (
     <span className="phase-label" style={{ color: info.color }}>
-      {info.emoji} Perfect for {info.label} Phase
+      {info.emoji} Perfekt für {info.label}-Phase
     </span>
   );
 }
