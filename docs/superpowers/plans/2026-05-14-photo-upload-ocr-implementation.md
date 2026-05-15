@@ -541,7 +541,8 @@ Expected: FAIL
 ```typescript
 // src/lib/ocr/parser.ts
 
-import { Ingredient, ParsedIngredient } from '@/lib/nutrition/types';
+import { Ingredient } from '@/lib/nutrition/types';
+import { ParsedIngredient } from './types';
 import { AMOUNT_PATTERN, MEASUREMENT_UNITS } from './constants';
 import { findBestMatch } from './matcher';
 
@@ -659,14 +660,14 @@ async function getWorker(): Promise<Tesseract.Worker> {
 }
 
 export async function extractTextFromImage(
-  imagePath: string
+  imageBuffer: Buffer | Uint8Array
 ): Promise<string> {
   try {
     const worker = await getWorker();
 
     const {
       data: { text },
-    } = await worker.recognize(imagePath);
+    } = await worker.recognize(imageBuffer);
 
     return text;
   } catch (error) {
@@ -772,16 +773,14 @@ Expected: FAIL
 
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyAuth } from '@/lib/auth/middleware';
-import { writeFile, mkdir } from 'fs/promises';
-import { join } from 'path';
 import { randomUUID } from 'crypto';
-import { getValidationError, UPLOAD_CONFIG, sanitizeFilename } from '@/config/upload';
+import { getValidationError } from '@/config/upload';
 import { extractTextFromImage } from '@/lib/ocr/tesseract';
 import { parseIngredientsFromText } from '@/lib/ocr/parser';
 import { getDatabase } from '@/lib/db/client';
 
 // In-memory storage for OCR results (TODO: use Redis or DB in production)
-const ocrCache = new Map<string, {
+export const ocrCache = new Map<string, {
   status: string;
   raw_text?: string;
   ingredients?: any[];
@@ -816,21 +815,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Save file
+    // Convert file to buffer
     const uploadId = randomUUID();
-    const uploadDir = join(UPLOAD_CONFIG.UPLOAD_DIR, user.userId.toString(), uploadId);
-    await mkdir(uploadDir, { recursive: true });
-
-    const filename = sanitizeFilename(file.name);
-    const filepath = join(uploadDir, filename);
-
-    const buffer = await file.arrayBuffer();
-    await writeFile(filepath, Buffer.from(buffer));
+    const buffer = Buffer.from(await file.arrayBuffer());
 
     // Start OCR processing (async)
     ocrCache.set(uploadId, { status: 'processing' });
 
-    processOcrAsync(uploadId, filepath, user.userId).catch(err => {
+    processOcrAsync(uploadId, buffer, user.userId).catch(err => {
       ocrCache.set(uploadId, {
         status: 'error',
         error: 'OCR processing failed',
@@ -854,12 +846,12 @@ export async function POST(request: NextRequest) {
 
 async function processOcrAsync(
   uploadId: string,
-  filepath: string,
+  imageBuffer: Buffer,
   userId: number
 ): Promise<void> {
   try {
     // Extract text
-    const rawText = await extractTextFromImage(filepath);
+    const rawText = await extractTextFromImage(imageBuffer);
 
     // Get ingredients from database
     const db = await getDatabase();

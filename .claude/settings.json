@@ -28,7 +28,12 @@
       "Skill(superpowers:requesting-code-review:*)",
       "Skill(superpowers:using-superpowers)",
       "Skill(superpowers:using-superpowers:*)",
-      "Bash(git show *)"
+      "Bash(git show *)",
+      "Bash(npm install *)",
+      "Skill(superpowers:executing-plans)",
+      "Skill(superpowers:executing-plans:*)",
+      "Bash(rm -rf \"src/api/recipes/\\\\[id\\\\]\")",
+      "Bash(mkdir -p \"src/api/recipes/[id]/phase-scores\")"
     ]
   },
   "enabledPlugins": {
