@@ -48,9 +48,10 @@ describe('Database Initialization', () => {
       .all() as { name: string }[];
 
     const indexNames = indexes.map(i => i.name);
-    expect(indexNames).toContain('idx_users_email');
-    expect(indexNames).toContain('idx_recipes_canonical');
-    expect(indexNames).toContain('idx_ingredients_recipe');
+    expect(indexNames).toContain('idx_recipes_creator_id');
+    expect(indexNames).toContain('idx_recipes_canonical_id');
+    expect(indexNames).toContain('idx_ingredients_recipe_id');
+    expect(indexNames).toContain('idx_user_cycles_user');
 
     db.close();
   });
