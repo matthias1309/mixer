@@ -27,6 +27,7 @@ export default function PhotoUploadForm({ onRecipeCreated }: PhotoUploadFormProp
       const response = await fetch('/api/recipes/ocr', {
         method: 'POST',
         body: formData,
+        credentials: 'include',
       });
 
       if (!response.ok) {
@@ -52,7 +53,9 @@ export default function PhotoUploadForm({ onRecipeCreated }: PhotoUploadFormProp
 
     while (attempts < maxAttempts) {
       try {
-        const response = await fetch(`/api/recipes/ocr/${id}`);
+        const response = await fetch(`/api/recipes/ocr/${id}`, {
+          credentials: 'include',
+        });
         const data = await response.json();
 
         if (data.data.status === 'complete') {
