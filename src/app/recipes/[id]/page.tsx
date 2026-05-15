@@ -152,16 +152,16 @@ export default function RecipeDetailPage() {
 
         {recipe.nutrients && Object.values(recipe.nutrients).some(v => v > 0) && (
           <div className="mb-6">
-            <h2 className="text-lg font-bold mb-3">Nutritional Values</h2>
+            <h2 className="text-lg font-bold mb-3">Nährwerte</h2>
             <div className="grid grid-cols-2 gap-4">
               {[
-                { key: 'kcal', label: 'Calories', unit: 'kcal' },
+                { key: 'kcal', label: 'Kalorien', unit: 'kcal' },
                 { key: 'protein', label: 'Protein', unit: 'g' },
-                { key: 'fat', label: 'Fat', unit: 'g' },
-                { key: 'carbohydrates', label: 'Carbohydrates', unit: 'g' },
-                { key: 'sugar', label: 'Sugar', unit: 'g' },
-                { key: 'fiber', label: 'Fiber', unit: 'g' },
-                { key: 'sodium', label: 'Sodium', unit: 'mg' },
+                { key: 'fat', label: 'Fett', unit: 'g' },
+                { key: 'carbohydrates', label: 'Kohlenhydrate', unit: 'g' },
+                { key: 'sugar', label: 'Zucker', unit: 'g' },
+                { key: 'fiber', label: 'Ballaststoffe', unit: 'g' },
+                { key: 'sodium', label: 'Natrium', unit: 'mg' },
                 { key: 'calcium', label: 'Calcium', unit: 'mg' },
                 { key: 'iron', label: 'Iron', unit: 'mg' },
                 { key: 'magnesium', label: 'Magnesium', unit: 'mg' },
