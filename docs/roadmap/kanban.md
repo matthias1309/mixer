@@ -1,11 +1,11 @@
 # Recipe Manager - Kanban Board & Project Roadmap
 
 **Last Updated**: 2026-05-15  
-**Current Phase**: MVP - Phase 5 Complete (Testing)  
-**Velocity**: 81+ pts completed  
+**Current Phase**: MVP - Phase 5 Complete (Testing & Documentation)  
+**Velocity**: 86+ pts completed  
 **Total Tickets**: 32  
 **Total Effort**: ~106 story points  
-**Completed**: 27 / 32 (81 / 106 pts) - 76% of MVP scope done  
+**Completed**: 29 / 32 (86 / 106 pts) - 81% of MVP scope done  
 
 ---
 
@@ -75,11 +75,13 @@
 - [x] [FLT-106](tickets/FLT-106-empty-states.md) - Empty State Handling (2 pts) - ✅ 2026-05-15
 - [x] [FLT-107](tickets/FLT-107-performance-optimization.md) - Performance Optimization (3 pts) - ✅ 2026-05-15
 
-**Phase 5: Testing (26 pts)**
+**Phase 5: Testing & Documentation (26 + 5 pts)**
 - [x] [TEST-102](tickets/TEST-102-auth-tests.md) - Auth Tests (5 pts) - ✅ 2026-05-15
 - [x] [TEST-103](tickets/TEST-103-recipe-tests.md) - Recipe Tests (8 pts) - ✅ 2026-05-15
 - [x] [TEST-104](tickets/TEST-104-filter-tests.md) - Filter Tests (5 pts) - ✅ 2026-05-15
 - [x] [TEST-105](tickets/TEST-105-e2e-tests.md) - E2E Tests (8 pts) - ✅ 2026-05-15
+- [x] [DOCS-101](tickets/DOCS-101-api-documentation.md) - API Documentation (3 pts) - ✅ 2026-05-15
+- [x] [DOCS-103](tickets/DOCS-103-code-review-checklist.md) - Code Review Checklist (2 pts) - ✅ 2026-05-15
 
 **Bonus Features (Not in original roadmap)**
 - [x] Ingredients Master CRUD System (~13 pts equivalent) - ✅ 2026-05-15
@@ -93,9 +95,7 @@
 
 ### 📦 Ready (Phase 5 - Documentation & Deployment)
 - [ ] [INFRA-101](tickets/INFRA-101-docker-deployment.md) - Docker & Deployment (5 pts)
-- [ ] [DOCS-101](tickets/DOCS-101-api-documentation.md) - API Documentation (3 pts)
 - [ ] [DOCS-102](tickets/DOCS-102-deployment-guide.md) - Deployment Guide (2 pts)
-- [ ] [DOCS-103](tickets/DOCS-103-code-review-checklist.md) - Code Review Checklist (2 pts)
 
 ---
 
