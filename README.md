@@ -39,6 +39,13 @@ A community recipe management application with ingredient-based filtering. Built
 - Confidence scoring for matched ingredients
 - Direct recipe creation from OCR results
 
+### Cycle Tracking
+- Track menstrual cycle with custom cycle length (21-35 days)
+- Four-phase cycle model (Menstruation, Follicular, Ovulation, Luteal)
+- Current phase detection with day-of-cycle calculation
+- Query phase information for any specific date
+- Visual phase indicator with emoji and color coding
+
 ### Frontend
 - Responsive design (mobile-first)
 - Next.js 14+ with App Router
@@ -122,6 +129,10 @@ mixer/
 │   │   └── api/               # API routes
 │   ├── components/             # React components
 │   │   ├── forms/             # Form components
+│   │   ├── cycle/             # Cycle tracking components
+│   │   │   ├── CycleForm.tsx   # Cycle setup form
+│   │   │   ├── CycleInfo.tsx   # Current cycle display
+│   │   │   └── PhaseIndicator.tsx # Phase visual
 │   │   ├── Navigation.tsx      # Header
 │   │   ├── RecipeList.tsx      # Recipe grid
 │   │   ├── RecipeCard.tsx      # Recipe item
@@ -136,7 +147,13 @@ mixer/
 │   │   └── useFilter.ts       # Access filter context
 │   ├── lib/                   # Utilities
 │   │   ├── api.ts             # API client
-│   │   └── validation.ts      # Form validation
+│   │   ├── validation.ts      # Form validation
+│   │   ├── cycle/             # Cycle tracking utilities
+│   │   │   ├── calculator.ts   # Phase calculations
+│   │   │   ├── constants.ts    # Phase definitions
+│   │   │   └── types.ts        # Cycle types
+│   │   ├── nutrition/         # Nutrition utilities
+│   │   └── ocr/               # OCR utilities
 │   ├── styles/                # CSS
 │   │   └── globals.css        # Tailwind imports
 │   └── __tests__/             # Unit tests
@@ -216,6 +233,12 @@ docker-compose up -d
 ### OCR & Photo Upload
 - `POST /api/recipes/ocr` - Upload recipe photo for OCR processing
 - `GET /api/recipes/ocr/:uploadId` - Poll OCR processing status
+
+### Cycle Tracking
+- `GET /api/users/cycle` - Get current cycle information (phase, day, progress)
+- `POST /api/users/cycle` - Create or update user cycle (last menstruation date, cycle length)
+- `GET /api/users/cycle/phases` - Get phase definitions (Menstruation, Follicular, Ovulation, Luteal)
+- `GET /api/users/cycle/phase-on-date/:date` - Get cycle phase for a specific date (ISO 8601 format)
 
 ## Security
 
