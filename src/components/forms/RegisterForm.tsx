@@ -54,13 +54,13 @@ export function RegisterForm() {
 
   return (
     <div className="max-w-md mx-auto bg-white p-6 rounded-lg shadow">
-      <h1 className="text-2xl font-bold mb-4">Create Account</h1>
+      <h1 className="text-2xl font-bold mb-4">Konto erstellen</h1>
 
       {error && <div role="alert" className="bg-red-100 text-red-700 p-3 rounded mb-4">{error}</div>}
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label htmlFor="email" className="block text-sm font-medium mb-1">Email</label>
+          <label htmlFor="email" className="block text-sm font-medium mb-1">E-Mail</label>
           <input
             id="email"
             type="email"
@@ -74,7 +74,7 @@ export function RegisterForm() {
         </div>
 
         <div>
-          <label htmlFor="password" className="block text-sm font-medium mb-1">Password</label>
+          <label htmlFor="password" className="block text-sm font-medium mb-1">Passwort</label>
           <input
             id="password"
             type="password"
@@ -84,11 +84,11 @@ export function RegisterForm() {
             disabled={isLoading}
             required
           />
-          <p className="text-xs text-gray-500 mt-1">Minimum 8 characters</p>
+          <p className="text-xs text-gray-500 mt-1">Mindestens 8 Zeichen</p>
         </div>
 
         <div>
-          <label htmlFor="confirmPassword" className="block text-sm font-medium mb-1">Confirm Password</label>
+          <label htmlFor="confirmPassword" className="block text-sm font-medium mb-1">Passwort bestätigen</label>
           <input
             id="confirmPassword"
             type="password"
@@ -105,14 +105,14 @@ export function RegisterForm() {
           disabled={isLoading}
           className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 disabled:opacity-50"
         >
-          {isLoading ? 'Creating account...' : 'Register'}
+          {isLoading ? 'Konto wird erstellt...' : 'Registrieren'}
         </button>
       </form>
 
       <p className="text-sm text-gray-600 mt-4">
-        Already have an account?{' '}
+        Haben Sie bereits ein Konto?{' '}
         <a href="/login" className="text-blue-600 hover:underline">
-          Login here
+          Hier anmelden
         </a>
       </p>
     </div>
