@@ -54,7 +54,7 @@ export function RegisterForm() {
 
   return (
     <div className="max-w-md mx-auto bg-white p-6 rounded-lg shadow">
-      <h1 className="text-2xl font-bold mb-4">Konto erstellen</h1>
+      <h1 className="text-2xl font-bold mb-4">Registrieren</h1>
 
       {error && <div role="alert" className="bg-red-100 text-red-700 p-3 rounded mb-4">{error}</div>}
 
