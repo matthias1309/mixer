@@ -67,7 +67,8 @@
       "Bash(npx tsc *)",
       "Bash(pkill -f \"next dev\")",
       "Bash(curl -s http://localhost:3000/ingredients)",
-      "Bash(grep -E \"^[^-]*>.*[A-Z][a-z]{3,}\")"
+      "Bash(grep -E \"^[^-]*>.*[A-Z][a-z]{3,}\")",
+      "Bash(curl -s http://localhost:3000/login)"
     ],
     "additionalDirectories": [
       "/private/tmp",
