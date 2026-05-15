@@ -37,18 +37,18 @@ export default function DashboardPage() {
   return (
     <ProtectedRoute>
       <div className="py-6">
-        <h1 className="text-3xl font-bold mb-6">Recipe Dashboard</h1>
+        <h1 className="text-3xl font-bold mb-6">Meine Rezepte</h1>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Filter sidebar */}
           <div className="lg:col-span-1">
             <div className="space-y-4">
               <div>
-                <h3 className="font-bold mb-2">Ingredient Filter</h3>
+                <h3 className="font-bold mb-2">Zutatenfilter</h3>
                 <IngredientFilter />
               </div>
               <div>
-                <h3 className="font-bold mb-2">Phase Filter</h3>
+                <h3 className="font-bold mb-2">Phasenfilter</h3>
                 <PhaseFilter
                   onFilterChange={(phase, score) => {
                     setSelectedPhase(phase);
@@ -71,25 +71,25 @@ export default function DashboardPage() {
             href="/recipes/new"
             className="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700"
           >
-            + Create Recipe
+            + Rezept erstellen
           </a>
           <a
             href="/recipes/upload"
             className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
           >
-            📸 Upload from Photo
+            📸 Aus Foto hochladen
           </a>
           <a
             href="/cycle"
             className="bg-pink-600 text-white px-6 py-2 rounded hover:bg-pink-700"
           >
-            📊 Track Your Cycle
+            📊 Zyklus verfolgen
           </a>
           <a
             href="/ingredients"
             className="bg-purple-600 text-white px-6 py-2 rounded hover:bg-purple-700"
           >
-            🧂 Manage Ingredients
+            🧂 Zutaten verwalten
           </a>
         </div>
       </div>

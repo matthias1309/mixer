@@ -36,7 +36,7 @@ export function IngredientFilter() {
   }
 
   if (isLoading) {
-    return <div className="text-gray-600">Loading ingredients...</div>;
+    return <div className="text-gray-600">Zutaten werden geladen...</div>;
   }
 
   if (error) {
@@ -45,20 +45,20 @@ export function IngredientFilter() {
 
   return (
     <div className="bg-white p-4 rounded-lg shadow">
-      <h2 className="text-lg font-bold mb-4 text-gray-800">Filter by Ingredients</h2>
+      <h2 className="text-lg font-bold mb-4 text-gray-800">Nach Zutaten filtern</h2>
 
       {selectedIngredients.length > 0 && (
         <button
           onClick={clearFilters}
           className="text-sm text-blue-600 hover:underline mb-3"
         >
-          Clear filters
+          Filter löschen
         </button>
       )}
 
       <div className="space-y-2">
         {ingredients.length === 0 ? (
-          <p className="text-gray-600 text-sm">No ingredients available</p>
+          <p className="text-gray-600 text-sm">Keine Zutaten verfügbar</p>
         ) : (
           ingredients.map((ingredient) => (
             <label key={ingredient} className="flex items-center cursor-pointer">
@@ -76,7 +76,7 @@ export function IngredientFilter() {
 
       {selectedIngredients.length > 0 && (
         <div className="mt-4 pt-4 border-t">
-          <p className="text-sm font-semibold text-gray-700 mb-2">Selected:</p>
+          <p className="text-sm font-semibold text-gray-700 mb-2">Ausgewählt:</p>
           <div className="flex flex-wrap gap-2">
             {selectedIngredients.map((ingredient) => (
               <span

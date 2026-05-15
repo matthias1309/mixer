@@ -62,7 +62,9 @@
       "Bash(mv TEST-101-test-infrastructure.md done/)",
       "Bash(mv USR-101-user-registration.md done/)",
       "Bash(mv USR-102-user-login.md done/)",
-      "Bash(mv USR-103-user-logout.md done/)"
+      "Bash(mv USR-103-user-logout.md done/)",
+      "Bash(curl -s http://localhost:3000/dashboard)",
+      "Bash(npx tsc *)"
     ],
     "additionalDirectories": [
       "/private/tmp",

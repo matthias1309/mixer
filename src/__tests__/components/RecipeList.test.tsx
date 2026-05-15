@@ -23,7 +23,7 @@ describe('RecipeList Component', () => {
     );
 
     // Component should render without crashing
-    expect(screen.getByText(/Loading recipes|recipes found/)).toBeInTheDocument();
+    expect(screen.getByText(/Rezepte werden geladen|Rezepte gefunden/)).toBeInTheDocument();
   });
 
   it('should display error message on failed fetch', async () => {

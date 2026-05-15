@@ -33,7 +33,7 @@ export default function RecipeCard({
 
       {matched_nutrients.length > 0 && (
         <div className="nutrients">
-          <p className="label">Rich in:</p>
+          <p className="label">Reich an:</p>
           <ul>
             {matched_nutrients.map(nut => (
               <li key={nut}>{nut}</li>
