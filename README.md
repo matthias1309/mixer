@@ -46,6 +46,14 @@ A community recipe management application with ingredient-based filtering. Built
 - Query phase information for any specific date
 - Visual phase indicator with emoji and color coding
 
+### Cycle-Based Recipe Recommendations
+- Score recipes based on phase-specific nutrient needs (0-100)
+- Filter recipes by cycle phase with minimum score threshold
+- Automatic recommendations for current phase
+- View how each recipe scores across all 4 phases
+- See which nutrients match phase requirements
+- Color-coded phase indicators (🔴 red, 🟡 yellow, 🩷 pink, 🟦 blue)
+
 ### Frontend
 - Responsive design (mobile-first)
 - Next.js 14+ with App Router
@@ -240,6 +248,13 @@ docker-compose up -d
 - `GET /api/users/cycle/phases` - Get phase definitions (Menstruation, Follicular, Ovulation, Luteal)
 - `GET /api/users/cycle/phase-on-date/:date` - Get cycle phase for a specific date (ISO 8601 format)
 
+### Cycle-Based Recommendations
+- `GET /api/recipes/filtered` - Filter recipes by phase with recommendation scores
+  - Query params: `phase` (menstruation|follicular|ovulation|luteal), `min_score` (0-100, default 50), `sort_by` (score|name|kcal, default score), `limit` (default 20)
+  - Returns: recipes with scores, matched nutrients, and reasons
+- `GET /api/recipes/recommended` - Get recommendations for user's current cycle phase (auto-filters to current phase)
+- `GET /api/recipes/:id/phase-scores` - Get scores for a recipe across all 4 phases
+
 ## Security
 
 ### XSS Protection
@@ -259,6 +274,33 @@ docker-compose up -d
 - Passwords hashed with bcrypt (cost 10)
 - JWT tokens auto-refresh on each request
 - 1-hour inactivity timeout
+
+## Recommendation Scoring
+
+### How It Works
+
+Each recipe is scored (0-100) based on how well its nutrient profile matches the needs of a specific cycle phase:
+
+**Scoring Algorithm:**
+1. For each nutrient important for the phase
+2. Calculate: `(recipe_amount / daily_value) * phase_priority_weight`
+3. Sum all contributions
+4. Normalize to 0-100 scale
+
+**Score Interpretation:**
+- **80-100**: Excellent for phase (top nutrient match)
+- **60-79**: Very good for phase
+- **50-59**: Good for phase
+- **< 50**: Not ideal for phase
+
+**Phase-Specific Nutrients:**
+- **Menstruation**: Iron (critical), B12, Zinc - for blood replenishment and energy
+- **Follicular**: Vitamin D (critical), B6, Magnesium - for energy and new cell growth
+- **Ovulation**: Vitamin E (critical), Zinc (critical), Selenium - for peak fertility and antioxidants
+- **Luteal**: Magnesium (critical), Calcium (critical), B6 - for mood regulation and PMS prevention
+
+**Example:**
+A recipe with high magnesium and calcium gets a score of 92 for Luteal phase ("Perfect for luteal phase - high in magnesium and calcium") because these are critical nutrients during this phase.
 
 ## Development
 
