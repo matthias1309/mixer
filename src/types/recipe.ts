@@ -1,6 +1,7 @@
 // Recipe types
 
 import { RecipeNutrients } from '@/lib/nutrition/types';
+import { ParsedIngredient } from '@/lib/ocr/types';
 
 export interface Ingredient {
   id: number;
@@ -61,4 +62,23 @@ export interface UpdateRecipeRequest {
   instructions?: string;
   servings?: number;
   ingredients?: CreateIngredientRequest[];
+}
+
+export interface RecipeIngredient {
+  id: number;
+  recipe_id: number;
+  ingredient_id: number;
+  amount: number;
+  unit: string;
+}
+
+export interface CreateRecipeFromOcrRequest {
+  uploadId: string;
+  ingredients: Array<{
+    ingredient_id: number;
+    amount: number;
+    unit: string;
+  }>;
+  name: string;
+  portions?: number;
 }
