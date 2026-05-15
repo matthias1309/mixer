@@ -23,7 +23,7 @@ export function IngredientFilter() {
     setError('');
 
     try {
-      const response = await fetch('/api/ingredients', {
+      const response = await fetch('/api/recipes/ingredients', {
         credentials: 'include',
       });
 
