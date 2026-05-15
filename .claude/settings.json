@@ -54,7 +54,9 @@
       "Bash(rm -rf '/Users/matthias/Claude_Code/mixer/src/app/api/ingredients-master/\\\\[id\\\\]')",
       "Bash(cp '/Users/matthias/Claude_Code/mixer/src/app/ingredients/\\\\[id\\\\]/edit/page.tsx' '/Users/matthias/Claude_Code/mixer/src/app/ingredients/[id]/edit/page.tsx')",
       "Bash(rm -rf '/Users/matthias/Claude_Code/mixer/src/app/ingredients/\\\\[id\\\\]')",
-      "Bash(\n# Lösche das verbliebene falsch benannte Verzeichnis\nrm -rf '/Users/matthias/Claude_Code/mixer/src/app/ingredients/\\\\[id\\\\]'\n\n# Überprüfe Final\nfind /Users/matthias/Claude_Code/mixer/src/app/ingredients -type f -name \"*.tsx\"\n)"
+      "Bash(\n# Lösche das verbliebene falsch benannte Verzeichnis\nrm -rf '/Users/matthias/Claude_Code/mixer/src/app/ingredients/\\\\[id\\\\]'\n\n# Überprüfe Final\nfind /Users/matthias/Claude_Code/mixer/src/app/ingredients -type f -name \"*.tsx\"\n)",
+      "Bash(find /docs/requirements /docs/roadmap -type f 2>/dev/null | head -50)",
+      "Read(//docs/**)"
     ],
     "additionalDirectories": [
       "/private/tmp",
