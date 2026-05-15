@@ -3,6 +3,8 @@
 import ScoreIndicator from './ScoreIndicator';
 import PhaseLabel from './PhaseLabel';
 
+const NUTRIENTS_LABEL = 'Reich an:';
+
 interface RecipeCardProps {
   recipe_id: number;
   name: string;
@@ -33,7 +35,7 @@ export default function RecipeCard({
 
       {matched_nutrients.length > 0 && (
         <div className="nutrients">
-          <p className="label">Reich an:</p>
+          <p className="label">{NUTRIENTS_LABEL}</p>
           <ul>
             {matched_nutrients.map(nut => (
               <li key={nut}>{nut}</li>
