@@ -22,7 +22,7 @@ export function ErrorBoundary({
           onClick={reset}
           className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
         >
-          Try again
+          Erneut versuchen
         </button>
       </div>
     </div>

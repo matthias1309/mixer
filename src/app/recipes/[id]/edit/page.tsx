@@ -47,7 +47,7 @@ export default function EditRecipePage() {
   }
 
   if (isLoading) {
-    return <div>Loading recipe...</div>;
+    return <div>Rezept wird geladen...</div>;
   }
 
   if (error) {

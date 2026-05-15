@@ -61,7 +61,7 @@ export default function RecipeDetailPage() {
   }
 
   async function handleDelete() {
-    if (!confirm('Are you sure you want to delete this recipe?')) return;
+    if (!confirm('Sind Sie sicher, dass Sie dieses Rezept löschen möchten?')) return;
 
     setIsDeleting(true);
 
@@ -83,7 +83,7 @@ export default function RecipeDetailPage() {
   }
 
   if (isLoading) {
-    return <div className="text-center py-8">Loading recipe...</div>;
+    return <div className="text-center py-8">Rezept wird geladen...</div>;
   }
 
   if (error) {
@@ -206,7 +206,7 @@ export default function RecipeDetailPage() {
           href="/dashboard"
           className="text-blue-600 hover:underline"
         >
-          ← Back to Dashboard
+          ← Zurück zum Dashboard
         </a>
       </div>
     </div>

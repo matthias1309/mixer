@@ -13,7 +13,7 @@ export default function UploadRecipePage() {
       <div className="py-6 max-w-2xl mx-auto">
         <div className="mb-6">
           <Link href="/dashboard" className="text-blue-600 hover:underline">
-            ← Back to Dashboard
+            ← Zurück zum Dashboard
           </Link>
         </div>
 

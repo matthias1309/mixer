@@ -37,7 +37,7 @@ export default function EditIngredientPage() {
   }
 
   if (loading) {
-    return <div className="text-center py-8">Loading ingredient...</div>;
+    return <div className="text-center py-8">Zutat wird geladen...</div>;
   }
 
   if (error) {

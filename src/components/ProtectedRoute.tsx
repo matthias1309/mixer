@@ -15,7 +15,7 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
   }, [user, isLoading, router]);
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return <div>Lädt...</div>;
   }
 
   if (!user) {

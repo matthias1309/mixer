@@ -154,7 +154,7 @@ export default function IngredientsPage() {
 
         <div className="mt-6">
           <a href="/dashboard" className="text-blue-600 hover:underline">
-            ← Back to Dashboard
+            ← Zurück zum Dashboard
           </a>
         </div>
       </div>

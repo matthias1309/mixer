@@ -101,7 +101,7 @@ export default function PhotoUploadForm({ onRecipeCreated }: PhotoUploadFormProp
       {error && (
         <div className="error-message">
           {error}
-          <button onClick={() => setStatus('idle')}>Try again</button>
+          <button onClick={() => setStatus('idle')}>Erneut versuchen</button>
         </div>
       )}
 
