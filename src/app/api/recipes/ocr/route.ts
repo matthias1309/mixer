@@ -4,7 +4,7 @@ import { randomUUID } from 'crypto';
 import { getValidationError } from '@/config/upload';
 import { extractTextFromImage } from '@/lib/ocr/tesseract';
 import { parseIngredientsFromText } from '@/lib/ocr/parser';
-import { getDatabase } from '@/lib/db/client';
+import { getDatabase } from '@/lib/db/init';
 
 // In-memory storage for OCR results (TODO: use Redis or DB in production)
 export const ocrCache = new Map<string, {

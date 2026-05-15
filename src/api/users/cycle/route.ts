@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyAuth } from '@/lib/auth/middleware';
-import { getDatabase } from '@/lib/db/client';
+import { getDatabase } from '@/lib/db/init';
 import { calculateCurrentPhase } from '@/lib/cycle/calculator';
 
 export async function GET(request: NextRequest) {

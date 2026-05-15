@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyAuth } from '@/lib/auth/middleware';
-import { getDatabase } from '@/lib/db/client';
+import { getDatabase } from '@/lib/db/init';
 import { calculateRecipeScore } from '@/lib/cycle-recommendations/scorer';
 import { getAllPhaseTargets } from '@/lib/cycle-recommendations/targets';
 import { Nutrients } from '@/lib/nutrition/types';
