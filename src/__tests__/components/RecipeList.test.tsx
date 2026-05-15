@@ -29,7 +29,7 @@ describe('RecipeList Component', () => {
   it('should display error message on failed fetch', async () => {
     (global.fetch as jest.Mock).mockResolvedValueOnce({
       ok: false,
-      json: async () => ({ error: 'Failed to fetch' }),
+      json: async () => ({ error: 'Failed to fetch recipes' }),
     });
 
     render(
@@ -38,7 +38,8 @@ describe('RecipeList Component', () => {
       </FilterProvider>
     );
 
-    // Wait for error to appear
-    await new Promise(resolve => setTimeout(resolve, 100));
+    // Wait for error to appear and verify it's displayed
+    await new Promise(resolve => setTimeout(resolve, 150));
+    expect(screen.getByText(/Failed to fetch/i)).toBeInTheDocument();
   });
 });
