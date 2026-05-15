@@ -33,7 +33,9 @@
       "Skill(superpowers:executing-plans)",
       "Skill(superpowers:executing-plans:*)",
       "Bash(rm -rf \"src/api/recipes/\\\\[id\\\\]\")",
-      "Bash(mkdir -p \"src/api/recipes/[id]/phase-scores\")"
+      "Bash(mkdir -p \"src/api/recipes/[id]/phase-scores\")",
+      "Bash(rm -rf \"/Users/matthias/Claude_Code/mixer/src/app/api/recipes/ocr/\\\\[uploadId\\\\]\")",
+      "Bash(mkdir -p \"/Users/matthias/Claude_Code/mixer/src/app/api/recipes/ocr/[uploadId]\")"
     ]
   },
   "enabledPlugins": {
