@@ -8,26 +8,26 @@ export const CYCLE_PHASES = {
 export const PHASE_DEFINITIONS = [
   {
     name: CYCLE_PHASES.MENSTRUATION,
-    day_start: 1,
-    day_end: 5,
+    day_start: 0,
+    day_end: 4,
     description: 'Bleeding phase, hormone levels low',
   },
   {
     name: CYCLE_PHASES.FOLLICULAR,
-    day_start: 1,
-    day_end: 13,
+    day_start: 5,
+    day_end: 12,
     description: 'Follicle develops, estrogen rises',
   },
   {
     name: CYCLE_PHASES.OVULATION,
-    day_start: 12,
-    day_end: 16,
+    day_start: 13,
+    day_end: 15,
     description: 'Egg release, luteinizing hormone surge',
   },
   {
     name: CYCLE_PHASES.LUTEAL,
-    day_start: 15,
-    day_end: 28,
+    day_start: 16,
+    day_end: 27,
     description: 'Corpus luteum forms, progesterone rises',
   },
 ] as const;
