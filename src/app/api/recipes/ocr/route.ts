@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { verifyAuth } from '@/lib/auth/middleware';
+import { authMiddlewareWithRefresh, setTokenCookie } from '@/lib/auth/middleware';
 import { randomUUID } from 'crypto';
 import { getValidationError } from '@/config/upload';
 import { extractTextFromImage } from '@/lib/ocr/tesseract';
@@ -17,10 +17,11 @@ export const ocrCache = new Map<string, {
 export async function POST(request: NextRequest) {
   try {
     // Verify auth
-    const user = await verifyAuth(request);
-    if (!user) {
+    const auth = await authMiddlewareWithRefresh(request);
+    if (!auth) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    const user = { userId: auth.userId };
 
     // Parse multipart form data
     const formData = await request.formData();

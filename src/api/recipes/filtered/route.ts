@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { verifyAuth } from '@/lib/auth/middleware';
+import { authMiddlewareWithRefresh, setTokenCookie } from '@/lib/auth/middleware';
 import { getDatabase } from '@/lib/db/init';
 import { calculateRecipeScore } from '@/lib/cycle-recommendations/scorer';
 import { getPhaseTargets } from '@/lib/cycle-recommendations/targets';
@@ -8,10 +8,11 @@ import { Nutrients } from '@/lib/nutrition/types';
 
 export async function GET(request: NextRequest) {
   try {
-    const user = await verifyAuth(request);
-    if (!user) {
+    const auth = await authMiddlewareWithRefresh(request);
+    if (!auth) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    const user = { userId: auth.userId };
 
     const searchParams = request.nextUrl.searchParams;
     const phase = searchParams.get('phase') || 'menstruation';
