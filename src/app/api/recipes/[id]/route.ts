@@ -41,7 +41,7 @@ async function handleGET(request: NextRequest, props: { params: Params }) {
     const ingredients = await RecipeModelAsync.getIngredients(recipeId);
 
     // Get nutrients
-    const nutrients = RecipeModel.getNutrients(recipeId);
+    const nutrients = await RecipeModelAsync.getNutrients(recipeId);
 
     // Check permissions
     const canEdit = auth ? parseInt(auth.userId, 10) === recipe.creator_id : false;
@@ -105,7 +105,7 @@ export async function PUT(request: NextRequest, props: { params: Params }) {
       );
     }
 
-    const recipe = RecipeModel.findById(recipeId);
+    const recipe = await RecipeModelAsync.findById(recipeId);
     if (!recipe) {
       return NextResponse.json(
         { error: 'Recipe not found' },
@@ -200,7 +200,7 @@ export async function PUT(request: NextRequest, props: { params: Params }) {
     }
 
     // Update recipe
-    const updated = RecipeModel.update(
+    const updated = await RecipeModelAsync.update(
       recipeId,
       body.name?.trim(),
       body.description?.trim(),
@@ -209,8 +209,8 @@ export async function PUT(request: NextRequest, props: { params: Params }) {
       body.ingredients
     );
 
-    const ingredients = RecipeModel.getIngredients(recipeId);
-    const creator = UserModel.findById(updated.creator_id);
+    const ingredients = await RecipeModelAsync.getIngredients(recipeId);
+    const creator = await UserModel.findById(updated.creator_id);
     const creatorName = creator ? creator.email : 'Unknown';
 
     let response = NextResponse.json(
@@ -266,7 +266,7 @@ export async function DELETE(request: NextRequest, props: { params: Params }) {
       );
     }
 
-    const recipe = RecipeModel.findById(recipeId);
+    const recipe = await RecipeModelAsync.findById(recipeId);
     if (!recipe) {
       return NextResponse.json(
         { error: 'Recipe not found' },
@@ -283,7 +283,7 @@ export async function DELETE(request: NextRequest, props: { params: Params }) {
     }
 
     // Delete recipe
-    RecipeModel.delete(recipeId);
+    await RecipeModelAsync.delete(recipeId);
 
     let response = new NextResponse(null, { status: HTTP_STATUS.NO_CONTENT });
 

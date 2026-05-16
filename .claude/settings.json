@@ -79,7 +79,16 @@
       "Bash(chmod +x /tmp/debug-migrations.sh)",
       "Bash(/tmp/debug-migrations.sh)",
       "Bash(ssh dockerhome *)",
-      "Bash(./scripts/deploy-pi.sh --db-password 11bd61bd8a298be5d7508e3f09624513 --jwt-secret c4d0889dc0d6b3f910cd84c3a3b6c0ea467feaf8e9d83ad88dd67817687bf742)"
+      "Bash(./scripts/deploy-pi.sh --db-password 11bd61bd8a298be5d7508e3f09624513 --jwt-secret c4d0889dc0d6b3f910cd84c3a3b6c0ea467feaf8e9d83ad88dd67817687bf742)",
+      "Bash(bash scripts/deploy-pi.sh --db-password \"password123\" --jwt-secret \"mixer-secret\")",
+      "Bash(ssh -t *)",
+      "Bash(bash scripts/deploy-pi.sh --db-password \"mixer-password-123\" --jwt-secret \"mixer-jwt-secret-12345\")",
+      "Bash(curl -s -X POST http://localhost:3001/api/auth/register -H 'Content-Type: application/json' -d '{\"email\":\"test@example.com\",\"password\":\"testpass123\"}')",
+      "Bash(curl -s \"http://localhost:3001/api/recipes?page=1&pageSize=10\")",
+      "Bash(curl -s -I \"http://localhost:3001/\")",
+      "Bash(docker volume *)",
+      "Bash(curl -s \"http://localhost:3001/\")",
+      "Bash(bash scripts/deploy-pi.sh --db-password \"secure_password_123\" --jwt-secret \"jwt_secret_key_12345\")"
     ],
     "additionalDirectories": [
       "/private/tmp",

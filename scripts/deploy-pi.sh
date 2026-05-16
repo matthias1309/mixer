@@ -125,6 +125,8 @@ log_info "Docker image transferred ✓"
 # Step 4: Prepare PI directory
 log_info "Preparing directories on PI..."
 ssh "$PI_HOST" << 'SCRIPT'
+# Clean old database data to ensure fresh initialization
+docker run --rm -v /opt/containers/apps/mixer/data/postgres:/data alpine:latest rm -rf /data/* 2>/dev/null || true
 mkdir -p /opt/containers/apps/mixer/data/postgres
 mkdir -p /opt/containers/apps/mixer/src/lib/db/migrations
 chmod 755 /opt/containers/apps/mixer

@@ -2,9 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { initializeDatabase } from '../db/init';
 
 export function withDatabase(
-  handler: (request: NextRequest) => Promise<NextResponse>
+  handler: (request: NextRequest, props?: any) => Promise<NextResponse>
 ) {
-  return async (request: NextRequest) => {
+  return async (request: NextRequest, props?: any) => {
     try {
       await initializeDatabase();
     } catch (error) {
@@ -15,6 +15,6 @@ export function withDatabase(
       );
     }
 
-    return handler(request);
+    return handler(request, props);
   };
 }

@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { RecipeModel } from '../../../../lib/db/models/recipe';
-import { authMiddlewareWithRefresh, setTokenCookie } from '../../../../lib/auth/middleware';
+import { RecipeModelAsync } from '@/lib/db/models/recipe-async';
+import { authMiddlewareWithRefresh, setTokenCookie } from '@/lib/auth/middleware';
+import { withDatabase } from '@/lib/api/withDatabase';
 
-export async function GET(request: NextRequest) {
+async function handleGET(request: NextRequest) {
   try {
     const auth = await authMiddlewareWithRefresh(request);
 
-    const ingredients = RecipeModel.getUniqueIngredients();
+    const ingredients = await RecipeModelAsync.getUniqueIngredients();
 
     let response = NextResponse.json({
       ingredients,
@@ -26,3 +27,5 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
+export const GET = withDatabase(handleGET);

@@ -7,7 +7,7 @@ import { VALIDATION, HTTP_STATUS } from '@/lib/constants';
 import { withDatabase } from '@/lib/api/withDatabase';
 
 // GET /api/recipes - List recipes with pagination, search, and sorting
-export async function GET(request: NextRequest) {
+async function handleGET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
     const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10));
@@ -35,14 +35,14 @@ export async function GET(request: NextRequest) {
         if (phase) {
           result = RecipeModel.listAllWithScore(page, pageSize, sort, search, phase);
         } else {
-          result = RecipeModel.listAll(page, pageSize, sort, search);
+          result = await RecipeModelAsync.listAll(page, pageSize, sort, search);
         }
       }
     } else {
       if (phase) {
         result = RecipeModel.listAllWithScore(page, pageSize, sort, search, phase);
       } else {
-        result = RecipeModel.listAll(page, pageSize, sort, search);
+        result = await RecipeModelAsync.listAll(page, pageSize, sort, search);
       }
     }
 
@@ -73,6 +73,8 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
+export const GET = withDatabase(handleGET);
 
 // POST /api/recipes - Create a new recipe
 async function handlePOST(request: NextRequest) {
