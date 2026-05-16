@@ -1,14 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { RecipeModel } from '@/lib/db/models/recipe';
+import { RecipeModelAsync } from '@/lib/db/models/recipe-async';
 import { UserModel } from '@/lib/db/models/user';
 import { authMiddlewareWithRefresh, setTokenCookie } from '@/lib/auth/middleware';
 import { UpdateRecipeRequest } from '@/types';
 import { VALIDATION, HTTP_STATUS } from '@/lib/constants';
+import { withDatabase } from '@/lib/api/withDatabase';
 
 type Params = Promise<{ id: string }>;
 
 // GET /api/recipes/[id] - Get recipe detail
-export async function GET(request: NextRequest, props: { params: Params }) {
+async function handleGET(request: NextRequest, props: { params: Params }) {
   try {
     const params = await props.params;
     const recipeId = parseInt(params.id, 10);
@@ -23,7 +25,7 @@ export async function GET(request: NextRequest, props: { params: Params }) {
     // Try to refresh token if authenticated
     const auth = await authMiddlewareWithRefresh(request);
 
-    const recipe = RecipeModel.findById(recipeId);
+    const recipe = await RecipeModelAsync.findById(recipeId);
     if (!recipe) {
       return NextResponse.json(
         { error: 'Recipe not found' },
@@ -32,11 +34,11 @@ export async function GET(request: NextRequest, props: { params: Params }) {
     }
 
     // Get creator info
-    const creator = UserModel.findById(recipe.creator_id);
+    const creator = await UserModel.findById(recipe.creator_id);
     const creatorName = creator ? creator.email : 'Unknown';
 
     // Get ingredients
-    const ingredients = RecipeModel.getIngredients(recipeId);
+    const ingredients = await RecipeModelAsync.getIngredients(recipeId);
 
     // Get nutrients
     const nutrients = RecipeModel.getNutrients(recipeId);
@@ -297,3 +299,5 @@ export async function DELETE(request: NextRequest, props: { params: Params }) {
     );
   }
 }
+
+export const GET = withDatabase(handleGET);
