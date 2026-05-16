@@ -14,7 +14,7 @@ export class RecipeModelAsync {
     canonicalId?: number | null
   ): Promise<Recipe> {
     const db = getDb();
-    const isDuplicate = canonicalId !== null && canonicalId !== undefined ? 1 : 0;
+    const isDuplicate = canonicalId !== null && canonicalId !== undefined;
 
     if (isPostgres()) {
       const pool = db as Pool;
@@ -49,7 +49,7 @@ export class RecipeModelAsync {
         servings || 1,
         creatorId,
         canonicalId || null,
-        isDuplicate
+        isDuplicate ? 1 : 0
       ) as { lastInsertRowid: number };
 
       const recipeId = Number(info.lastInsertRowid);
@@ -95,7 +95,7 @@ export class RecipeModelAsync {
     if (isPostgres()) {
       const pool = db as Pool;
       const result = await pool.query(
-        'SELECT id FROM recipes WHERE LOWER(name) = $1 AND is_duplicate = 0',
+        'SELECT id FROM recipes WHERE LOWER(name) = $1 AND is_duplicate = false',
         [normalizedName]
       );
 
