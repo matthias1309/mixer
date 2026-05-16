@@ -5,6 +5,7 @@ import fs from 'fs';
 
 let db: Database.Database;
 let pgPool: Pool | null = null;
+let initPromise: Promise<void> | null = null;
 
 export type DbClient = Database.Database | Pool;
 
@@ -28,6 +29,15 @@ export function isPostgres(): boolean {
 }
 
 export async function initializeDatabase(): Promise<void> {
+  if (initPromise) {
+    return initPromise;
+  }
+
+  initPromise = _initializeDatabaseInternal();
+  return initPromise;
+}
+
+async function _initializeDatabaseInternal(): Promise<void> {
   const databaseUrl = process.env.DATABASE_URL;
 
   if (databaseUrl) {
