@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
     if (!auth) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    const user = { userId: auth.userId };
+    const user = { userId: typeof auth.userId === 'string' ? parseInt(auth.userId, 10) : auth.userId };
 
     // Parse multipart form data
     const formData = await request.formData();
@@ -78,7 +78,7 @@ async function processOcrAsync(
 
     // Get ingredients from database
     const db = getDatabase();
-    const ingredients = db.prepare('SELECT * FROM ingredients').all();
+    const ingredients = db.prepare('SELECT * FROM ingredients').all() as any[];
 
     // Parse ingredients
     const parsed = parseIngredientsFromText(rawText, ingredients);

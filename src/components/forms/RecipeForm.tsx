@@ -34,7 +34,6 @@ export function RecipeForm({ initialData, isEditing = false }: RecipeFormProps) 
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    console.log('[RecipeForm] Submit clicked, isEditing:', isEditing, 'name:', name);
     setError('');
     setIsLoading(true);
 

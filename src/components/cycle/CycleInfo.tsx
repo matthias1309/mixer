@@ -16,13 +16,10 @@ export default function CycleInfo() {
         });
         if (response.ok) {
           const data = await response.json();
-          console.log('[CycleInfo] Loaded cycle data:', data.data);
           setCycle(data.data);
-        } else {
-          console.log('[CycleInfo] Response not ok:', response.status);
         }
       } catch (err) {
-        console.error('Failed to fetch cycle:', err);
+        // Failed to fetch cycle, will show error state
       } finally {
         setLoading(false);
       }
