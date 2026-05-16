@@ -14,7 +14,11 @@
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "test:e2e": "cypress open",
-    "test:e2e:headless": "cypress run"
+    "test:e2e:headless": "cypress run",
+    "db:start": "docker compose -f docker-compose.local.yml up -d",
+    "db:stop": "docker compose -f docker-compose.local.yml down",
+    "db:setup": "bash scripts/setup-local.sh",
+    "db:seed": "bash scripts/seed-local.sh"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
