@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { RecipeModel } from '@/lib/db/models/recipe';
+import { RecipeModelAsync } from '@/lib/db/models/recipe-async';
 import { authMiddlewareWithRefresh, setTokenCookie } from '@/lib/auth/middleware';
 import { CreateRecipeRequest } from '@/types';
 import { VALIDATION, HTTP_STATUS } from '@/lib/constants';
+import { withDatabase } from '@/lib/api/withDatabase';
 
 // GET /api/recipes - List recipes with pagination, search, and sorting
 export async function GET(request: NextRequest) {
@@ -73,7 +75,7 @@ export async function GET(request: NextRequest) {
 }
 
 // POST /api/recipes - Create a new recipe
-export async function POST(request: NextRequest) {
+async function handlePOST(request: NextRequest) {
   try {
     // Require authentication
     const auth = await authMiddlewareWithRefresh(request);
@@ -165,7 +167,7 @@ export async function POST(request: NextRequest) {
       ? body.ingredients.map(i => i.name.trim().toLowerCase()).sort()
       : [];
 
-    const duplicate = RecipeModel.findByNameAndIngredients(body.name, normalizedIngredients);
+    const duplicate = await RecipeModelAsync.findByNameAndIngredients(body.name, normalizedIngredients);
 
     let canonicalId: number | null = null;
     let isDuplicate = false;
@@ -177,7 +179,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create recipe
-    const recipe = RecipeModel.create(
+    const recipe = await RecipeModelAsync.create(
       body.name.trim(),
       parseInt(auth.userId, 10),
       body.description?.trim(),
@@ -210,3 +212,5 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+export const POST = withDatabase(handlePOST);
