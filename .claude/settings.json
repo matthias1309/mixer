@@ -78,7 +78,8 @@
       "Bash(chmod +x scripts/deploy-pi.sh)",
       "Bash(chmod +x /tmp/debug-migrations.sh)",
       "Bash(/tmp/debug-migrations.sh)",
-      "Bash(ssh dockerhome *)"
+      "Bash(ssh dockerhome *)",
+      "Bash(./scripts/deploy-pi.sh --db-password 11bd61bd8a298be5d7508e3f09624513 --jwt-secret c4d0889dc0d6b3f910cd84c3a3b6c0ea467feaf8e9d83ad88dd67817687bf742)"
     ],
     "additionalDirectories": [
       "/private/tmp",

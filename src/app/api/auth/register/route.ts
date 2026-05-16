@@ -4,6 +4,7 @@ import { UserModel } from '../../../../lib/db/models/user';
 import { generateToken } from '../../../../lib/auth/tokenRefresh';
 import { setTokenCookie } from '../../../../lib/auth/middleware';
 import { RegisterRequest } from '../../../../types';
+import { withDatabase } from '../../../../lib/api/withDatabase';
 
 // Input validation
 function validateEmail(email: string): boolean {
@@ -16,7 +17,7 @@ function validatePassword(password: string): boolean {
 }
 
 // POST /api/auth/register
-export async function POST(request: NextRequest) {
+async function handler(request: NextRequest) {
   try {
     const body = (await request.json()) as RegisterRequest;
 
@@ -79,3 +80,5 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+export const POST = withDatabase(handler);
