@@ -20,7 +20,7 @@ async function handler(request: NextRequest) {
     }
 
     // Find user by email
-    const user = UserModel.findByEmail(body.email);
+    const user = await UserModel.findByEmail(body.email);
     if (!user) {
       return NextResponse.json(
         { error: 'Invalid email or password' },

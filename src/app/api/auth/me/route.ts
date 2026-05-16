@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyToken } from '@/lib/auth/jwt';
 import { UserModel } from '@/lib/db/models/user';
+import { withDatabase } from '@/lib/api/withDatabase';
 
-export async function GET(request: NextRequest) {
+async function handler(request: NextRequest) {
   try {
     const token = request.cookies.get('sessionToken')?.value;
     if (!token) {
@@ -14,7 +15,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
     }
 
-    const user = UserModel.findById(Number(decoded.sub));
+    const user = await UserModel.findById(Number(decoded.sub));
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
@@ -25,3 +26,5 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
+
+export const GET = withDatabase(handler);

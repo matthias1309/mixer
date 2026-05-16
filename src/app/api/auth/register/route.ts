@@ -44,7 +44,7 @@ async function handler(request: NextRequest) {
     }
 
     // Check if user already exists
-    const existing = UserModel.findByEmail(body.email);
+    const existing = await UserModel.findByEmail(body.email);
     if (existing) {
       return NextResponse.json(
         { error: 'Email already exists' },
@@ -54,7 +54,7 @@ async function handler(request: NextRequest) {
 
     // Hash password and create user
     const passwordHash = await bcryptjs.hash(body.password, 10);
-    const user = UserModel.create(body.email, passwordHash);
+    const user = await UserModel.create(body.email, passwordHash);
 
     // Generate token
     const token = generateToken(String(user.id), user.email);
