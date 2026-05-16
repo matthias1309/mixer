@@ -61,7 +61,7 @@ export async function authMiddlewareWithRefresh(request: NextRequest) {
 export function setTokenCookie<T>(response: NextResponse<T>, token: string): NextResponse<T> {
   response.cookies.set('sessionToken', token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure: false, // Allow HTTP for self-hosted deployments
     sameSite: 'strict',
     maxAge: 60 * 60, // 1 hour
     path: '/',
@@ -73,7 +73,7 @@ export function setTokenCookie<T>(response: NextResponse<T>, token: string): Nex
 export function clearTokenCookie<T>(response: NextResponse<T>): NextResponse<T> {
   response.cookies.set('sessionToken', '', {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure: false, // Allow HTTP for self-hosted deployments
     sameSite: 'strict',
     maxAge: 0,
     path: '/',
