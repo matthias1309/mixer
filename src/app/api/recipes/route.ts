@@ -20,9 +20,8 @@ async function handleGET(request: NextRequest) {
     // Try to refresh token if authenticated
     const auth = await authMiddlewareWithRefresh(request);
 
-    // For PostgreSQL compatibility, we only support basic listing
-    // Ingredient filtering and phase-based scoring require additional async implementations
-    const result = await RecipeModelAsync.listAll(page, pageSize, sort, search);
+    // Use async listing with scoring and phase support
+    const result = await RecipeModelAsync.listAllWithScoreAsync(page, pageSize, sort, search, phase || 'menstruation');
 
     const totalPages = Math.ceil(result.total / pageSize);
 
