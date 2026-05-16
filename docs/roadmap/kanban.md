@@ -1,11 +1,11 @@
 # Recipe Manager - Kanban Board & Project Roadmap
 
-**Last Updated**: 2026-05-15  
-**Current Phase**: MVP - Phase 5 Complete (Testing & Documentation)  
+**Last Updated**: 2026-05-16  
+**Current Phase**: MVP - Phase 5 Complete (Testing & Documentation) + Quality Review  
 **Velocity**: 86+ pts completed  
-**Total Tickets**: 32  
-**Total Effort**: ~106 story points  
-**Completed**: 29 / 32 (86 / 106 pts) - 81% of MVP scope done  
+**Total Tickets**: 40 (32 MVP + 8 Quality Findings)  
+**Total Effort**: ~127 story points  
+**Completed**: 29 / 40 (86 / 127 pts) - 68% of total scope (81% of MVP only)  
 
 ---
 
@@ -97,6 +97,22 @@
 - [ ] [INFRA-101](tickets/INFRA-101-docker-deployment.md) - Docker & Deployment (5 pts)
 - [ ] [DOCS-102](tickets/DOCS-102-deployment-guide.md) - Deployment Guide (2 pts)
 
+### 🐛 Quality & Code Review Findings (Code Quality Review - 2026-05-16)
+
+**BLOCKER - Must fix before merging:**
+- [ ] [BUG-001](tickets/BUG-001-recipe-card-test-german-translation.md) - RecipeCard Test German Translation Mismatch (1 pt)
+- [ ] [BUG-002](tickets/BUG-002-failing-ingredient-master-tests.md) - Failing Ingredient Master CRUD Tests (2 pts)
+- [ ] [BUG-003](tickets/BUG-003-any-type-in-recipe-list.md) - Unsafe `any` Type in RecipeList (1 pt)
+- [ ] [BUG-006](tickets/BUG-006-test-coverage-below-80-percent.md) - Test Coverage Below 80% Target (3 pts)
+
+**SHOULD FIX - High priority:**
+- [ ] [BUG-004](tickets/BUG-004-fetch-logic-duplication.md) - Code Duplication in Fetch Logic (DRY) (3 pts)
+- [ ] [BUG-005](tickets/BUG-005-magic-strings-in-api-routes.md) - Magic Strings in API Routes (2 pts)
+
+**NICE TO HAVE - Improvements:**
+- [ ] [BUG-007](tickets/BUG-007-pagination-logic-not-extracted.md) - Pagination Logic Not Extracted (2 pts)
+- [ ] [BUG-008](tickets/BUG-008-incomplete-documentation.md) - Incomplete Documentation (ADRs & Reviews) (3 pts)
+
 ---
 
 ## 📅 Recommended Implementation Order
@@ -151,10 +167,19 @@
 
 | Status | Count | Points |
 |--------|-------|--------|
-| Backlog (Ready) | 27 | 90 |
+| Backlog (Ready) | 2 | 7 |
+| Quality Issues (Ready) | 8 | 21 |
 | In Progress | 0 | 0 |
 | Under Review | 0 | 0 |
-| Completed | 5 | 16 |
+| Completed | 29 | 86 |
+| **TOTAL** | **40** | **127** |
+
+### Quality Issues Breakdown
+| Priority | Count | Points | Examples |
+|----------|-------|--------|----------|
+| 🔴 BLOCKER | 4 | 7 | BUG-001, BUG-002, BUG-003, BUG-006 |
+| 🟡 SHOULD FIX | 2 | 5 | BUG-004 (DRY), BUG-005 (Magic strings) |
+| 🟢 NICE TO HAVE | 2 | 5 | BUG-007 (Pagination), BUG-008 (Documentation) |
 
 ---
 
