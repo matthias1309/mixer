@@ -126,9 +126,15 @@ log_info "Docker image transferred ✓"
 log_info "Preparing directories on PI..."
 ssh "$PI_HOST" << 'SCRIPT'
 mkdir -p /opt/containers/apps/mixer/data/postgres
+mkdir -p /opt/containers/apps/mixer/src/lib/db/migrations
 chmod 755 /opt/containers/apps/mixer
 SCRIPT
 log_info "Directories prepared ✓"
+
+# Step 4b: Copy migration files to PI
+log_info "Copying database migrations to PI..."
+scp -r src/lib/db/migrations/* "$PI_HOST:/opt/containers/apps/mixer/src/lib/db/migrations/" 2>/dev/null || log_warn "Could not copy migrations (optional)"
+log_info "Migrations copied ✓"
 
 # Step 5: Generate .env.production file
 log_info "Generating .env.production file..."
@@ -159,7 +165,18 @@ docker compose -f $COMPOSE_FILE up -d
 DEPLOY_SCRIPT
 log_info "Application deployed ✓"
 
-# Step 8: Verify deployment
+# Step 8: Initialize database (run migrations)
+log_info "Initializing database..."
+ssh "$PI_HOST" << MIGRATE_SCRIPT
+set -e
+cd $PI_APP_PATH
+sleep 3  # Wait for DB to be ready
+docker compose exec -T mixer-db psql -U $DB_USER -d $DB_NAME < src/lib/db/migrations/001_create_schema.sql 2>/dev/null || true
+docker compose exec -T mixer-db psql -U $DB_USER -d $DB_NAME < src/lib/db/migrations/002_create_nutrition_tables.sql 2>/dev/null || true
+MIGRATE_SCRIPT
+log_info "Database initialized ✓"
+
+# Step 9: Verify deployment
 log_info "Verifying deployment..."
 sleep 5
 

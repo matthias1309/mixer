@@ -68,7 +68,14 @@
       "Bash(pkill -f \"next dev\")",
       "Bash(curl -s http://localhost:3000/ingredients)",
       "Bash(grep -E \"^[^-]*>.*[A-Z][a-z]{3,}\")",
-      "Bash(curl -s http://localhost:3000/login)"
+      "Bash(curl -s http://localhost:3000/login)",
+      "Bash(grep -E \"^[A-Z]+-[0-9]+.*\\\\.md$\")",
+      "Bash(docker build *)",
+      "Bash(docker-compose -f docker-compose.production.yml config)",
+      "Bash(docker-compose -f docker-compose.production.yml --env-file .env.production.test up -d)",
+      "Bash(docker-compose -f docker-compose.production.yml down)",
+      "Bash(kill %1)",
+      "Bash(chmod +x scripts/deploy-pi.sh)"
     ],
     "additionalDirectories": [
       "/private/tmp",
