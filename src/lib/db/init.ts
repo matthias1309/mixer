@@ -43,7 +43,12 @@ export async function initializeDatabase(): Promise<void> {
       client.release();
     } catch (error) {
       console.error('Failed to connect to PostgreSQL:', error);
-      throw error;
+      if (process.env.NODE_ENV === 'production') {
+        throw error;
+      }
+      console.log('Continuing despite connection error (likely during build)');
+      pgPool = null;
+      return;
     }
 
     // Run migrations
