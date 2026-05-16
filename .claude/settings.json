@@ -98,7 +98,9 @@
       "Bash(curl -s http://192.168.178.159:3001/api/recipes/1)",
       "Bash(curl -s \"http://192.168.178.159:3001/api/recipes?page=1&pageSize=5\")",
       "Bash(curl -s \"http://192.168.178.159:3001/api/recipes?page=1&pageSize=5&phase=menstruation\")",
-      "Bash(curl -s \"http://192.168.178.159:3001/api/recipes?page=1&pageSize=5&phase=ovulation\")"
+      "Bash(curl -s \"http://192.168.178.159:3001/api/recipes?page=1&pageSize=5&phase=ovulation\")",
+      "Bash(git tag -a v1.0.0 -m 'Release v1.0.0 - Production-ready Recipe Manager *)",
+      "Bash(chmod +x scripts/setup-local.sh scripts/seed-local.sh)"
     ],
     "additionalDirectories": [
       "/private/tmp",
