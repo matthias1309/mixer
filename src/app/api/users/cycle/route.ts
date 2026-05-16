@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { authMiddlewareWithRefresh, setTokenCookie } from '@/lib/auth/middleware';
 import { UserModel } from '@/lib/db/models/user';
 import { HTTP_STATUS } from '@/lib/constants';
+import { withDatabase } from '@/lib/api/withDatabase';
 
-export async function POST(request: NextRequest) {
+async function handlePOST(request: NextRequest) {
   try {
     const auth = await authMiddlewareWithRefresh(request);
     if (!auth) {
@@ -31,7 +32,7 @@ export async function POST(request: NextRequest) {
     }
 
     const userId = parseInt(auth.userId, 10);
-    const cycle = UserModel.saveCycle(userId, last_menstruation_date, cycle_length_days);
+    const cycle = await UserModel.saveCycle(userId, last_menstruation_date, cycle_length_days);
 
     let response = NextResponse.json({
       success: true,
@@ -49,7 +50,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-export async function GET(request: NextRequest) {
+async function handleGET(request: NextRequest) {
   try {
     const auth = await authMiddlewareWithRefresh(request);
     if (!auth) {
@@ -60,7 +61,7 @@ export async function GET(request: NextRequest) {
     }
 
     const userId = parseInt(auth.userId, 10);
-    const cycle = UserModel.getCycle(userId);
+    const cycle = await UserModel.getCycle(userId);
 
     if (!cycle) {
       return NextResponse.json({
@@ -115,3 +116,6 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
+export const POST = withDatabase(handlePOST);
+export const GET = withDatabase(handleGET);
