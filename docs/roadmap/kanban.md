@@ -2,10 +2,10 @@
 
 **Last Updated**: 2026-05-16  
 **Current Phase**: MVP - Phase 5 Complete (Testing & Documentation) + Quality Review  
-**Velocity**: 86+ pts completed  
+**Velocity**: 91+ pts completed  
 **Total Tickets**: 40 (32 MVP + 8 Quality Findings)  
 **Total Effort**: ~127 story points  
-**Completed**: 29 / 40 (86 / 127 pts) - 68% of total scope (81% of MVP only)  
+**Completed**: 30 / 40 (91 / 127 pts) - 72% of total scope (84% of MVP only)  
 
 ---
 
@@ -82,6 +82,7 @@
 - [x] [TEST-105](tickets/TEST-105-e2e-tests.md) - E2E Tests (8 pts) - ✅ 2026-05-15
 - [x] [DOCS-101](tickets/DOCS-101-api-documentation.md) - API Documentation (3 pts) - ✅ 2026-05-15
 - [x] [DOCS-103](tickets/DOCS-103-code-review-checklist.md) - Code Review Checklist (2 pts) - ✅ 2026-05-15
+- [x] [INFRA-101](tickets/INFRA-101-docker-deployment.md) - Docker & Deployment (5 pts) - ✅ 2026-05-16
 
 **Bonus Features (Not in original roadmap)**
 - [x] Ingredients Master CRUD System (~13 pts equivalent) - ✅ 2026-05-15
@@ -94,7 +95,6 @@
 ### 🎯 Ready to Start (Phase 2 - Authentication)
 
 ### 📦 Ready (Phase 5 - Documentation & Deployment)
-- [ ] [INFRA-101](tickets/INFRA-101-docker-deployment.md) - Docker & Deployment (5 pts)
 - [ ] [DOCS-102](tickets/DOCS-102-deployment-guide.md) - Deployment Guide (2 pts)
 
 ### 🐛 Quality & Code Review Findings (Code Quality Review - 2026-05-16)
@@ -167,11 +167,11 @@
 
 | Status | Count | Points |
 |--------|-------|--------|
-| Backlog (Ready) | 2 | 7 |
+| Backlog (Ready) | 1 | 2 |
 | Quality Issues (Ready) | 8 | 21 |
 | In Progress | 0 | 0 |
 | Under Review | 0 | 0 |
-| Completed | 29 | 86 |
+| Completed | 30 | 91 |
 | **TOTAL** | **40** | **127** |
 
 ### Quality Issues Breakdown
