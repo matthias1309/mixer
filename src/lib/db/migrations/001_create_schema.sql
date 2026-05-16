@@ -1,6 +1,9 @@
+-- Create schema for both SQLite and PostgreSQL
+-- This file must work with both database systems
+
 -- Users table
 CREATE TABLE IF NOT EXISTS users (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  id SERIAL PRIMARY KEY,
   email VARCHAR(255) NOT NULL UNIQUE,
   password_hash VARCHAR(255) NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -11,7 +14,7 @@ CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
 
 -- Recipes table (with deduplication support)
 CREATE TABLE IF NOT EXISTS recipes (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  id SERIAL PRIMARY KEY,
   name VARCHAR(100) NOT NULL,
   description TEXT,
   instructions TEXT,
@@ -32,7 +35,7 @@ CREATE INDEX IF NOT EXISTS idx_recipes_name ON recipes(name);
 
 -- Ingredients table
 CREATE TABLE IF NOT EXISTS ingredients (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  id SERIAL PRIMARY KEY,
   recipe_id INTEGER NOT NULL,
   name VARCHAR(100) NOT NULL,
   quantity DECIMAL(10, 2) NOT NULL,

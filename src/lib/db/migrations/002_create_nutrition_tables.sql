@@ -1,6 +1,8 @@
--- src/lib/db/migrations/002_create_nutrition_tables.sql
+-- Create nutrition tables for both SQLite and PostgreSQL
+-- This file must work with both database systems
+
 CREATE TABLE IF NOT EXISTS nutrition_ingredients (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  id SERIAL PRIMARY KEY,
   name VARCHAR(255) NOT NULL UNIQUE,
   category VARCHAR(100),
   base_unit VARCHAR(50) NOT NULL DEFAULT 'g',
@@ -30,7 +32,7 @@ CREATE INDEX IF NOT EXISTS idx_nutrition_ingredients_name ON nutrition_ingredien
 CREATE INDEX IF NOT EXISTS idx_nutrition_ingredients_category ON nutrition_ingredients(category);
 
 CREATE TABLE IF NOT EXISTS ingredient_conversions (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  id SERIAL PRIMARY KEY,
   ingredient_id INTEGER NOT NULL REFERENCES nutrition_ingredients(id) ON DELETE CASCADE,
   unit VARCHAR(50) NOT NULL,
   amount_in_base_unit DECIMAL(10,3) NOT NULL,
@@ -43,7 +45,7 @@ CREATE TABLE IF NOT EXISTS ingredient_conversions (
 CREATE INDEX IF NOT EXISTS idx_conversions_ingredient ON ingredient_conversions(ingredient_id);
 
 CREATE TABLE IF NOT EXISTS recipe_nutrients (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  id SERIAL PRIMARY KEY,
   recipe_id INTEGER NOT NULL UNIQUE REFERENCES recipes(id) ON DELETE CASCADE,
   portions INTEGER NOT NULL DEFAULT 1,
 

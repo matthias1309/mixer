@@ -140,10 +140,12 @@ log_info "Migrations copied ✓"
 log_info "Generating .env.production file..."
 ENV_FILE=$(mktemp)
 cat > "$ENV_FILE" << EOF
+DATABASE_URL=postgresql://$DB_USER:$DB_PASSWORD@mixer-db:5432/$DB_NAME
 DB_USER=$DB_USER
 DB_PASSWORD=$DB_PASSWORD
 DB_NAME=$DB_NAME
 JWT_SECRET=$JWT_SECRET
+NODE_ENV=production
 EOF
 
 log_info ".env.production generated ✓"
@@ -160,20 +162,21 @@ log_info "Deploying application..."
 ssh "$PI_HOST" << DEPLOY_SCRIPT
 set -e
 cd $PI_APP_PATH
-docker compose -f $COMPOSE_FILE down || true
-docker compose -f $COMPOSE_FILE up -d
+docker compose -f $COMPOSE_FILE --env-file .env.production down || true
+docker compose -f $COMPOSE_FILE --env-file .env.production up -d
 DEPLOY_SCRIPT
 log_info "Application deployed ✓"
 
 # Step 8: Initialize database (run migrations)
 log_info "Initializing database..."
-ssh "$PI_HOST" << MIGRATE_SCRIPT
-set -e
-cd $PI_APP_PATH
 sleep 3  # Wait for DB to be ready
-docker compose exec -T mixer-db psql -U $DB_USER -d $DB_NAME < src/lib/db/migrations/001_create_schema.sql 2>/dev/null || true
-docker compose exec -T mixer-db psql -U $DB_USER -d $DB_NAME < src/lib/db/migrations/002_create_nutrition_tables.sql 2>/dev/null || true
-MIGRATE_SCRIPT
+
+# Run migrations by sending file content through stdin
+for migration in src/lib/db/migrations/*.sql; do
+  log_info "Running migration: $(basename "$migration")..."
+  cat "$migration" | ssh "$PI_HOST" "cd $PI_APP_PATH && docker compose -f $COMPOSE_FILE --env-file .env.production exec -T mixer-db psql -U $DB_USER -d $DB_NAME" 2>&1 | grep -v "^$" || log_warn "Migration $(basename "$migration") may have warnings"
+done
+
 log_info "Database initialized ✓"
 
 # Step 9: Verify deployment
@@ -186,12 +189,12 @@ if [[ -n "$PI_IP" ]]; then
     log_info "Application is responding on http://$PI_IP:3001 ✓"
   else
     log_warn "Could not verify application response. Check logs manually:"
-    log_warn "  ssh $PI_HOST 'cd $PI_APP_PATH && docker compose logs mixer-app'"
+    log_warn "  ssh $PI_HOST 'cd $PI_APP_PATH && docker compose -f $COMPOSE_FILE logs mixer-app'"
   fi
 else
   log_info "Application deployed. Verify with:"
-  log_info "  ssh $PI_HOST 'cd $PI_APP_PATH && docker compose ps'"
-  log_info "  ssh $PI_HOST 'cd $PI_APP_PATH && docker compose logs mixer-app'"
+  log_info "  ssh $PI_HOST 'cd $PI_APP_PATH && docker compose -f $COMPOSE_FILE ps'"
+  log_info "  ssh $PI_HOST 'cd $PI_APP_PATH && docker compose -f $COMPOSE_FILE logs mixer-app'"
 fi
 
 # Step 9: Print summary
@@ -202,8 +205,8 @@ log_info "App location: $PI_APP_PATH"
 log_info "Database: PostgreSQL ($DB_USER@$DB_NAME)"
 log_info ""
 log_info "Useful commands:"
-log_info "  View status:     ssh $PI_HOST 'cd $PI_APP_PATH && docker compose ps'"
-log_info "  View logs:       ssh $PI_HOST 'cd $PI_APP_PATH && docker compose logs -f mixer-app'"
-log_info "  Enter database:  ssh $PI_HOST 'cd $PI_APP_PATH && docker compose exec mixer-db psql -U $DB_USER -d $DB_NAME'"
-log_info "  Stop services:   ssh $PI_HOST 'cd $PI_APP_PATH && docker compose down'"
+log_info "  View status:     ssh $PI_HOST 'cd $PI_APP_PATH && docker compose -f $COMPOSE_FILE ps'"
+log_info "  View logs:       ssh $PI_HOST 'cd $PI_APP_PATH && docker compose -f $COMPOSE_FILE logs -f mixer-app'"
+log_info "  Enter database:  ssh $PI_HOST 'cd $PI_APP_PATH && docker compose -f $COMPOSE_FILE --env-file .env.production exec mixer-db psql -U $DB_USER -d $DB_NAME'"
+log_info "  Stop services:   ssh $PI_HOST 'cd $PI_APP_PATH && docker compose -f $COMPOSE_FILE down'"
 log_info ""

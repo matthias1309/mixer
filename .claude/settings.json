@@ -75,7 +75,10 @@
       "Bash(docker-compose -f docker-compose.production.yml --env-file .env.production.test up -d)",
       "Bash(docker-compose -f docker-compose.production.yml down)",
       "Bash(kill %1)",
-      "Bash(chmod +x scripts/deploy-pi.sh)"
+      "Bash(chmod +x scripts/deploy-pi.sh)",
+      "Bash(chmod +x /tmp/debug-migrations.sh)",
+      "Bash(/tmp/debug-migrations.sh)",
+      "Bash(ssh dockerhome *)"
     ],
     "additionalDirectories": [
       "/private/tmp",
