@@ -337,7 +337,7 @@ export class RecipeModelAsync {
       const row = result.rows[0] || {};
       const nutrients: Record<string, number> = {};
       for (const [key, value] of Object.entries(row)) {
-        nutrients[key] = (value as number) || 0;
+        nutrients[key] = value !== null && value !== undefined ? parseFloat(String(value)) : 0;
       }
       return nutrients;
     } else {

@@ -91,7 +91,11 @@
       "Bash(bash scripts/deploy-pi.sh --db-password \"secure_password_123\" --jwt-secret \"jwt_secret_key_12345\")",
       "Bash(./scripts/deploy-pi.sh --db-password \"11bd61bd8a298be5d7508e3f09624513\" --jwt-secret \"c4d0889dc0d6b3f910cd84c3a3b6c0ea467feaf8e9d83ad88dd67817687bf742\")",
       "Bash(curl -s -c /tmp/cookies.txt -X POST http://192.168.178.159:3001/api/auth/register -H 'Content-Type: application/json' -d '{ *)",
-      "Bash(curl -s -b /tmp/cookies.txt -X POST http://192.168.178.159:3001/api/ingredients-master -H 'Content-Type: application/json' -d '{ *)"
+      "Bash(curl -s -b /tmp/cookies.txt -X POST http://192.168.178.159:3001/api/ingredients-master -H 'Content-Type: application/json' -d '{ *)",
+      "Bash(curl -s http://192.168.178.159:3001/api/ingredients-master)",
+      "Bash(curl -s -b /tmp/cookies_recipe.txt http://192.168.178.159:3001/api/recipes/3)",
+      "Bash(curl -s -H \"User-Agent: Mozilla/5.0\" http://192.168.178.159:3001/recipes/1)",
+      "Bash(curl -s http://192.168.178.159:3001/api/recipes/1)"
     ],
     "additionalDirectories": [
       "/private/tmp",
