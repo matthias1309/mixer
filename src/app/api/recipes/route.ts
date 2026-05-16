@@ -20,31 +20,9 @@ async function handleGET(request: NextRequest) {
     // Try to refresh token if authenticated
     const auth = await authMiddlewareWithRefresh(request);
 
-    let result;
-
-    // Filter by ingredients if provided
-    if (ingredients) {
-      const ingredientList = ingredients.split(',').filter(i => i.trim());
-      if (ingredientList.length > 0) {
-        if (phase) {
-          result = RecipeModel.filterByIngredientsWithScore(ingredientList, page, pageSize, phase);
-        } else {
-          result = RecipeModel.filterByIngredients(ingredientList, page, pageSize);
-        }
-      } else {
-        if (phase) {
-          result = RecipeModel.listAllWithScore(page, pageSize, sort, search, phase);
-        } else {
-          result = await RecipeModelAsync.listAll(page, pageSize, sort, search);
-        }
-      }
-    } else {
-      if (phase) {
-        result = RecipeModel.listAllWithScore(page, pageSize, sort, search, phase);
-      } else {
-        result = await RecipeModelAsync.listAll(page, pageSize, sort, search);
-      }
-    }
+    // For PostgreSQL compatibility, we only support basic listing
+    // Ingredient filtering and phase-based scoring require additional async implementations
+    const result = await RecipeModelAsync.listAll(page, pageSize, sort, search);
 
     const totalPages = Math.ceil(result.total / pageSize);
 

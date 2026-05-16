@@ -62,23 +62,23 @@ export class RecipeModel {
     const db = getDatabase();
     const stmt = db.prepare(`
       SELECT
-        SUM(COALESCE(ingredients_master.kcal, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as kcal,
-        SUM(COALESCE(ingredients_master.iron, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as iron,
-        SUM(COALESCE(ingredients_master.magnesium, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as magnesium,
-        SUM(COALESCE(ingredients_master.protein, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as protein,
-        SUM(COALESCE(ingredients_master.calcium, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as calcium,
-        SUM(COALESCE(ingredients_master.vitamin_b6, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as vitamin_b6,
-        SUM(COALESCE(ingredients_master.vitamin_b12, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as vitamin_b12,
-        SUM(COALESCE(ingredients_master.vitamin_e, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as vitamin_e,
-        SUM(COALESCE(ingredients_master.zinc, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as zinc,
-        SUM(COALESCE(ingredients_master.fiber, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as fiber,
-        SUM(COALESCE(ingredients_master.vitamin_d, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as vitamin_d,
-        SUM(COALESCE(ingredients_master.sugar, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as sugar,
-        SUM(COALESCE(ingredients_master.fat, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as fat,
-        SUM(COALESCE(ingredients_master.carbohydrates, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as carbohydrates,
-        SUM(COALESCE(ingredients_master.sodium, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as sodium
+        SUM(COALESCE(nutrition_ingredients.kcal, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(nutrition_ingredients.base_size, 100)) as kcal,
+        SUM(COALESCE(nutrition_ingredients.iron, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(nutrition_ingredients.base_size, 100)) as iron,
+        SUM(COALESCE(nutrition_ingredients.magnesium, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(nutrition_ingredients.base_size, 100)) as magnesium,
+        SUM(COALESCE(nutrition_ingredients.protein, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(nutrition_ingredients.base_size, 100)) as protein,
+        SUM(COALESCE(nutrition_ingredients.calcium, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(nutrition_ingredients.base_size, 100)) as calcium,
+        SUM(COALESCE(nutrition_ingredients.vitamin_b6, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(nutrition_ingredients.base_size, 100)) as vitamin_b6,
+        SUM(COALESCE(nutrition_ingredients.vitamin_b12, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(nutrition_ingredients.base_size, 100)) as vitamin_b12,
+        SUM(COALESCE(nutrition_ingredients.vitamin_e, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(nutrition_ingredients.base_size, 100)) as vitamin_e,
+        SUM(COALESCE(nutrition_ingredients.zinc, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(nutrition_ingredients.base_size, 100)) as zinc,
+        SUM(COALESCE(nutrition_ingredients.fiber, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(nutrition_ingredients.base_size, 100)) as fiber,
+        SUM(COALESCE(nutrition_ingredients.vitamin_d, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(nutrition_ingredients.base_size, 100)) as vitamin_d,
+        SUM(COALESCE(nutrition_ingredients.sugar, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(nutrition_ingredients.base_size, 100)) as sugar,
+        SUM(COALESCE(nutrition_ingredients.fat, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(nutrition_ingredients.base_size, 100)) as fat,
+        SUM(COALESCE(nutrition_ingredients.carbohydrates, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(nutrition_ingredients.base_size, 100)) as carbohydrates,
+        SUM(COALESCE(nutrition_ingredients.sodium, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(nutrition_ingredients.base_size, 100)) as sodium
       FROM ingredients
-      LEFT JOIN ingredients_master ON LOWER(TRIM(ingredients_master.name)) = LOWER(TRIM(ingredients.name))
+      LEFT JOIN nutrition_ingredients ON LOWER(TRIM(nutrition_ingredients.name)) = LOWER(TRIM(ingredients.name))
       WHERE ingredients.recipe_id = ?
     `);
 
@@ -352,7 +352,7 @@ export class RecipeModel {
     `);
     const countResult = countStmt.get(searchParam, searchParam) as { total: number };
 
-    // Get recipes with nutrient data from ingredients_master
+    // Get recipes with nutrient data from nutrition_ingredients
     const stmt = db.prepare(`
       SELECT
         recipes.id,
@@ -361,21 +361,21 @@ export class RecipeModel {
         users.email as creatorName,
         COUNT(DISTINCT ingredients.id) as ingredientCount,
         recipes.created_at as createdAt,
-        SUM(COALESCE(ingredients_master.iron, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as total_iron,
-        SUM(COALESCE(ingredients_master.magnesium, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as total_magnesium,
-        SUM(COALESCE(ingredients_master.protein, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as total_protein,
-        SUM(COALESCE(ingredients_master.calcium, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as total_calcium,
-        SUM(COALESCE(ingredients_master.vitamin_b6, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as total_vitamin_b6,
-        SUM(COALESCE(ingredients_master.vitamin_b12, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as total_vitamin_b12,
-        SUM(COALESCE(ingredients_master.vitamin_e, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as total_vitamin_e,
-        SUM(COALESCE(ingredients_master.zinc, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as total_zinc,
-        SUM(COALESCE(ingredients_master.fiber, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as total_fiber,
-        SUM(COALESCE(ingredients_master.vitamin_d, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as total_vitamin_d,
-        COUNT(CASE WHEN ingredients_master.id IS NOT NULL THEN 1 END) as matched_ingredients
+        SUM(COALESCE(nutrition_ingredients.iron, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(nutrition_ingredients.base_size, 100)) as total_iron,
+        SUM(COALESCE(nutrition_ingredients.magnesium, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(nutrition_ingredients.base_size, 100)) as total_magnesium,
+        SUM(COALESCE(nutrition_ingredients.protein, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(nutrition_ingredients.base_size, 100)) as total_protein,
+        SUM(COALESCE(nutrition_ingredients.calcium, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(nutrition_ingredients.base_size, 100)) as total_calcium,
+        SUM(COALESCE(nutrition_ingredients.vitamin_b6, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(nutrition_ingredients.base_size, 100)) as total_vitamin_b6,
+        SUM(COALESCE(nutrition_ingredients.vitamin_b12, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(nutrition_ingredients.base_size, 100)) as total_vitamin_b12,
+        SUM(COALESCE(nutrition_ingredients.vitamin_e, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(nutrition_ingredients.base_size, 100)) as total_vitamin_e,
+        SUM(COALESCE(nutrition_ingredients.zinc, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(nutrition_ingredients.base_size, 100)) as total_zinc,
+        SUM(COALESCE(nutrition_ingredients.fiber, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(nutrition_ingredients.base_size, 100)) as total_fiber,
+        SUM(COALESCE(nutrition_ingredients.vitamin_d, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(nutrition_ingredients.base_size, 100)) as total_vitamin_d,
+        COUNT(CASE WHEN nutrition_ingredients.id IS NOT NULL THEN 1 END) as matched_ingredients
       FROM recipes
       JOIN users ON recipes.creator_id = users.id
       LEFT JOIN ingredients ON recipes.id = ingredients.recipe_id
-      LEFT JOIN ingredients_master ON LOWER(TRIM(ingredients_master.name)) = LOWER(TRIM(ingredients.name))
+      LEFT JOIN nutrition_ingredients ON LOWER(TRIM(nutrition_ingredients.name)) = LOWER(TRIM(ingredients.name))
       WHERE recipes.is_duplicate = 0
         AND (recipes.name LIKE ? OR ? IS NULL)
       GROUP BY recipes.id
@@ -457,21 +457,21 @@ export class RecipeModel {
         users.email as creatorName,
         COUNT(DISTINCT ingredients.id) as ingredientCount,
         recipes.created_at as createdAt,
-        SUM(COALESCE(ingredients_master.iron, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as total_iron,
-        SUM(COALESCE(ingredients_master.magnesium, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as total_magnesium,
-        SUM(COALESCE(ingredients_master.protein, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as total_protein,
-        SUM(COALESCE(ingredients_master.calcium, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as total_calcium,
-        SUM(COALESCE(ingredients_master.vitamin_b6, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as total_vitamin_b6,
-        SUM(COALESCE(ingredients_master.vitamin_b12, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as total_vitamin_b12,
-        SUM(COALESCE(ingredients_master.vitamin_e, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as total_vitamin_e,
-        SUM(COALESCE(ingredients_master.zinc, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as total_zinc,
-        SUM(COALESCE(ingredients_master.fiber, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as total_fiber,
-        SUM(COALESCE(ingredients_master.vitamin_d, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as total_vitamin_d,
-        COUNT(CASE WHEN ingredients_master.id IS NOT NULL THEN 1 END) as matched_ingredients
+        SUM(COALESCE(nutrition_ingredients.iron, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(nutrition_ingredients.base_size, 100)) as total_iron,
+        SUM(COALESCE(nutrition_ingredients.magnesium, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(nutrition_ingredients.base_size, 100)) as total_magnesium,
+        SUM(COALESCE(nutrition_ingredients.protein, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(nutrition_ingredients.base_size, 100)) as total_protein,
+        SUM(COALESCE(nutrition_ingredients.calcium, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(nutrition_ingredients.base_size, 100)) as total_calcium,
+        SUM(COALESCE(nutrition_ingredients.vitamin_b6, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(nutrition_ingredients.base_size, 100)) as total_vitamin_b6,
+        SUM(COALESCE(nutrition_ingredients.vitamin_b12, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(nutrition_ingredients.base_size, 100)) as total_vitamin_b12,
+        SUM(COALESCE(nutrition_ingredients.vitamin_e, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(nutrition_ingredients.base_size, 100)) as total_vitamin_e,
+        SUM(COALESCE(nutrition_ingredients.zinc, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(nutrition_ingredients.base_size, 100)) as total_zinc,
+        SUM(COALESCE(nutrition_ingredients.fiber, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(nutrition_ingredients.base_size, 100)) as total_fiber,
+        SUM(COALESCE(nutrition_ingredients.vitamin_d, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(nutrition_ingredients.base_size, 100)) as total_vitamin_d,
+        COUNT(CASE WHEN nutrition_ingredients.id IS NOT NULL THEN 1 END) as matched_ingredients
       FROM recipes
       JOIN users ON recipes.creator_id = users.id
       LEFT JOIN ingredients ON recipes.id = ingredients.recipe_id
-      LEFT JOIN ingredients_master ON LOWER(TRIM(ingredients_master.name)) = LOWER(TRIM(ingredients.name))
+      LEFT JOIN nutrition_ingredients ON LOWER(TRIM(nutrition_ingredients.name)) = LOWER(TRIM(ingredients.name))
       WHERE recipes.is_duplicate = 0
         AND recipes.id IN (
           SELECT recipe_id

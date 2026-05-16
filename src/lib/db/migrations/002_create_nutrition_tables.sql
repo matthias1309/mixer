@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS nutrition_ingredients (
 
   -- Nutrients per base_size (100g standard)
   kcal DECIMAL(8,2),
+  iron DECIMAL(8,2),
   sugar DECIMAL(8,2),
   fat DECIMAL(8,2),
   protein DECIMAL(8,2),

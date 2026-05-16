@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { IngredientMasterModel, CreateIngredientMasterRequest } from '@/lib/db/models/ingredientMaster';
+import { IngredientMasterModelAsync, CreateIngredientMasterRequest } from '@/lib/db/models/ingredientMasterAsync';
 import { authMiddlewareWithRefresh, setTokenCookie } from '@/lib/auth/middleware';
 import { HTTP_STATUS } from '@/lib/constants';
+import { withDatabase } from '@/lib/api/withDatabase';
 
 type Params = Promise<{ id: string }>;
 
-export async function GET(request: NextRequest, props: { params: Params }) {
+async function handleGET(request: NextRequest, props: { params: Params }) {
   try {
     const params = await props.params;
     const ingredientId = parseInt(params.id, 10);
@@ -17,7 +18,7 @@ export async function GET(request: NextRequest, props: { params: Params }) {
       );
     }
 
-    const ingredient = IngredientMasterModel.findById(ingredientId);
+    const ingredient = await IngredientMasterModelAsync.findById(ingredientId);
     if (!ingredient) {
       return NextResponse.json(
         { error: 'Ingredient not found' },
@@ -35,7 +36,7 @@ export async function GET(request: NextRequest, props: { params: Params }) {
   }
 }
 
-export async function PUT(request: NextRequest, props: { params: Params }) {
+async function handlePUT(request: NextRequest, props: { params: Params }) {
   try {
     const params = await props.params;
     const ingredientId = parseInt(params.id, 10);
@@ -55,7 +56,7 @@ export async function PUT(request: NextRequest, props: { params: Params }) {
       );
     }
 
-    const ingredient = IngredientMasterModel.findById(ingredientId);
+    const ingredient = await IngredientMasterModelAsync.findById(ingredientId);
     if (!ingredient) {
       return NextResponse.json(
         { error: 'Ingredient not found' },
@@ -103,7 +104,7 @@ export async function PUT(request: NextRequest, props: { params: Params }) {
       }
     }
 
-    const updated = IngredientMasterModel.update(ingredientId, body);
+    const updated = await IngredientMasterModelAsync.update(ingredientId, body);
 
     let response = NextResponse.json(updated, { status: HTTP_STATUS.OK });
     response = setTokenCookie(response, auth.newToken);
@@ -123,7 +124,7 @@ export async function PUT(request: NextRequest, props: { params: Params }) {
   }
 }
 
-export async function DELETE(request: NextRequest, props: { params: Params }) {
+async function handleDELETE(request: NextRequest, props: { params: Params }) {
   try {
     const params = await props.params;
     const ingredientId = parseInt(params.id, 10);
@@ -143,7 +144,7 @@ export async function DELETE(request: NextRequest, props: { params: Params }) {
       );
     }
 
-    const ingredient = IngredientMasterModel.findById(ingredientId);
+    const ingredient = await IngredientMasterModelAsync.findById(ingredientId);
     if (!ingredient) {
       return NextResponse.json(
         { error: 'Ingredient not found' },
@@ -151,7 +152,7 @@ export async function DELETE(request: NextRequest, props: { params: Params }) {
       );
     }
 
-    IngredientMasterModel.delete(ingredientId);
+    await IngredientMasterModelAsync.delete(ingredientId);
 
     let response = new NextResponse(null, { status: HTTP_STATUS.NO_CONTENT });
     response = setTokenCookie(response, auth.newToken);
@@ -164,3 +165,7 @@ export async function DELETE(request: NextRequest, props: { params: Params }) {
     );
   }
 }
+
+export const GET = withDatabase(handleGET);
+export const PUT = withDatabase(handlePUT);
+export const DELETE = withDatabase(handleDELETE);

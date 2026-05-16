@@ -180,72 +180,130 @@ export class RecipeModelAsync {
     if (isPostgres()) {
       const pool = db as Pool;
 
-      const countResult = await pool.query(
-        `SELECT COUNT(DISTINCT recipes.id) as total
-         FROM recipes
-         WHERE recipes.is_duplicate = false
-           AND (recipes.name LIKE $1 OR $2 IS NULL)`,
-        [searchParam, searchParam]
-      );
+      if (searchParam) {
+        const countResult = await pool.query(
+          `SELECT COUNT(DISTINCT recipes.id) as total
+           FROM recipes
+           WHERE recipes.is_duplicate = false AND recipes.name ILIKE $1`,
+          [searchParam]
+        );
 
-      const recipesResult = await pool.query(
-        `SELECT
-          recipes.id,
-          recipes.name,
-          recipes.description,
-          users.email as "creatorName",
-          COUNT(ingredients.id) as "ingredientCount",
-          recipes.created_at as "createdAt"
-         FROM recipes
-         JOIN users ON recipes.creator_id = users.id
-         LEFT JOIN ingredients ON recipes.id = ingredients.recipe_id
-         WHERE recipes.is_duplicate = false
-           AND (recipes.name LIKE $1 OR $2 IS NULL)
-         GROUP BY recipes.id
-         ORDER BY ${orderBy}
-         LIMIT $3 OFFSET $4`,
-        [searchParam, searchParam, pageSize, offset]
-      );
+        const recipesResult = await pool.query(
+          `SELECT
+            recipes.id,
+            recipes.name,
+            recipes.description,
+            users.email as "creatorName",
+            COUNT(ingredients.id) as "ingredientCount",
+            recipes.created_at as "createdAt"
+           FROM recipes
+           JOIN users ON recipes.creator_id = users.id
+           LEFT JOIN ingredients ON recipes.id = ingredients.recipe_id
+           WHERE recipes.is_duplicate = false AND recipes.name ILIKE $1
+           GROUP BY recipes.id, recipes.name, recipes.description, recipes.created_at, users.email
+           ORDER BY ${orderBy}
+           LIMIT $2 OFFSET $3`,
+          [searchParam, pageSize, offset]
+        );
 
-      return {
-        recipes: recipesResult.rows,
-        total: parseInt(countResult.rows[0].total, 10),
-      };
+        return {
+          recipes: recipesResult.rows,
+          total: parseInt(countResult.rows[0].total, 10),
+        };
+      } else {
+        const countResult = await pool.query(
+          `SELECT COUNT(DISTINCT recipes.id) as total
+           FROM recipes
+           WHERE recipes.is_duplicate = false`
+        );
+
+        const recipesResult = await pool.query(
+          `SELECT
+            recipes.id,
+            recipes.name,
+            recipes.description,
+            users.email as "creatorName",
+            COUNT(ingredients.id) as "ingredientCount",
+            recipes.created_at as "createdAt"
+           FROM recipes
+           JOIN users ON recipes.creator_id = users.id
+           LEFT JOIN ingredients ON recipes.id = ingredients.recipe_id
+           WHERE recipes.is_duplicate = false
+           GROUP BY recipes.id, recipes.name, recipes.description, recipes.created_at, users.email
+           ORDER BY ${orderBy}
+           LIMIT $1 OFFSET $2`,
+          [pageSize, offset]
+        );
+
+        return {
+          recipes: recipesResult.rows,
+          total: parseInt(countResult.rows[0].total, 10),
+        };
+      }
     } else {
       const sqlite = db as Database.Database;
-      const countStmt = sqlite.prepare(
-        `SELECT COUNT(DISTINCT recipes.id) as total
-         FROM recipes
-         WHERE recipes.is_duplicate = 0
-           AND (recipes.name LIKE ? OR ? IS NULL)`
-      );
 
-      const countResult = countStmt.get(searchParam, searchParam) as { total: number };
+      if (searchParam) {
+        const countStmt = sqlite.prepare(
+          `SELECT COUNT(DISTINCT recipes.id) as total
+           FROM recipes
+           WHERE recipes.is_duplicate = 0 AND recipes.name LIKE ?`
+        );
+        const countResult = countStmt.get(searchParam) as { total: number };
 
-      const stmt = sqlite.prepare(
-        `SELECT
-          recipes.id,
-          recipes.name,
-          recipes.description,
-          users.email as creatorName,
-          COUNT(ingredients.id) as ingredientCount,
-          recipes.created_at as createdAt
-         FROM recipes
-         JOIN users ON recipes.creator_id = users.id
-         LEFT JOIN ingredients ON recipes.id = ingredients.recipe_id
-         WHERE recipes.is_duplicate = 0
-           AND (recipes.name LIKE ? OR ? IS NULL)
-         GROUP BY recipes.id
-         ORDER BY ${orderBy}
-         LIMIT ? OFFSET ?`
-      );
+        const stmt = sqlite.prepare(
+          `SELECT
+            recipes.id,
+            recipes.name,
+            recipes.description,
+            users.email as creatorName,
+            COUNT(ingredients.id) as ingredientCount,
+            recipes.created_at as createdAt
+           FROM recipes
+           JOIN users ON recipes.creator_id = users.id
+           LEFT JOIN ingredients ON recipes.id = ingredients.recipe_id
+           WHERE recipes.is_duplicate = 0 AND recipes.name LIKE ?
+           GROUP BY recipes.id
+           ORDER BY ${orderBy}
+           LIMIT ? OFFSET ?`
+        );
 
-      const recipes = stmt.all(searchParam, searchParam, pageSize, offset) as any[];
+        const recipes = stmt.all(searchParam, pageSize, offset) as any[];
+        return {
+          recipes,
+          total: countResult.total,
+        };
+      } else {
+        const countStmt = sqlite.prepare(
+          `SELECT COUNT(DISTINCT recipes.id) as total
+           FROM recipes
+           WHERE recipes.is_duplicate = 0`
+        );
+        const countResult = countStmt.get() as { total: number };
 
-      return {
-        recipes,
-        total: countResult.total,
-      };
+        const stmt = sqlite.prepare(
+          `SELECT
+            recipes.id,
+            recipes.name,
+            recipes.description,
+            users.email as creatorName,
+            COUNT(ingredients.id) as ingredientCount,
+            recipes.created_at as createdAt
+           FROM recipes
+           JOIN users ON recipes.creator_id = users.id
+           LEFT JOIN ingredients ON recipes.id = ingredients.recipe_id
+           WHERE recipes.is_duplicate = 0
+           GROUP BY recipes.id
+           ORDER BY ${orderBy}
+           LIMIT ? OFFSET ?`
+        );
+
+        const recipes = stmt.all(pageSize, offset) as any[];
+        return {
+          recipes,
+          total: countResult.total,
+        };
+      }
     }
   }
 
@@ -256,23 +314,23 @@ export class RecipeModelAsync {
       const pool = db as Pool;
       const result = await pool.query(
         `SELECT
-          SUM(COALESCE(ingredients_master.kcal, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as kcal,
-          SUM(COALESCE(ingredients_master.iron, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as iron,
-          SUM(COALESCE(ingredients_master.magnesium, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as magnesium,
-          SUM(COALESCE(ingredients_master.protein, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as protein,
-          SUM(COALESCE(ingredients_master.calcium, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as calcium,
-          SUM(COALESCE(ingredients_master.vitamin_b6, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as vitamin_b6,
-          SUM(COALESCE(ingredients_master.vitamin_b12, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as vitamin_b12,
-          SUM(COALESCE(ingredients_master.vitamin_e, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as vitamin_e,
-          SUM(COALESCE(ingredients_master.zinc, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as zinc,
-          SUM(COALESCE(ingredients_master.fiber, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as fiber,
-          SUM(COALESCE(ingredients_master.vitamin_d, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as vitamin_d,
-          SUM(COALESCE(ingredients_master.sugar, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as sugar,
-          SUM(COALESCE(ingredients_master.fat, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as fat,
-          SUM(COALESCE(ingredients_master.carbohydrates, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as carbohydrates,
-          SUM(COALESCE(ingredients_master.sodium, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as sodium
+          SUM(COALESCE(nutrition_ingredients.kcal, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(nutrition_ingredients.base_size, 100)) as kcal,
+          SUM(COALESCE(nutrition_ingredients.iron, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(nutrition_ingredients.base_size, 100)) as iron,
+          SUM(COALESCE(nutrition_ingredients.magnesium, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(nutrition_ingredients.base_size, 100)) as magnesium,
+          SUM(COALESCE(nutrition_ingredients.protein, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(nutrition_ingredients.base_size, 100)) as protein,
+          SUM(COALESCE(nutrition_ingredients.calcium, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(nutrition_ingredients.base_size, 100)) as calcium,
+          SUM(COALESCE(nutrition_ingredients.vitamin_b6, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(nutrition_ingredients.base_size, 100)) as vitamin_b6,
+          SUM(COALESCE(nutrition_ingredients.vitamin_b12, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(nutrition_ingredients.base_size, 100)) as vitamin_b12,
+          SUM(COALESCE(nutrition_ingredients.vitamin_e, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(nutrition_ingredients.base_size, 100)) as vitamin_e,
+          SUM(COALESCE(nutrition_ingredients.zinc, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(nutrition_ingredients.base_size, 100)) as zinc,
+          SUM(COALESCE(nutrition_ingredients.fiber, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(nutrition_ingredients.base_size, 100)) as fiber,
+          SUM(COALESCE(nutrition_ingredients.vitamin_d, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(nutrition_ingredients.base_size, 100)) as vitamin_d,
+          SUM(COALESCE(nutrition_ingredients.sugar, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(nutrition_ingredients.base_size, 100)) as sugar,
+          SUM(COALESCE(nutrition_ingredients.fat, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(nutrition_ingredients.base_size, 100)) as fat,
+          SUM(COALESCE(nutrition_ingredients.carbohydrates, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(nutrition_ingredients.base_size, 100)) as carbohydrates,
+          SUM(COALESCE(nutrition_ingredients.sodium, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(nutrition_ingredients.base_size, 100)) as sodium
          FROM ingredients
-         LEFT JOIN ingredients_master ON LOWER(TRIM(ingredients_master.name)) = LOWER(TRIM(ingredients.name))
+         LEFT JOIN nutrition_ingredients ON LOWER(TRIM(nutrition_ingredients.name)) = LOWER(TRIM(ingredients.name))
          WHERE ingredients.recipe_id = $1`,
         [recipeId]
       );
@@ -286,23 +344,23 @@ export class RecipeModelAsync {
       const sqlite = db as Database.Database;
       const stmt = sqlite.prepare(`
         SELECT
-          SUM(COALESCE(ingredients_master.kcal, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as kcal,
-          SUM(COALESCE(ingredients_master.iron, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as iron,
-          SUM(COALESCE(ingredients_master.magnesium, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as magnesium,
-          SUM(COALESCE(ingredients_master.protein, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as protein,
-          SUM(COALESCE(ingredients_master.calcium, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as calcium,
-          SUM(COALESCE(ingredients_master.vitamin_b6, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as vitamin_b6,
-          SUM(COALESCE(ingredients_master.vitamin_b12, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as vitamin_b12,
-          SUM(COALESCE(ingredients_master.vitamin_e, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as vitamin_e,
-          SUM(COALESCE(ingredients_master.zinc, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as zinc,
-          SUM(COALESCE(ingredients_master.fiber, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as fiber,
-          SUM(COALESCE(ingredients_master.vitamin_d, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as vitamin_d,
-          SUM(COALESCE(ingredients_master.sugar, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as sugar,
-          SUM(COALESCE(ingredients_master.fat, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as fat,
-          SUM(COALESCE(ingredients_master.carbohydrates, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as carbohydrates,
-          SUM(COALESCE(ingredients_master.sodium, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as sodium
+          SUM(COALESCE(nutrition_ingredients.kcal, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(nutrition_ingredients.base_size, 100)) as kcal,
+          SUM(COALESCE(nutrition_ingredients.iron, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(nutrition_ingredients.base_size, 100)) as iron,
+          SUM(COALESCE(nutrition_ingredients.magnesium, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(nutrition_ingredients.base_size, 100)) as magnesium,
+          SUM(COALESCE(nutrition_ingredients.protein, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(nutrition_ingredients.base_size, 100)) as protein,
+          SUM(COALESCE(nutrition_ingredients.calcium, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(nutrition_ingredients.base_size, 100)) as calcium,
+          SUM(COALESCE(nutrition_ingredients.vitamin_b6, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(nutrition_ingredients.base_size, 100)) as vitamin_b6,
+          SUM(COALESCE(nutrition_ingredients.vitamin_b12, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(nutrition_ingredients.base_size, 100)) as vitamin_b12,
+          SUM(COALESCE(nutrition_ingredients.vitamin_e, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(nutrition_ingredients.base_size, 100)) as vitamin_e,
+          SUM(COALESCE(nutrition_ingredients.zinc, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(nutrition_ingredients.base_size, 100)) as zinc,
+          SUM(COALESCE(nutrition_ingredients.fiber, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(nutrition_ingredients.base_size, 100)) as fiber,
+          SUM(COALESCE(nutrition_ingredients.vitamin_d, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(nutrition_ingredients.base_size, 100)) as vitamin_d,
+          SUM(COALESCE(nutrition_ingredients.sugar, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(nutrition_ingredients.base_size, 100)) as sugar,
+          SUM(COALESCE(nutrition_ingredients.fat, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(nutrition_ingredients.base_size, 100)) as fat,
+          SUM(COALESCE(nutrition_ingredients.carbohydrates, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(nutrition_ingredients.base_size, 100)) as carbohydrates,
+          SUM(COALESCE(nutrition_ingredients.sodium, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(nutrition_ingredients.base_size, 100)) as sodium
         FROM ingredients
-        LEFT JOIN ingredients_master ON LOWER(TRIM(ingredients_master.name)) = LOWER(TRIM(ingredients.name))
+        LEFT JOIN nutrition_ingredients ON LOWER(TRIM(nutrition_ingredients.name)) = LOWER(TRIM(ingredients.name))
         WHERE ingredients.recipe_id = ?
       `);
       const result = stmt.get(recipeId) as Record<string, number | null>;

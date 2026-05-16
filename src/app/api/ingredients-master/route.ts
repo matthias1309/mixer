@@ -1,16 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { IngredientMasterModel, CreateIngredientMasterRequest } from '@/lib/db/models/ingredientMaster';
+import { IngredientMasterModelAsync, CreateIngredientMasterRequest } from '@/lib/db/models/ingredientMasterAsync';
 import { authMiddlewareWithRefresh, setTokenCookie } from '@/lib/auth/middleware';
 import { HTTP_STATUS, VALIDATION } from '@/lib/constants';
+import { withDatabase } from '@/lib/api/withDatabase';
 
-export async function GET(request: NextRequest) {
+async function handleGET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
     const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10));
     const pageSize = Math.min(100, Math.max(1, parseInt(searchParams.get('pageSize') || '20', 10)));
     const search = searchParams.get('search') || undefined;
 
-    const result = IngredientMasterModel.findAll(page, pageSize, search);
+    const result = await IngredientMasterModelAsync.findAll(page, pageSize, search);
 
     const totalPages = Math.ceil(result.total / pageSize);
 
@@ -35,7 +36,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-export async function POST(request: NextRequest) {
+async function handlePOST(request: NextRequest) {
   try {
     const auth = await authMiddlewareWithRefresh(request);
     if (!auth) {
@@ -70,7 +71,7 @@ export async function POST(request: NextRequest) {
 
     // Validate all nutrient values are >= 0
     const nutrientFields = [
-      'sugar', 'fat', 'protein', 'carbohydrates', 'fiber',
+      'iron', 'sugar', 'fat', 'protein', 'carbohydrates', 'fiber',
       'sodium', 'calcium', 'vitamin_d', 'magnesium', 'vitamin_b6',
       'vitamin_b12', 'vitamin_e', 'zinc'
     ] as const;
@@ -85,7 +86,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const ingredient = IngredientMasterModel.create(body);
+    const ingredient = await IngredientMasterModelAsync.create(body);
 
     let response = NextResponse.json(ingredient, { status: HTTP_STATUS.CREATED });
     response = setTokenCookie(response, auth.newToken);
@@ -104,3 +105,6 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+export const GET = withDatabase(handleGET);
+export const POST = withDatabase(handlePOST);
