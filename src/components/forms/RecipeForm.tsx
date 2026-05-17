@@ -3,11 +3,14 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { validateRecipeName } from '../../lib/validation';
+import { IngredientAutocomplete } from './IngredientAutocomplete';
+import { CreateIngredientModal } from '../modals/CreateIngredientModal';
 
 interface Ingredient {
   name: string;
   quantity: number;
   unit: string;
+  masterId?: number;
 }
 
 export interface RecipeFormProps {
@@ -30,6 +33,8 @@ export function RecipeForm({ initialData, isEditing = false }: RecipeFormProps) 
   const [ingredients, setIngredients] = useState<Ingredient[]>(initialData?.ingredients || []);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [createModalOpen, setCreateModalOpen] = useState(false);
+  const [createModalQuery, setCreateModalQuery] = useState('');
   const router = useRouter();
 
   async function handleSubmit(e: React.FormEvent) {
@@ -103,6 +108,28 @@ export function RecipeForm({ initialData, isEditing = false }: RecipeFormProps) 
 
   function addIngredient() {
     setIngredients([...ingredients, { name: '', quantity: 1, unit: 'g' }]);
+  }
+
+  function handleSelectIngredient(ingredient: { id: number; name: string }) {
+    setIngredients([...ingredients, { name: ingredient.name, quantity: 1, unit: 'g', masterId: ingredient.id }]);
+  }
+
+  async function handleCreateNewIngredient(ingredientName: string) {
+    const response = await fetch('/api/ingredients-master', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: ingredientName }),
+    });
+
+    if (!response.ok) {
+      const data = await response.json();
+      throw new Error(data.error || 'Zutat konnte nicht erstellt werden');
+    }
+
+    const newIngredient = await response.json();
+    setIngredients([...ingredients, { name: newIngredient.name, quantity: 1, unit: 'g', masterId: newIngredient.id }]);
+    setCreateModalOpen(false);
   }
 
   function removeIngredient(index: number) {
@@ -185,6 +212,29 @@ export function RecipeForm({ initialData, isEditing = false }: RecipeFormProps) 
           <label className="block text-sm font-medium mb-2">Zutaten ({ingredients.length})</label>
 
           <div className="space-y-2 mb-3">
+            {/* Autocomplete for adding ingredients from database */}
+            <div className="flex gap-2">
+              <div className="flex-1">
+                <IngredientAutocomplete
+                  onSelect={handleSelectIngredient}
+                  onCreateNew={(query) => {
+                    setCreateModalQuery(query);
+                    setCreateModalOpen(true);
+                  }}
+                  addedIngredientIds={ingredients.flatMap((i) => i.masterId != null ? [i.masterId] : [])}
+                />
+              </div>
+              <button
+                type="button"
+                onClick={addIngredient}
+                className="bg-gray-500 text-white px-4 py-2 rounded text-sm hover:bg-gray-600"
+                disabled={isLoading || ingredients.length >= 50}
+              >
+                + Manuell
+              </button>
+            </div>
+
+            {/* Existing ingredients list */}
             {ingredients.map((ing, idx) => (
               <div key={idx} className="flex gap-2">
                 <input
@@ -227,15 +277,6 @@ export function RecipeForm({ initialData, isEditing = false }: RecipeFormProps) 
             ))}
           </div>
 
-          <button
-            type="button"
-            onClick={addIngredient}
-            className="bg-gray-500 text-white px-4 py-2 rounded text-sm hover:bg-gray-600"
-            disabled={isLoading || ingredients.length >= 50}
-          >
-            + Zutat hinzufügen
-          </button>
-
           <datalist id="units">
             <option value="g" />
             <option value="kg" />
@@ -246,6 +287,17 @@ export function RecipeForm({ initialData, isEditing = false }: RecipeFormProps) 
             <option value="cup" />
           </datalist>
         </div>
+
+        {/* Modal for creating new ingredient */}
+        <CreateIngredientModal
+          isOpen={createModalOpen}
+          onClose={() => {
+            setCreateModalOpen(false);
+            setCreateModalQuery('');
+          }}
+          onCreate={handleCreateNewIngredient}
+          suggestedName={createModalQuery}
+        />
 
         {/* Buttons */}
         <div className="flex gap-3 mt-6">
