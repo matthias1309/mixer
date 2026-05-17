@@ -100,7 +100,14 @@
       "Bash(curl -s \"http://192.168.178.159:3001/api/recipes?page=1&pageSize=5&phase=menstruation\")",
       "Bash(curl -s \"http://192.168.178.159:3001/api/recipes?page=1&pageSize=5&phase=ovulation\")",
       "Bash(git tag -a v1.0.0 -m 'Release v1.0.0 - Production-ready Recipe Manager *)",
-      "Bash(chmod +x scripts/setup-local.sh scripts/seed-local.sh)"
+      "Bash(chmod +x scripts/setup-local.sh scripts/seed-local.sh)",
+      "Bash(git stash *)",
+      "Bash(npx eslint *)",
+      "Bash(gh pr create --title 'feat: Phase 2 - ingredient autocomplete and auto-create' --body ' *)",
+      "Bash(gh api *)",
+      "Bash(python3 -c ' *)",
+      "Skill(superpowers:receiving-code-review)",
+      "Skill(superpowers:receiving-code-review:*)"
     ],
     "additionalDirectories": [
       "/private/tmp",
