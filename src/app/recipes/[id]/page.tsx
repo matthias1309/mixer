@@ -161,6 +161,7 @@ export default function RecipeDetailPage() {
                 { key: 'carbohydrates', label: 'Kohlenhydrate', unit: 'g' },
                 { key: 'sugar', label: 'Zucker', unit: 'g' },
                 { key: 'fiber', label: 'Ballaststoffe', unit: 'g' },
+                { key: 'salt', label: 'Salz', unit: 'mg' },
                 { key: 'sodium', label: 'Natrium', unit: 'mg' },
                 { key: 'calcium', label: 'Calcium', unit: 'mg' },
                 { key: 'iron', label: 'Eisen', unit: 'mg' },

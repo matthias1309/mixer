@@ -21,6 +21,7 @@ export function IngredientMasterForm({ initialData, isEditing = false }: Ingredi
   const [protein, setProtein] = useState(initialData?.protein || '');
   const [carbohydrates, setCarbohydrates] = useState(initialData?.carbohydrates || '');
   const [fiber, setFiber] = useState(initialData?.fiber || '');
+  const [salt, setSalt] = useState((initialData as any)?.salt || '');
   const [sodium, setSodium] = useState(initialData?.sodium || '');
   const [calcium, setCalcium] = useState(initialData?.calcium || '');
   const [vitaminD, setVitaminD] = useState(initialData?.vitamin_d || '');
@@ -70,6 +71,7 @@ export function IngredientMasterForm({ initialData, isEditing = false }: Ingredi
       if (protein) body.protein = parseFloat(protein as string);
       if (carbohydrates) body.carbohydrates = parseFloat(carbohydrates as string);
       if (fiber) body.fiber = parseFloat(fiber as string);
+      if (salt) body.salt = parseFloat(salt as string);
       if (sodium) body.sodium = parseFloat(sodium as string);
       if (calcium) body.calcium = parseFloat(calcium as string);
       if (vitaminD) body.vitamin_d = parseFloat(vitaminD as string);
@@ -108,6 +110,7 @@ export function IngredientMasterForm({ initialData, isEditing = false }: Ingredi
     { label: 'Kohlenhydrate', value: carbohydrates, onChange: setCarbohydrates, unit: 'g' },
     { label: 'Zucker', value: sugar, onChange: setSugar, unit: 'g' },
     { label: 'Ballaststoffe', value: fiber, onChange: setFiber, unit: 'g' },
+    { label: 'Salz', value: salt, onChange: setSalt, unit: 'mg' },
     { label: 'Natrium', value: sodium, onChange: setSodium, unit: 'mg' },
     { label: 'Calcium', value: calcium, onChange: setCalcium, unit: 'mg' },
     { label: 'Vitamin D', value: vitaminD, onChange: setVitaminD, unit: 'mcg' },
