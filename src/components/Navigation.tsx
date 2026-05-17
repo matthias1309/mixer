@@ -2,9 +2,11 @@
 
 import Link from 'next/link';
 import { useAuth } from '../hooks/useAuth';
+import { useWakeLock } from '../hooks/useWakeLock';
 
 export function Navigation() {
   const { user, logout } = useAuth();
+  const { isSupported, isActive, toggle } = useWakeLock();
 
   return (
     <nav className="bg-blue-600 text-white p-4">
@@ -13,7 +15,7 @@ export function Navigation() {
           🍳 Recipe Manager
         </Link>
 
-        <div className="flex gap-6">
+        <div className="flex gap-6 items-center">
           {user ? (
             <>
               <span className="text-sm">{user.email}</span>
@@ -29,6 +31,20 @@ export function Navigation() {
               <Link href="/cycle" className="hover:underline">
                 Zyklus-Verfolgung
               </Link>
+              {isSupported && (
+                <button
+                  onClick={toggle}
+                  aria-label="Bildschirm wach halten"
+                  title={isActive ? 'Bildschirmsperre deaktivieren' : 'Bildschirmsperre aktivieren'}
+                  className={`px-3 py-1 rounded text-sm font-medium ${
+                    isActive
+                      ? 'bg-yellow-500 hover:bg-yellow-600 text-white'
+                      : 'bg-blue-500 hover:bg-blue-400 text-white border border-blue-300'
+                  }`}
+                >
+                  {isActive ? 'Bildschirm: AN' : 'Bildschirm: AUS'}
+                </button>
+              )}
               <button
                 onClick={() => logout()}
                 className="bg-red-600 px-3 py-1 rounded hover:bg-red-700"

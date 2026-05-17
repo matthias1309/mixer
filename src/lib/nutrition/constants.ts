@@ -5,6 +5,7 @@ export const NUTRIENT_NAMES = {
   protein: 'Protein',
   carbohydrates: 'Carbohydrates',
   fiber: 'Fiber',
+  salt: 'Salz',
   sodium: 'Sodium',
   calcium: 'Calcium',
   vitamin_d: 'Vitamin D',
@@ -12,7 +13,7 @@ export const NUTRIENT_NAMES = {
   vitamin_b6: 'Vitamin B6',
   vitamin_b12: 'Vitamin B12',
   vitamin_e: 'Vitamin E',
-  zinc: 'Zinc',
+  zinc: 'Zink',
 } as const;
 
 export const NUTRIENT_UNITS = {
@@ -22,6 +23,7 @@ export const NUTRIENT_UNITS = {
   protein: 'g',
   carbohydrates: 'g',
   fiber: 'g',
+  salt: 'mg',
   sodium: 'mg',
   calcium: 'mg',
   vitamin_d: 'mcg',

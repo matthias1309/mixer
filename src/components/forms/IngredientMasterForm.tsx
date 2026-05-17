@@ -21,6 +21,7 @@ export function IngredientMasterForm({ initialData, isEditing = false }: Ingredi
   const [protein, setProtein] = useState(initialData?.protein || '');
   const [carbohydrates, setCarbohydrates] = useState(initialData?.carbohydrates || '');
   const [fiber, setFiber] = useState(initialData?.fiber || '');
+  const [salt, setSalt] = useState(initialData?.salt || '');
   const [sodium, setSodium] = useState(initialData?.sodium || '');
   const [calcium, setCalcium] = useState(initialData?.calcium || '');
   const [vitaminD, setVitaminD] = useState(initialData?.vitamin_d || '');
@@ -70,6 +71,7 @@ export function IngredientMasterForm({ initialData, isEditing = false }: Ingredi
       if (protein) body.protein = parseFloat(protein as string);
       if (carbohydrates) body.carbohydrates = parseFloat(carbohydrates as string);
       if (fiber) body.fiber = parseFloat(fiber as string);
+      if (salt) body.salt = parseFloat(salt as string);
       if (sodium) body.sodium = parseFloat(sodium as string);
       if (calcium) body.calcium = parseFloat(calcium as string);
       if (vitaminD) body.vitamin_d = parseFloat(vitaminD as string);
@@ -108,6 +110,7 @@ export function IngredientMasterForm({ initialData, isEditing = false }: Ingredi
     { label: 'Kohlenhydrate', value: carbohydrates, onChange: setCarbohydrates, unit: 'g' },
     { label: 'Zucker', value: sugar, onChange: setSugar, unit: 'g' },
     { label: 'Ballaststoffe', value: fiber, onChange: setFiber, unit: 'g' },
+    { label: 'Salz', value: salt, onChange: setSalt, unit: 'mg' },
     { label: 'Natrium', value: sodium, onChange: setSodium, unit: 'mg' },
     { label: 'Calcium', value: calcium, onChange: setCalcium, unit: 'mg' },
     { label: 'Vitamin D', value: vitaminD, onChange: setVitaminD, unit: 'mcg' },
@@ -115,8 +118,8 @@ export function IngredientMasterForm({ initialData, isEditing = false }: Ingredi
     { label: 'Vitamin B6', value: vitaminB6, onChange: setVitaminB6, unit: 'mg' },
     { label: 'Vitamin B12', value: vitaminB12, onChange: setVitaminB12, unit: 'mcg' },
     { label: 'Vitamin E', value: vitaminE, onChange: setVitaminE, unit: 'mg' },
-    { label: 'Iron', value: iron, onChange: setIron, unit: 'mg' },
-    { label: 'Zinc', value: zinc, onChange: setZinc, unit: 'mg' },
+    { label: 'Eisen', value: iron, onChange: setIron, unit: 'mg' },
+    { label: 'Zink', value: zinc, onChange: setZinc, unit: 'mg' },
   ];
 
   return (

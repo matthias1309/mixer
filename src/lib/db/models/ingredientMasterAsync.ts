@@ -15,6 +15,7 @@ export interface IngredientMaster {
   protein: number | null;
   carbohydrates: number | null;
   fiber: number | null;
+  salt: number | null;
   sodium: number | null;
   calcium: number | null;
   vitamin_d: number | null;
@@ -39,6 +40,7 @@ export interface CreateIngredientMasterRequest {
   protein?: number;
   carbohydrates?: number;
   fiber?: number;
+  salt?: number;
   sodium?: number;
   calcium?: number;
   vitamin_d?: number;
@@ -59,8 +61,8 @@ export class IngredientMasterModelAsync {
         `INSERT INTO nutrition_ingredients (
           name, category, base_unit, base_size,
           kcal, iron, sugar, fat, protein, carbohydrates, fiber,
-          sodium, calcium, vitamin_d, magnesium, vitamin_b6, vitamin_b12, vitamin_e, zinc
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)
+          salt, sodium, calcium, vitamin_d, magnesium, vitamin_b6, vitamin_b12, vitamin_e, zinc
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20)
         RETURNING id`,
         [
           data.name.trim(),
@@ -74,6 +76,7 @@ export class IngredientMasterModelAsync {
           data.protein || null,
           data.carbohydrates || null,
           data.fiber || null,
+          data.salt || null,
           data.sodium || null,
           data.calcium || null,
           data.vitamin_d || null,
@@ -91,8 +94,8 @@ export class IngredientMasterModelAsync {
         INSERT INTO nutrition_ingredients (
           name, category, base_unit, base_size,
           kcal, iron, sugar, fat, protein, carbohydrates, fiber,
-          sodium, calcium, vitamin_d, magnesium, vitamin_b6, vitamin_b12, vitamin_e, zinc
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          salt, sodium, calcium, vitamin_d, magnesium, vitamin_b6, vitamin_b12, vitamin_e, zinc
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `);
       const info = stmt.run(
         data.name.trim(),
@@ -106,6 +109,7 @@ export class IngredientMasterModelAsync {
         data.protein || null,
         data.carbohydrates || null,
         data.fiber || null,
+        data.salt || null,
         data.sodium || null,
         data.calcium || null,
         data.vitamin_d || null,
@@ -239,6 +243,7 @@ export class IngredientMasterModelAsync {
       carbohydrates:
         data.carbohydrates !== undefined ? data.carbohydrates : ingredient.carbohydrates,
       fiber: data.fiber !== undefined ? data.fiber : ingredient.fiber,
+      salt: data.salt !== undefined ? data.salt : ingredient.salt,
       sodium: data.sodium !== undefined ? data.sodium : ingredient.sodium,
       calcium: data.calcium !== undefined ? data.calcium : ingredient.calcium,
       vitamin_d: data.vitamin_d !== undefined ? data.vitamin_d : ingredient.vitamin_d,
@@ -257,9 +262,9 @@ export class IngredientMasterModelAsync {
         `UPDATE nutrition_ingredients SET
           name = $1, category = $2, base_unit = $3, base_size = $4,
           kcal = $5, iron = $6, sugar = $7, fat = $8, protein = $9, carbohydrates = $10, fiber = $11,
-          sodium = $12, calcium = $13, vitamin_d = $14, magnesium = $15, vitamin_b6 = $16, vitamin_b12 = $17, vitamin_e = $18, zinc = $19,
+          salt = $12, sodium = $13, calcium = $14, vitamin_d = $15, magnesium = $16, vitamin_b6 = $17, vitamin_b12 = $18, vitamin_e = $19, zinc = $20,
           updated_at = CURRENT_TIMESTAMP
-        WHERE id = $20`,
+        WHERE id = $21`,
         [
           updateData.name,
           updateData.category,
@@ -272,6 +277,7 @@ export class IngredientMasterModelAsync {
           updateData.protein,
           updateData.carbohydrates,
           updateData.fiber,
+          updateData.salt,
           updateData.sodium,
           updateData.calcium,
           updateData.vitamin_d,
@@ -289,7 +295,7 @@ export class IngredientMasterModelAsync {
         UPDATE nutrition_ingredients SET
           name = ?, category = ?, base_unit = ?, base_size = ?,
           kcal = ?, iron = ?, sugar = ?, fat = ?, protein = ?, carbohydrates = ?, fiber = ?,
-          sodium = ?, calcium = ?, vitamin_d = ?, magnesium = ?, vitamin_b6 = ?, vitamin_b12 = ?, vitamin_e = ?, zinc = ?,
+          salt = ?, sodium = ?, calcium = ?, vitamin_d = ?, magnesium = ?, vitamin_b6 = ?, vitamin_b12 = ?, vitamin_e = ?, zinc = ?,
           updated_at = CURRENT_TIMESTAMP
         WHERE id = ?
       `);
@@ -305,6 +311,7 @@ export class IngredientMasterModelAsync {
         updateData.protein,
         updateData.carbohydrates,
         updateData.fiber,
+        updateData.salt,
         updateData.sodium,
         updateData.calcium,
         updateData.vitamin_d,

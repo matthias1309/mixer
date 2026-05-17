@@ -72,7 +72,7 @@ async function handlePOST(request: NextRequest) {
     // Validate all nutrient values are >= 0
     const nutrientFields = [
       'iron', 'sugar', 'fat', 'protein', 'carbohydrates', 'fiber',
-      'sodium', 'calcium', 'vitamin_d', 'magnesium', 'vitamin_b6',
+      'salt', 'sodium', 'calcium', 'vitamin_d', 'magnesium', 'vitamin_b6',
       'vitamin_b12', 'vitamin_e', 'zinc'
     ] as const;
 

@@ -10,6 +10,7 @@ export interface Ingredient {
   protein: number | null;
   carbohydrates: number | null;
   fiber: number | null;
+  salt: number | null;
   sodium: number | null;
   calcium: number | null;
   vitamin_d: number | null;
@@ -37,6 +38,7 @@ export interface Nutrients {
   protein: number;
   carbohydrates: number;
   fiber: number;
+  salt: number;
   sodium: number;
   calcium: number;
   vitamin_d: number;
@@ -76,6 +78,7 @@ export const NUTRIENT_KEYS: NutrientKey[] = [
   'protein',
   'carbohydrates',
   'fiber',
+  'salt',
   'sodium',
   'calcium',
   'vitamin_d',

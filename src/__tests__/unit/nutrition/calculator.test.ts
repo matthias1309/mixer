@@ -14,6 +14,7 @@ describe('Nutrient Calculator', () => {
     protein: 0.3,
     carbohydrates: 13.8,
     fiber: 2.4,
+    salt: null,
     sodium: 2,
     calcium: 5,
     vitamin_d: 0,
@@ -59,6 +60,21 @@ describe('Nutrient Calculator', () => {
     const expectedKcal = (364 / 100) * 52; // 189.28
     expect(result.total.kcal).toBeCloseTo(189.28, 1);
     expect(result.per_portion.kcal).toBeCloseTo(47.32, 1);
+  });
+
+  it('includes salt in calculated totals', () => {
+    const ingredientWithSalt = {
+      ...mockApple,
+      salt: 1.5,
+    };
+    const result = calculateRecipeNutrients(
+      [{ ...mockRecipeIngredient, calculated_base_amount: 200 }],
+      { 1: ingredientWithSalt },
+      1
+    );
+    // 200g * (1.5mg salt / 100g base) = 3mg
+    expect(result.total.salt).toBe(3);
+    expect(result.per_portion.salt).toBe(3);
   });
 
   it('handles multiple ingredients', () => {
