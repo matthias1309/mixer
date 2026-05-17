@@ -149,7 +149,7 @@ describe('Ingredients Master API', () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Cookie: `auth_token=${userToken}`,
+          cookie: `sessionToken=${userToken}`,
         },
         body: JSON.stringify({
           name: 'Meersalz',
@@ -170,7 +170,7 @@ describe('Ingredients Master API', () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Cookie: `auth_token=${userToken}`,
+          cookie: `sessionToken=${userToken}`,
         },
         body: JSON.stringify({
           name: 'Bad Salt',

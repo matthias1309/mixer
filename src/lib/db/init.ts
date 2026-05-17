@@ -146,14 +146,14 @@ async function runMigrations(pool: Pool): Promise<void> {
     const statements = sql
       .split(';')
       .map((s) => s.trim())
-      .filter((s) => s.length > 0 && !s.startsWith('--'));
+      .filter((s) => s.split('\n').some((line) => line.trim().length > 0 && !line.trim().startsWith('--')));
 
     for (const statement of statements) {
       try {
         await pool.query(statement);
-      } catch (error: any) {
+      } catch (error: unknown) {
         const isAlterAddColumn = /ALTER\s+TABLE\s+\S+\s+ADD\s+COLUMN/i.test(statement);
-        const isDuplicateColumn = error.code === '42701';
+        const isDuplicateColumn = error instanceof Error && (error as any).code === '42701';
         if (isAlterAddColumn && isDuplicateColumn) {
           // Column already exists — safe to skip
           continue;

@@ -328,6 +328,7 @@ export class RecipeModelAsync {
           SUM(COALESCE(nutrition_ingredients.sugar, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(nutrition_ingredients.base_size, 100)) as sugar,
           SUM(COALESCE(nutrition_ingredients.fat, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(nutrition_ingredients.base_size, 100)) as fat,
           SUM(COALESCE(nutrition_ingredients.carbohydrates, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(nutrition_ingredients.base_size, 100)) as carbohydrates,
+          SUM(COALESCE(nutrition_ingredients.salt, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(nutrition_ingredients.base_size, 100)) as salt,
           SUM(COALESCE(nutrition_ingredients.sodium, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(nutrition_ingredients.base_size, 100)) as sodium
          FROM ingredients
          LEFT JOIN nutrition_ingredients ON LOWER(TRIM(nutrition_ingredients.name)) = LOWER(TRIM(ingredients.name))
@@ -358,6 +359,7 @@ export class RecipeModelAsync {
           SUM(COALESCE(nutrition_ingredients.sugar, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(nutrition_ingredients.base_size, 100)) as sugar,
           SUM(COALESCE(nutrition_ingredients.fat, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(nutrition_ingredients.base_size, 100)) as fat,
           SUM(COALESCE(nutrition_ingredients.carbohydrates, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(nutrition_ingredients.base_size, 100)) as carbohydrates,
+          SUM(COALESCE(nutrition_ingredients.salt, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(nutrition_ingredients.base_size, 100)) as salt,
           SUM(COALESCE(nutrition_ingredients.sodium, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(nutrition_ingredients.base_size, 100)) as sodium
         FROM ingredients
         LEFT JOIN nutrition_ingredients ON LOWER(TRIM(nutrition_ingredients.name)) = LOWER(TRIM(ingredients.name))

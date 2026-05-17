@@ -7,17 +7,17 @@ describe('Salt nutrient in types and constants', () => {
   });
 
   it('salt appears before sodium in NUTRIENT_KEYS', () => {
-    const saltIdx = NUTRIENT_KEYS.indexOf('salt' as any);
+    const saltIdx = NUTRIENT_KEYS.indexOf('salt');
     const sodiumIdx = NUTRIENT_KEYS.indexOf('sodium');
     expect(saltIdx).toBeGreaterThanOrEqual(0);
     expect(saltIdx).toBeLessThan(sodiumIdx);
   });
 
   it('NUTRIENT_NAMES has German label for salt', () => {
-    expect((NUTRIENT_NAMES as any).salt).toBe('Salz');
+    expect(NUTRIENT_NAMES.salt).toBe('Salz');
   });
 
   it('NUTRIENT_UNITS has mg unit for salt', () => {
-    expect((NUTRIENT_UNITS as any).salt).toBe('mg');
+    expect(NUTRIENT_UNITS.salt).toBe('mg');
   });
 });
