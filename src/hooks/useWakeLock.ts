@@ -5,7 +5,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 const STORAGE_KEY = 'wake_lock_enabled';
 
 export function useWakeLock() {
-  const isSupported = typeof navigator !== 'undefined' && 'wakeLock' in navigator && navigator.wakeLock !== null;
+  const isSupported = typeof navigator !== 'undefined' && 'wakeLock' in navigator && navigator.wakeLock !== null && navigator.wakeLock !== undefined;
   const [isActive, setIsActive] = useState(false);
   const sentinelRef = useRef<WakeLockSentinel | null>(null);
 
