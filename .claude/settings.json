@@ -108,7 +108,13 @@
       "Bash(python3 -c ' *)",
       "Skill(superpowers:receiving-code-review)",
       "Skill(superpowers:receiving-code-review:*)",
-      "Bash(curl -s http://dockerhome:3001)"
+      "Bash(curl -s http://dockerhome:3001)",
+      "Skill(superpowers:systematic-debugging)",
+      "Skill(superpowers:systematic-debugging:*)",
+      "Bash(bash /tmp/check_tests.sh)",
+      "Bash(bash /tmp/fix_tests.sh)",
+      "Bash(node /tmp/test_db_init.js)",
+      "Bash(git checkout *)"
     ],
     "additionalDirectories": [
       "/private/tmp",

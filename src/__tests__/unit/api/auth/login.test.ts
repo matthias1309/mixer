@@ -32,7 +32,7 @@ describe('POST /api/auth/login', () => {
     process.env.JWT_SECRET = 'test-secret-key-must-be-32-chars-long';
     // Clear global db instance
     (global as any).db = undefined;
-    initializeDatabase();
+    await initializeDatabase();
   });
 
   afterEach(() => {
