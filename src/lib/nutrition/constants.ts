@@ -12,7 +12,7 @@ export const NUTRIENT_NAMES = {
   vitamin_b6: 'Vitamin B6',
   vitamin_b12: 'Vitamin B12',
   vitamin_e: 'Vitamin E',
-  zinc: 'Zinc',
+  zinc: 'Zink',
 } as const;
 
 export const NUTRIENT_UNITS = {

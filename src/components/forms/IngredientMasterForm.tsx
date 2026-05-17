@@ -115,8 +115,8 @@ export function IngredientMasterForm({ initialData, isEditing = false }: Ingredi
     { label: 'Vitamin B6', value: vitaminB6, onChange: setVitaminB6, unit: 'mg' },
     { label: 'Vitamin B12', value: vitaminB12, onChange: setVitaminB12, unit: 'mcg' },
     { label: 'Vitamin E', value: vitaminE, onChange: setVitaminE, unit: 'mg' },
-    { label: 'Iron', value: iron, onChange: setIron, unit: 'mg' },
-    { label: 'Zinc', value: zinc, onChange: setZinc, unit: 'mg' },
+    { label: 'Eisen', value: iron, onChange: setIron, unit: 'mg' },
+    { label: 'Zink', value: zinc, onChange: setZinc, unit: 'mg' },
   ];
 
   return (
