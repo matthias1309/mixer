@@ -143,13 +143,27 @@ async function runMigrations(pool: Pool): Promise<void> {
     const filePath = path.join(migrationsDir, file);
     const sql = fs.readFileSync(filePath, 'utf-8');
 
-    try {
-      await pool.query(sql);
-      console.log(`Migration executed: ${file}`);
-    } catch (error) {
-      console.error(`Migration failed: ${file}`, error);
-      throw error;
+    const statements = sql
+      .split(';')
+      .map((s) => s.trim())
+      .filter((s) => s.length > 0 && !s.startsWith('--'));
+
+    for (const statement of statements) {
+      try {
+        await pool.query(statement);
+      } catch (error: any) {
+        const isAlterAddColumn = /ALTER\s+TABLE\s+\S+\s+ADD\s+COLUMN/i.test(statement);
+        const isDuplicateColumn = error.code === '42701';
+        if (isAlterAddColumn && isDuplicateColumn) {
+          // Column already exists — safe to skip
+          continue;
+        }
+        console.error(`Migration failed: ${file}`, error);
+        throw error;
+      }
     }
+
+    console.log(`Migration executed: ${file}`);
   }
 }
 
