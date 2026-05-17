@@ -144,6 +144,44 @@ describe('Ingredients Master API', () => {
       expect(response.status).toBe(401);
     });
 
+    test('should accept and return salt field when provided', async () => {
+      const request = new NextRequest('http://localhost:3000/api/ingredients-master', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Cookie: `auth_token=${userToken}`,
+        },
+        body: JSON.stringify({
+          name: 'Meersalz',
+          salt: 390.0,
+          sodium: 153.0,
+        }),
+      });
+
+      const response = await POST_CREATE(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(201);
+      expect(data.salt).toBe(390);
+    });
+
+    test('should reject negative salt value', async () => {
+      const request = new NextRequest('http://localhost:3000/api/ingredients-master', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Cookie: `auth_token=${userToken}`,
+        },
+        body: JSON.stringify({
+          name: 'Bad Salt',
+          salt: -5,
+        }),
+      });
+
+      const response = await POST_CREATE(request);
+      expect(response.status).toBe(400);
+    });
+
     test('should use default values for optional fields', async () => {
       const request = new NextRequest('http://localhost:3000/api/ingredients-master', {
         method: 'POST',
