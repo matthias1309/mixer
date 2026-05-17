@@ -65,6 +65,24 @@ describe('useWakeLock', () => {
     expect(result.current.isActive).toBe(true);
   });
 
+  it('sets isActive false when OS releases the wake lock externally', async () => {
+    const { result } = renderHook(() => useWakeLock());
+
+    // Capture the release event handler
+    let releaseHandler: (() => void) | undefined;
+    mockWakeLockSentinel.addEventListener.mockImplementation((event: string, handler: () => void) => {
+      if (event === 'release') releaseHandler = handler;
+    });
+
+    // Acquire the lock
+    await act(async () => { await result.current.toggle(); });
+    expect(result.current.isActive).toBe(true);
+
+    // OS releases it externally
+    await act(async () => { releaseHandler?.(); });
+    expect(result.current.isActive).toBe(false);
+  });
+
   it('reports unsupported when navigator.wakeLock missing', () => {
     Object.defineProperty(navigator, 'wakeLock', {
       value: undefined,

@@ -15,6 +15,7 @@ export function useWakeLock() {
       sentinelRef.current = await navigator.wakeLock.request('screen');
       sentinelRef.current.addEventListener('release', () => {
         sentinelRef.current = null;
+        setIsActive(false);
       });
       setIsActive(true);
     } catch {
