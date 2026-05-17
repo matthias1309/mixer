@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { ProtectedRoute } from '../../components/ProtectedRoute';
 import { IngredientMaster } from '@/lib/db/models/ingredientMaster';
 
@@ -11,11 +11,7 @@ export default function IngredientsPage() {
   const [error, setError] = useState('');
   const [deleting, setDeleting] = useState<number | null>(null);
 
-  useEffect(() => {
-    fetchIngredients();
-  }, [search]);
-
-  async function fetchIngredients() {
+  const fetchIngredients = useCallback(async function fetchIngredients() {
     setLoading(true);
     setError('');
 
@@ -40,7 +36,11 @@ export default function IngredientsPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [search]);
+
+  useEffect(() => {
+    fetchIngredients();
+  }, [fetchIngredients]);
 
   async function handleDelete(id: number) {
     if (!confirm('Sind Sie sicher, dass Sie diese Zutat löschen möchten?')) return;

@@ -2,10 +2,9 @@
 import { IngredientMasterModel, CreateIngredientMasterRequest } from '@/lib/db/models/ingredientMaster';
 import { initializeDatabase } from '@/lib/db/init';
 import Database from 'better-sqlite3';
-import { mkdtempSync } from 'fs';
+import { mkdtempSync, rmSync } from 'fs';
 import { tmpdir } from 'os';
 import { join } from 'path';
-import { rmSync } from 'fs';
 
 describe('IngredientMasterModel', () => {
   let db: Database.Database;

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '../../../hooks/useAuth';
 import { useFilter } from '../../../hooks/useFilter';
@@ -33,11 +33,7 @@ export default function RecipeDetailPage() {
 
   const id = params.id;
 
-  useEffect(() => {
-    fetchRecipe();
-  }, [id]);
-
-  async function fetchRecipe() {
+  const fetchRecipe = useCallback(async function fetchRecipe() {
     setIsLoading(true);
     setError('');
 
@@ -58,7 +54,11 @@ export default function RecipeDetailPage() {
     } finally {
       setIsLoading(false);
     }
-  }
+  }, [id]);
+
+  useEffect(() => {
+    fetchRecipe();
+  }, [fetchRecipe]);
 
   async function handleDelete() {
     if (!confirm('Sind Sie sicher, dass Sie dieses Rezept löschen möchten?')) return;

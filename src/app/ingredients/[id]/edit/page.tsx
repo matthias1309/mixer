@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import { ProtectedRoute } from '../../../../components/ProtectedRoute';
 import { IngredientMasterForm } from '../../../../components/forms/IngredientMasterForm';
@@ -13,11 +13,7 @@ export default function EditIngredientPage() {
   const params = useParams();
   const id = params.id;
 
-  useEffect(() => {
-    fetchIngredient();
-  }, [id]);
-
-  async function fetchIngredient() {
+  const fetchIngredient = useCallback(async function fetchIngredient() {
     try {
       const response = await fetch(`/api/ingredients-master/${id}`, {
         credentials: 'include',
@@ -34,7 +30,11 @@ export default function EditIngredientPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [id]);
+
+  useEffect(() => {
+    fetchIngredient();
+  }, [fetchIngredient]);
 
   if (loading) {
     return <div className="text-center py-8">Zutat wird geladen...</div>;

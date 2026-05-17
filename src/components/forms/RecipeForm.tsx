@@ -221,7 +221,7 @@ export function RecipeForm({ initialData, isEditing = false }: RecipeFormProps) 
                     setCreateModalQuery(query);
                     setCreateModalOpen(true);
                   }}
-                  addedIngredientIds={ingredients.flatMap((i) => i.masterId != null ? [i.masterId] : [])}
+                  addedIngredientIds={ingredients.flatMap((i) => i.masterId !== null ? [i.masterId] : [])}
                 />
               </div>
               <button

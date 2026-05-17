@@ -4,10 +4,9 @@ import { IngredientMasterModel } from '@/lib/db/models/ingredientMaster';
 import { UserModel } from '@/lib/db/models/user';
 import { initializeDatabase } from '@/lib/db/init';
 import Database from 'better-sqlite3';
-import { mkdtempSync } from 'fs';
+import { mkdtempSync, rmSync } from 'fs';
 import { tmpdir } from 'os';
 import { join } from 'path';
-import { rmSync } from 'fs';
 
 describe('RecipeModel - Scoring Methods', () => {
   let db: Database.Database;

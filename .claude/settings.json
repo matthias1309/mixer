@@ -107,7 +107,8 @@
       "Bash(gh api *)",
       "Bash(python3 -c ' *)",
       "Skill(superpowers:receiving-code-review)",
-      "Skill(superpowers:receiving-code-review:*)"
+      "Skill(superpowers:receiving-code-review:*)",
+      "Bash(curl -s http://dockerhome:3001)"
     ],
     "additionalDirectories": [
       "/private/tmp",

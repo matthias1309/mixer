@@ -37,6 +37,8 @@ RUN npm ci --only=production
 
 # Copy built application from builder
 COPY --from=builder /app/.next ./.next
+# Copy database migrations (needed at runtime for auto-migration on startup)
+COPY --from=builder /app/src/lib/db/migrations ./src/lib/db/migrations
 # Create public directory (may not exist in all builds)
 RUN mkdir -p ./public
 

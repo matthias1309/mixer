@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import { ProtectedRoute } from '../../../../components/ProtectedRoute';
 import { RecipeForm } from '../../../../components/forms/RecipeForm';
@@ -22,11 +22,7 @@ export default function EditRecipePage() {
   const params = useParams();
   const id = params.id;
 
-  useEffect(() => {
-    fetchRecipe();
-  }, [id]);
-
-  async function fetchRecipe() {
+  const fetchRecipe = useCallback(async function fetchRecipe() {
     try {
       const response = await fetch(`/api/recipes/${id}`, {
         credentials: 'include',
@@ -44,7 +40,11 @@ export default function EditRecipePage() {
     } finally {
       setIsLoading(false);
     }
-  }
+  }, [id]);
+
+  useEffect(() => {
+    fetchRecipe();
+  }, [fetchRecipe]);
 
   if (isLoading) {
     return <div>Rezept wird geladen...</div>;

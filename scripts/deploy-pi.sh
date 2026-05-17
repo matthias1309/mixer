@@ -125,8 +125,6 @@ log_info "Docker image transferred ✓"
 # Step 4: Prepare PI directory
 log_info "Preparing directories on PI..."
 ssh "$PI_HOST" << 'SCRIPT'
-# Clean old database data to ensure fresh initialization
-docker run --rm -v /opt/containers/apps/mixer/data/postgres:/data alpine:latest rm -rf /data/* 2>/dev/null || true
 mkdir -p /opt/containers/apps/mixer/data/postgres
 mkdir -p /opt/containers/apps/mixer/src/lib/db/migrations
 chmod 755 /opt/containers/apps/mixer
@@ -171,7 +169,11 @@ log_info "Application deployed ✓"
 
 # Step 8: Initialize database (run migrations)
 log_info "Initializing database..."
-sleep 3  # Wait for DB to be ready
+sleep 5  # Wait for DB to be ready
+
+# Create database if it doesn't exist
+log_info "Creating database if needed..."
+ssh "$PI_HOST" "cd $PI_APP_PATH && docker compose -f $COMPOSE_FILE --env-file .env.production exec -T mixer-db psql -U postgres -c \"CREATE DATABASE \\\"$DB_NAME\\\" OWNER \\\"$DB_USER\\\";\" 2>/dev/null || true"
 
 # Run migrations by sending file content through stdin
 for migration in src/lib/db/migrations/*.sql; do
