@@ -99,13 +99,30 @@ function runMigrationsSync(database: Database.Database): void {
     const filePath = path.join(migrationsDir, file);
     const sql = fs.readFileSync(filePath, 'utf-8');
 
-    try {
-      database.exec(sql);
-      console.log(`Migration executed: ${file}`);
-    } catch (error) {
-      console.error(`Migration failed: ${file}`, error);
-      throw error;
+    // Execute each statement individually so a "duplicate column" from a
+    // repeated ALTER TABLE ADD COLUMN can be skipped without aborting the run.
+    const statements = sql
+      .split(';')
+      .map((s) => s.trim())
+      // Keep statements that contain at least one non-comment, non-empty line
+      .filter((s) => s.split('\n').some((line) => line.trim().length > 0 && !line.trim().startsWith('--')));
+
+    for (const stmt of statements) {
+      try {
+        database.exec(stmt);
+      } catch (error: unknown) {
+        const isAlterAddColumn = /ALTER\s+TABLE\s+\S+\s+ADD\s+COLUMN/i.test(stmt);
+        const isDuplicateColumn =
+          error instanceof Error && error.message.includes('duplicate column name');
+        if (isAlterAddColumn && isDuplicateColumn) {
+          // Column already exists — migration is idempotent, skip silently.
+          continue;
+        }
+        console.error(`Migration failed: ${file}`, error);
+        throw error;
+      }
     }
+    console.log(`Migration executed: ${file}`);
   }
 }
 
