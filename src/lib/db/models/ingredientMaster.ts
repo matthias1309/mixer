@@ -12,6 +12,7 @@ export interface IngredientMaster {
   protein: number | null;
   carbohydrates: number | null;
   fiber: number | null;
+  salt: number | null;
   sodium: number | null;
   calcium: number | null;
   vitamin_d: number | null;
@@ -36,6 +37,7 @@ export interface CreateIngredientMasterRequest {
   protein?: number;
   carbohydrates?: number;
   fiber?: number;
+  salt?: number;
   sodium?: number;
   calcium?: number;
   vitamin_d?: number;
