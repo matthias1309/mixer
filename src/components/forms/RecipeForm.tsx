@@ -10,6 +10,7 @@ interface Ingredient {
   name: string;
   quantity: number;
   unit: string;
+  masterId?: number;
 }
 
 export interface RecipeFormProps {
@@ -110,7 +111,7 @@ export function RecipeForm({ initialData, isEditing = false }: RecipeFormProps) 
   }
 
   function handleSelectIngredient(ingredient: { id: number; name: string }) {
-    setIngredients([...ingredients, { name: ingredient.name, quantity: 1, unit: 'g' }]);
+    setIngredients([...ingredients, { name: ingredient.name, quantity: 1, unit: 'g', masterId: ingredient.id }]);
   }
 
   async function handleCreateNewIngredient(ingredientName: string) {
@@ -127,7 +128,7 @@ export function RecipeForm({ initialData, isEditing = false }: RecipeFormProps) 
     }
 
     const newIngredient = await response.json();
-    setIngredients([...ingredients, { name: newIngredient.name, quantity: 1, unit: 'g' }]);
+    setIngredients([...ingredients, { name: newIngredient.name, quantity: 1, unit: 'g', masterId: newIngredient.id }]);
     setCreateModalOpen(false);
   }
 
@@ -220,7 +221,7 @@ export function RecipeForm({ initialData, isEditing = false }: RecipeFormProps) 
                     setCreateModalQuery(query);
                     setCreateModalOpen(true);
                   }}
-                  addedIngredientIds={[]}
+                  addedIngredientIds={ingredients.flatMap((i) => i.masterId != null ? [i.masterId] : [])}
                 />
               </div>
               <button

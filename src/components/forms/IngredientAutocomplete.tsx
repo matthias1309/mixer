@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import { searchIngredients } from '@/lib/ingredients/search';
 
 interface IngredientSuggestion {
   id: number;
@@ -42,9 +43,7 @@ export function IngredientAutocomplete({
         if (!response.ok) throw new Error('Failed to fetch ingredients');
 
         const data = await response.json();
-        const filtered = (data.ingredients as IngredientSuggestion[]).filter(
-          (ing) => !addedIngredientIds.includes(ing.id)
-        );
+        const filtered = searchIngredients(data.ingredients, query, addedIngredientIds);
         setSuggestions(filtered);
         setIsOpen(true);
         setSelectedIndex(-1);
@@ -163,6 +162,7 @@ export function IngredientAutocomplete({
                 Keine Zutaten gefunden
               </div>
               <button
+                type="button"
                 onClick={handleCreateNew}
                 className="w-full text-left px-3 py-2 text-sm text-blue-600 hover:bg-gray-100"
               >

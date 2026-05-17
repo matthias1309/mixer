@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export interface CreateIngredientModalProps {
   isOpen: boolean;
@@ -18,6 +18,13 @@ export function CreateIngredientModal({
   const [name, setName] = useState(suggestedName);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      setName(suggestedName);
+      setError('');
+    }
+  }, [isOpen, suggestedName]);
 
   if (!isOpen) return null;
 
