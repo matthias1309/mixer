@@ -108,7 +108,9 @@
       "Bash(python3 -c ' *)",
       "Skill(superpowers:receiving-code-review)",
       "Skill(superpowers:receiving-code-review:*)",
-      "Bash(curl -s http://dockerhome:3001)"
+      "Bash(curl -s http://dockerhome:3001)",
+      "Bash(node /tmp/test-insert.js)",
+      "Bash(node)"
     ],
     "additionalDirectories": [
       "/private/tmp",

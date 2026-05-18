@@ -15,9 +15,9 @@ describe('RecipeCard Component', () => {
     render(<RecipeCard {...mockRecipe} />);
 
     expect(screen.getByText('Test Recipe')).toBeInTheDocument();
-    expect(screen.getByText('by Test User')).toBeInTheDocument();
+    expect(screen.getByText('von Test User')).toBeInTheDocument();
     expect(screen.getByText('A test recipe')).toBeInTheDocument();
-    expect(screen.getByText('5 ingredients')).toBeInTheDocument();
+    expect(screen.getByText('5 Zutaten')).toBeInTheDocument();
   });
 
   it('should link to recipe detail page', () => {

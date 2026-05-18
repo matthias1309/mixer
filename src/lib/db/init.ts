@@ -10,6 +10,10 @@ let initPromise: Promise<void> | null = null;
 export type DbClient = Database.Database | Pool;
 
 export function getDb(): DbClient {
+  // Check for global.db (used by tests)
+  if ((global as any).db) {
+    return (global as any).db;
+  }
   if (pgPool) {
     return pgPool;
   }
@@ -28,6 +32,26 @@ export function isPostgres(): boolean {
   return !!pgPool;
 }
 
+export function closeDatabase(): void {
+  try {
+    if (db) {
+      db.close();
+    }
+  } catch (e) {
+    // ignore if already closed
+  }
+  try {
+    if (pgPool) {
+      pgPool.end();
+    }
+  } catch (e) {
+    // ignore if already closed
+  }
+  db = undefined as any;
+  pgPool = null;
+  initPromise = null;
+}
+
 export async function initializeDatabase(): Promise<void> {
   if (initPromise) {
     return initPromise;
@@ -40,7 +64,7 @@ export async function initializeDatabase(): Promise<void> {
 async function _initializeDatabaseInternal(): Promise<void> {
   const databaseUrl = process.env.DATABASE_URL;
 
-  if (databaseUrl) {
+  if (databaseUrl && databaseUrl.startsWith('postgres://')) {
     // Initialize PostgreSQL
     pgPool = new Pool({
       connectionString: databaseUrl,
@@ -64,8 +88,8 @@ async function _initializeDatabaseInternal(): Promise<void> {
     // Run migrations
     await runMigrations(pgPool);
   } else {
-    // Initialize SQLite (development)
-    const dbPath = path.join(process.cwd(), '.data', 'app.db');
+    // Initialize SQLite (development or test)
+    const dbPath = databaseUrl || path.join(process.cwd(), '.data', 'app.db');
     const dbDir = path.dirname(dbPath);
 
     if (!fs.existsSync(dbDir)) {
@@ -73,7 +97,9 @@ async function _initializeDatabaseInternal(): Promise<void> {
     }
 
     db = new Database(dbPath);
-    db.pragma('journal_mode = WAL');
+    const isTest = process.env.NODE_ENV === 'test' || process.env.DATABASE_URL?.includes('test');
+    const journalMode = isTest ? 'DELETE' : 'WAL';
+    db.pragma(`journal_mode = ${journalMode}`);
 
     console.log('Connected to SQLite');
 
