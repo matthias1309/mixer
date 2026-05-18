@@ -64,7 +64,7 @@ describe('GET /api/recipes/ingredients', () => {
 
   test('should get unique ingredients from all recipes', async () => {
     // Create recipes with various ingredients
-    await RecipeModel.create(
+    RecipeModel.create(
       'Pasta Carbonara',
       userId,
       'Classic Italian pasta',
@@ -77,7 +77,7 @@ describe('GET /api/recipes/ingredients', () => {
       ]
     );
 
-    await RecipeModel.create(
+    RecipeModel.create(
       'Tomato Soup',
       userId,
       'Creamy tomato soup',
@@ -90,7 +90,7 @@ describe('GET /api/recipes/ingredients', () => {
       ]
     );
 
-    await RecipeModel.create(
+    RecipeModel.create(
       'Caesar Salad',
       userId,
       'Fresh salad',
