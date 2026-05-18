@@ -21,7 +21,7 @@ describe('RecipeModel - Scoring Methods', () => {
     db = require('@/lib/db/init').getDatabase();
 
     // Create a test user
-    const user = await await UserModel.create('testuser@test.com', 'hashedpassword');
+    const user = await UserModel.create('testuser@test.com', 'hashedpassword');
     userId = user.id;
 
     // Create test ingredients in ingredients_master
