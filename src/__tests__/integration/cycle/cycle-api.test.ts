@@ -30,10 +30,10 @@ describe('Cycle API Endpoints', () => {
     process.env.DATABASE_URL = testDbPath;
     process.env.JWT_SECRET = 'test-secret-key-must-be-32-chars-long';
     (global as any).db = undefined;
-    initializeDatabase();
+    await initializeDatabase();
 
     const passwordHash = await bcryptjs.hash('TestPassword123', 10);
-    const user = UserModel.create('cycle@example.com', passwordHash);
+    const user = await UserModel.create('cycle@example.com', passwordHash);
     userId = user.id;
     userToken = generateToken(String(userId), 'cycle@example.com');
   });

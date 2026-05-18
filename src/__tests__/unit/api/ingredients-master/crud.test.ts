@@ -34,10 +34,10 @@ describe('Ingredients Master API', () => {
     process.env.DATABASE_URL = testDbPath;
     process.env.JWT_SECRET = 'test-secret-key-must-be-32-chars-long';
     (global as any).db = undefined;
-    initializeDatabase();
+    await initializeDatabase();
 
     const passwordHash = await bcryptjs.hash('TestPassword123', 10);
-    const user = UserModel.create('user@example.com', passwordHash);
+    const user = await UserModel.create('user@example.com', passwordHash);
     userId = user.id;
     userToken = generateToken(String(userId), 'user@example.com');
   });
