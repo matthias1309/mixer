@@ -10,7 +10,7 @@ describe('POST /api/auth/register', () => {
   let testDbPath: string;
   let testCounter = 0;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     testCounter++;
     testDbPath = path.join(
       __dirname,
@@ -74,7 +74,7 @@ describe('POST /api/auth/register', () => {
 
   test('should return error for duplicate email', async () => {
     // First, create a user with this email
-    UserModel.create('duplicate@example.com', 'hashed');
+    await UserModel.create('duplicate@example.com', 'hashed');
 
     // Then try to register with the same email
     const request = new NextRequest('http://localhost:3000/api/auth/register', {

@@ -33,7 +33,7 @@ describe('Cycle API Endpoints', () => {
     await initializeDatabase();
 
     const passwordHash = await bcryptjs.hash('TestPassword123', 10);
-    const user = UserModel.create('cycle@example.com', passwordHash);
+    const user = await await UserModel.create('cycle@example.com', passwordHash);
     userId = user.id;
     userToken = generateToken(String(userId), 'cycle@example.com');
   });

@@ -114,7 +114,8 @@
       "Bash(bash /tmp/check_tests.sh)",
       "Bash(bash /tmp/fix_tests.sh)",
       "Bash(node /tmp/test_db_init.js)",
-      "Bash(git checkout *)"
+      "Bash(git checkout *)",
+      "Bash(bash /tmp/fix_usermodel.sh)"
     ],
     "additionalDirectories": [
       "/private/tmp",

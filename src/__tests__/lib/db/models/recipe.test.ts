@@ -28,7 +28,7 @@ beforeEach(() => {
   global.db = testDb;
 
   // Create test user
-  const user = UserModel.create('testuser@example.com', 'hashed_password');
+  const user = await await UserModel.create('testuser@example.com', 'hashed_password');
   userId = user.id;
 });
 

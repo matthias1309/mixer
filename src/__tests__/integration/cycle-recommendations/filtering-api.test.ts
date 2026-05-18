@@ -35,7 +35,7 @@ describe('GET /api/recipes with phase-based filtering', () => {
     await initializeDatabase();
 
     const passwordHash = await bcryptjs.hash('TestPassword123', 10);
-    const user = UserModel.create('filter@example.com', passwordHash);
+    const user = await await UserModel.create('filter@example.com', passwordHash);
     userId = user.id;
     userToken = generateToken(String(userId), 'filter@example.com');
 

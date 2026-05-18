@@ -40,7 +40,7 @@ describe('GET /api/recipes/ingredients', () => {
 
     // Create test user
     const passwordHash = await bcryptjs.hash('TestPassword123', 10);
-    const user = UserModel.create('test@example.com', passwordHash);
+    const user = await await UserModel.create('test@example.com', passwordHash);
     userId = user.id;
     userToken = generateToken(String(userId), 'test@example.com');
   });

@@ -216,4 +216,7 @@ export function closeDatabase(): void {
     pgPool.end();
     pgPool = null;
   }
+  // Reset initialization promise so next init is allowed
+  initPromise = null;
+  lastDatabaseUrl = undefined;
 }

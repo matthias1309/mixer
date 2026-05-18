@@ -40,7 +40,7 @@ describe('UserModel', () => {
       const email = 'test@example.com';
       const passwordHash = 'hashed_password_123';
 
-      const user = UserModel.create(email, passwordHash);
+      const user = await await UserModel.create(email, passwordHash);
 
       expect(user).toBeDefined();
       expect(user.id).toBeDefined();
@@ -51,8 +51,8 @@ describe('UserModel', () => {
     });
 
     it('should auto-increment user IDs', () => {
-      const user1 = UserModel.create('user1@example.com', 'hash1');
-      const user2 = UserModel.create('user2@example.com', 'hash2');
+      const user1 = await await UserModel.create('user1@example.com', 'hash1');
+      const user2 = await await UserModel.create('user2@example.com', 'hash2');
 
       expect(user2.id).toBe(user1.id + 1);
     });
@@ -60,7 +60,7 @@ describe('UserModel', () => {
 
   describe('findById', () => {
     it('should find a user by id', () => {
-      const created = UserModel.create('test@example.com', 'hashed_password');
+      const created = await await UserModel.create('test@example.com', 'hashed_password');
       const found = UserModel.findById(created.id);
 
       expect(found).toBeDefined();
@@ -76,7 +76,7 @@ describe('UserModel', () => {
 
   describe('findByEmail', () => {
     it('should find a user by email', () => {
-      UserModel.create('test@example.com', 'hashed_password');
+      await UserModel.create('test@example.com', 'hashed_password');
       const found = UserModel.findByEmail('test@example.com');
 
       expect(found).toBeDefined();

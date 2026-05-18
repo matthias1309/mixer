@@ -43,12 +43,12 @@ describe('Recipe CRUD API', () => {
 
     // Create test users
     const passwordHash1 = await bcryptjs.hash('TestPassword123', 10);
-    const user1 = UserModel.create('user1@example.com', passwordHash1);
+    const user1 = await await UserModel.create('user1@example.com', passwordHash1);
     user1Id = user1.id;
     user1Token = generateToken(String(user1Id), 'user1@example.com');
 
     const passwordHash2 = await bcryptjs.hash('TestPassword123', 10);
-    const user2 = UserModel.create('user2@example.com', passwordHash2);
+    const user2 = await await UserModel.create('user2@example.com', passwordHash2);
     user2Id = user2.id;
     user2Token = generateToken(String(user2Id), 'user2@example.com');
   });
