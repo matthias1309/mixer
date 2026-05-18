@@ -1,6 +1,8 @@
-import { getDatabase } from '../init';
+import { getDatabase, isPostgres } from '../init';
 import { Recipe, RecipeListItem, CreateIngredientRequest, Ingredient } from '@/types';
 import { calculateScore, AggregatedNutrients } from '@/lib/scoring/phaseScore';
+import Database from 'better-sqlite3';
+import { Pool } from 'pg';
 
 export class RecipeModel {
   static create(
@@ -76,7 +78,8 @@ export class RecipeModel {
         SUM(COALESCE(ingredients_master.sugar, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as sugar,
         SUM(COALESCE(ingredients_master.fat, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as fat,
         SUM(COALESCE(ingredients_master.carbohydrates, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as carbohydrates,
-        SUM(COALESCE(ingredients_master.sodium, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as sodium
+        SUM(COALESCE(ingredients_master.sodium, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as sodium,
+        SUM(COALESCE(ingredients_master.salt, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as salt
       FROM ingredients
       LEFT JOIN ingredients_master ON LOWER(TRIM(ingredients_master.name)) = LOWER(TRIM(ingredients.name))
       WHERE ingredients.recipe_id = ?
@@ -526,5 +529,107 @@ export class RecipeModel {
       recipes,
       total: countResult.total,
     };
+  }
+
+  static async filterByIngredientsWithScoreAsync(
+    ingredientNames: string[],
+    page: number = 1,
+    pageSize: number = 10,
+    phase: string = 'menstruation'
+  ): Promise<{ recipes: RecipeListItem[]; total: number }> {
+    const db = getDatabase();
+    const normalizedIngredients = ingredientNames.map(i => i.trim().toLowerCase());
+    const offset = (page - 1) * pageSize;
+
+    if (isPostgres()) {
+      const pool = db as Pool;
+
+      const countResult = await pool.query(`
+        SELECT COUNT(DISTINCT recipes.id) as total
+        FROM recipes
+        WHERE recipes.is_duplicate = false
+          AND recipes.id IN (
+            SELECT recipe_id
+            FROM ingredients
+            WHERE LOWER(TRIM(name)) = ANY($1)
+            GROUP BY recipe_id
+            HAVING COUNT(DISTINCT LOWER(TRIM(name))) = $2
+          )
+      `, [normalizedIngredients, normalizedIngredients.length]);
+
+      const recipesResult = await pool.query(`
+        SELECT
+          recipes.id,
+          recipes.name,
+          recipes.description,
+          users.email as "creatorName",
+          COUNT(DISTINCT ingredients.id) as "ingredientCount",
+          recipes.created_at as "createdAt",
+          SUM(COALESCE(ingredients_master.iron, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as total_iron,
+          SUM(COALESCE(ingredients_master.magnesium, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as total_magnesium,
+          SUM(COALESCE(ingredients_master.protein, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as total_protein,
+          SUM(COALESCE(ingredients_master.calcium, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as total_calcium,
+          SUM(COALESCE(ingredients_master.vitamin_b6, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as total_vitamin_b6,
+          SUM(COALESCE(ingredients_master.vitamin_b12, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as total_vitamin_b12,
+          SUM(COALESCE(ingredients_master.vitamin_e, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as total_vitamin_e,
+          SUM(COALESCE(ingredients_master.zinc, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as total_zinc,
+          SUM(COALESCE(ingredients_master.fiber, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as total_fiber,
+          SUM(COALESCE(ingredients_master.vitamin_d, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as total_vitamin_d,
+          COUNT(CASE WHEN ingredients_master.id IS NOT NULL THEN 1 END) as matched_ingredients
+        FROM recipes
+        JOIN users ON recipes.creator_id = users.id
+        LEFT JOIN ingredients ON recipes.id = ingredients.recipe_id
+        LEFT JOIN ingredients_master ON LOWER(TRIM(ingredients_master.name)) = LOWER(TRIM(ingredients.name))
+        WHERE recipes.is_duplicate = false
+          AND recipes.id IN (
+            SELECT recipe_id
+            FROM ingredients
+            WHERE LOWER(TRIM(name)) = ANY($1)
+            GROUP BY recipe_id
+            HAVING COUNT(DISTINCT LOWER(TRIM(name))) = $2
+          )
+        GROUP BY recipes.id, recipes.name, recipes.description, recipes.created_at, users.email
+        ORDER BY recipes.created_at DESC
+        LIMIT $3 OFFSET $4
+      `, [normalizedIngredients, normalizedIngredients.length, pageSize, offset]);
+
+      const recipes: any[] = recipesResult.rows.map((row: any) => {
+        let score: number | null = null;
+
+        if (row.matched_ingredients > 0) {
+          const nutrients: AggregatedNutrients = {
+            iron: parseFloat(row.total_iron) || 0,
+            magnesium: parseFloat(row.total_magnesium) || 0,
+            protein: parseFloat(row.total_protein) || 0,
+            calcium: parseFloat(row.total_calcium) || 0,
+            vitamin_b6: parseFloat(row.total_vitamin_b6) || 0,
+            vitamin_b12: parseFloat(row.total_vitamin_b12) || 0,
+            vitamin_e: parseFloat(row.total_vitamin_e) || 0,
+            zinc: parseFloat(row.total_zinc) || 0,
+            fiber: parseFloat(row.total_fiber) || 0,
+            vitamin_d: parseFloat(row.total_vitamin_d) || 0,
+          };
+          score = calculateScore(nutrients, phase);
+        }
+
+        return {
+          id: row.id,
+          name: row.name,
+          description: row.description,
+          creatorName: row.creatorName,
+          ingredientCount: parseInt(row.ingredientCount, 10),
+          createdAt: row.createdAt,
+          score,
+        };
+      });
+
+      return {
+        recipes,
+        total: parseInt(countResult.rows[0].total, 10),
+      };
+    } else {
+      // SQLite: use the synchronous method
+      return this.filterByIngredientsWithScore(ingredientNames, page, pageSize, phase);
+    }
   }
 }

@@ -25,7 +25,7 @@ async function handleGET(request: NextRequest) {
     if (ingredients) {
       // Filter by ingredients if provided
       const ingredientList = ingredients.split(',').map(ing => ing.trim());
-      result = RecipeModel.filterByIngredientsWithScore(ingredientList, page, pageSize, phase || 'menstruation');
+      result = await RecipeModel.filterByIngredientsWithScoreAsync(ingredientList, page, pageSize, phase || 'menstruation');
     } else {
       result = await RecipeModelAsync.listAllWithScoreAsync(page, pageSize, sort, search, phase || 'menstruation');
     }
