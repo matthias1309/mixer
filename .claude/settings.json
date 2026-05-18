@@ -152,7 +152,10 @@
       "Bash(git -C /Users/matthias/Claude_Code/mixer show a309cde -- src/lib/db/models/recipe-async.ts)",
       "Bash(git -C /Users/matthias/Claude_Code/mixer show ed435a3 --stat)",
       "Bash(git -C /Users/matthias/Claude_Code/mixer diff main...debug/fix-database-initialization -- src/__tests__/unit/api/ingredients-master/crud.test.ts)",
-      "Bash(node -e \"const Database = require\\('better-sqlite3'\\); const db = new Database\\(':memory:'\\); const result = db.prepare\\('PRAGMA foreign_keys'\\).get\\(\\); console.log\\('foreign_keys:', result.foreign_keys\\);\")"
+      "Bash(node -e \"const Database = require\\('better-sqlite3'\\); const db = new Database\\(':memory:'\\); const result = db.prepare\\('PRAGMA foreign_keys'\\).get\\(\\); console.log\\('foreign_keys:', result.foreign_keys\\);\")",
+      "Bash(gh pr comment 7 --body ' *)",
+      "Bash(git fetch *)",
+      "Bash(git pull *)"
     ],
     "additionalDirectories": [
       "/private/tmp",
