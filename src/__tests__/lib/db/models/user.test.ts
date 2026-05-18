@@ -11,9 +11,11 @@ beforeEach(() => {
   testDb = new Database(':memory:');
   testDb.pragma('foreign_keys = ON');
 
-  // Execute migrations
+  // Execute migrations - convert SERIAL to INTEGER PRIMARY KEY for SQLite
   const migrationPath = path.join(__dirname, '../../../../lib/db/migrations/001_create_schema.sql');
-  const migration = fs.readFileSync(migrationPath, 'utf-8');
+  let migration = fs.readFileSync(migrationPath, 'utf-8');
+  migration = migration.replace(/SERIAL\s+PRIMARY\s+KEY/gi, 'INTEGER PRIMARY KEY');
+
   const statements = migration.split(';').filter(stmt => stmt.trim());
   for (const stmt of statements) {
     testDb.exec(stmt);

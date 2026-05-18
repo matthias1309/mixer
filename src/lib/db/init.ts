@@ -123,7 +123,10 @@ function runMigrationsSync(database: Database.Database): void {
 
   for (const file of migrationFiles) {
     const filePath = path.join(migrationsDir, file);
-    const sql = fs.readFileSync(filePath, 'utf-8');
+    let sql = fs.readFileSync(filePath, 'utf-8');
+
+    // Convert PostgreSQL SERIAL PRIMARY KEY to SQLite INTEGER PRIMARY KEY
+    sql = sql.replace(/SERIAL\s+PRIMARY\s+KEY/gi, 'INTEGER PRIMARY KEY');
 
     // Execute each statement individually so a "duplicate column" from a
     // repeated ALTER TABLE ADD COLUMN can be skipped without aborting the run.

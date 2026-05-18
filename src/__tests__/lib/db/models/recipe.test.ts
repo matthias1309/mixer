@@ -9,14 +9,15 @@ let testDb: Database.Database;
 let userId: number;
 
 // Setup test database before each test
-beforeEach(() => {
+beforeEach(async () => {
   const testDbPath = ':memory:';
   testDb = new Database(testDbPath);
   testDb.pragma('foreign_keys = ON');
 
-  // Read migration file
+  // Read migration file - convert SERIAL to INTEGER PRIMARY KEY for SQLite
   const migrationPath = path.join(__dirname, '../../../../lib/db/migrations/001_create_schema.sql');
-  const migration = fs.readFileSync(migrationPath, 'utf-8');
+  let migration = fs.readFileSync(migrationPath, 'utf-8');
+  migration = migration.replace(/SERIAL\s+PRIMARY\s+KEY/gi, 'INTEGER PRIMARY KEY');
 
   // Execute migration
   const statements = migration.split(';').filter(stmt => stmt.trim());
@@ -25,10 +26,10 @@ beforeEach(() => {
   }
 
   // Override global.db
-  global.db = testDb;
+  (global as any).db = testDb;
 
   // Create test user
-  const user = UserModel.create('testuser@example.com', 'hashed_password');
+  const user = await UserModel.create('testuser@example.com', 'hashed_password');
   userId = user.id;
 });
 
