@@ -6,21 +6,18 @@ import fs from 'fs';
 let db: Database.Database;
 let pgPool: Pool | null = null;
 let initPromise: Promise<void> | null = null;
+let lastDatabaseUrl: string | undefined;
 
 export type DbClient = Database.Database | Pool;
 
 export function getDb(): DbClient {
-  // Check for global.db (used by tests)
-  if ((global as any).db) {
-    return (global as any).db;
-  }
   if (pgPool) {
     return pgPool;
   }
   if (db) {
     return db;
   }
-  throw new Error('Database not initialized');
+  throw new Error('Database not initialized. Call initializeDatabase() first.');
 }
 
 // Alias for backwards compatibility
@@ -32,31 +29,22 @@ export function isPostgres(): boolean {
   return !!pgPool;
 }
 
-export function closeDatabase(): void {
-  try {
-    if (db) {
-      db.close();
-    }
-  } catch (e) {
-    // ignore if already closed
-  }
-  try {
-    if (pgPool) {
-      pgPool.end();
-    }
-  } catch (e) {
-    // ignore if already closed
-  }
-  db = undefined as any;
-  pgPool = null;
-  initPromise = null;
-}
-
 export async function initializeDatabase(): Promise<void> {
-  if (initPromise) {
+  const currentDatabaseUrl = process.env.DATABASE_URL;
+
+  // Allow re-initialization if DATABASE_URL has changed (for tests)
+  if (lastDatabaseUrl === currentDatabaseUrl && initPromise) {
     return initPromise;
   }
 
+  // If DATABASE_URL changed, wait for old init to complete, then close
+  if (lastDatabaseUrl !== currentDatabaseUrl && initPromise) {
+    await initPromise;
+    closeDatabase();
+    initPromise = null;
+  }
+
+  lastDatabaseUrl = currentDatabaseUrl;
   initPromise = _initializeDatabaseInternal();
   return initPromise;
 }
@@ -64,7 +52,10 @@ export async function initializeDatabase(): Promise<void> {
 async function _initializeDatabaseInternal(): Promise<void> {
   const databaseUrl = process.env.DATABASE_URL;
 
-  if (databaseUrl && databaseUrl.startsWith('postgres://')) {
+  // Check if it's PostgreSQL (postgres:// or postgresql://) or SQLite otherwise
+  const isPostgresUrl = databaseUrl && (databaseUrl.startsWith('postgres://') || databaseUrl.startsWith('postgresql://'));
+
+  if (isPostgresUrl) {
     // Initialize PostgreSQL
     pgPool = new Pool({
       connectionString: databaseUrl,
@@ -88,8 +79,22 @@ async function _initializeDatabaseInternal(): Promise<void> {
     // Run migrations
     await runMigrations(pgPool);
   } else {
-    // Initialize SQLite (development or test)
-    const dbPath = databaseUrl || path.join(process.cwd(), '.data', 'app.db');
+    // Initialize SQLite (development or file: DATABASE_URL)
+    let dbPath: string;
+
+    if (databaseUrl) {
+      if (databaseUrl.startsWith('file:')) {
+        // Extract path from file: URL
+        dbPath = databaseUrl.replace(/^file:/, '');
+      } else {
+        // Assume it's a direct file path
+        dbPath = databaseUrl;
+      }
+    } else {
+      // Default path
+      dbPath = path.join(process.cwd(), '.data', 'app.db');
+    }
+
     const dbDir = path.dirname(dbPath);
 
     if (!fs.existsSync(dbDir)) {
@@ -97,9 +102,15 @@ async function _initializeDatabaseInternal(): Promise<void> {
     }
 
     db = new Database(dbPath);
-    const isTest = process.env.NODE_ENV === 'test' || process.env.DATABASE_URL?.includes('test');
-    const journalMode = isTest ? 'DELETE' : 'WAL';
-    db.pragma(`journal_mode = ${journalMode}`);
+
+    // WAL mode for better concurrency, except in test environments
+    if (process.env.NODE_ENV !== 'test') {
+      db.pragma('journal_mode = WAL');
+      db.pragma('synchronous = NORMAL');  // Balanced between safety and performance
+    } else {
+      // Use DELETE journal mode for tests for better isolation
+      db.pragma('journal_mode = DELETE');
+    }
 
     console.log('Connected to SQLite');
 
@@ -125,8 +136,8 @@ function runMigrationsSync(database: Database.Database): void {
     const filePath = path.join(migrationsDir, file);
     let sql = fs.readFileSync(filePath, 'utf-8');
 
-    // Convert PostgreSQL SERIAL PRIMARY KEY to SQLite INTEGER PRIMARY KEY
-    sql = sql.replace(/SERIAL\s+PRIMARY\s+KEY/gi, 'INTEGER PRIMARY KEY');
+    // Convert PostgreSQL SERIAL to SQLite INTEGER PRIMARY KEY AUTOINCREMENT
+    sql = sql.replace(/\bSERIAL\s+PRIMARY\s+KEY\b/gi, 'INTEGER PRIMARY KEY AUTOINCREMENT');
 
     // Execute each statement individually so a "duplicate column" from a
     // repeated ALTER TABLE ADD COLUMN can be skipped without aborting the run.
@@ -199,8 +210,13 @@ async function runMigrations(pool: Pool): Promise<void> {
 export function closeDatabase(): void {
   if (db) {
     db.close();
+    db = undefined as any;
   }
   if (pgPool) {
     pgPool.end();
+    pgPool = null;
   }
+  // Reset initialization promise so next init is allowed
+  initPromise = null;
+  lastDatabaseUrl = undefined;
 }

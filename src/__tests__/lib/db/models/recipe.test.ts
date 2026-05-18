@@ -1,32 +1,20 @@
-import Database from 'better-sqlite3';
-import fs from 'fs';
-import path from 'path';
+/** @jest-environment node */
 import { RecipeModel } from '../../../../lib/db/models/recipe';
 import { UserModel } from '../../../../lib/db/models/user';
-import { Recipe } from '../../../../types';
+import { initializeDatabase, closeDatabase } from '../../../../lib/db/init';
+import fs from 'fs';
+import path from 'path';
 
-let testDb: Database.Database;
 let userId: number;
+let testDbPath: string;
 
 // Setup test database before each test
 beforeEach(async () => {
-  const testDbPath = ':memory:';
-  testDb = new Database(testDbPath);
-  testDb.pragma('foreign_keys = ON');
+  testDbPath = path.join(__dirname, `../../../../.data/test-recipe-${Date.now()}.db`);
+  process.env.DATABASE_URL = testDbPath;
 
-  // Read migration file - convert SERIAL to INTEGER PRIMARY KEY for SQLite
-  const migrationPath = path.join(__dirname, '../../../../lib/db/migrations/001_create_schema.sql');
-  let migration = fs.readFileSync(migrationPath, 'utf-8');
-  migration = migration.replace(/SERIAL\s+PRIMARY\s+KEY/gi, 'INTEGER PRIMARY KEY');
-
-  // Execute migration
-  const statements = migration.split(';').filter(stmt => stmt.trim());
-  for (const stmt of statements) {
-    testDb.exec(stmt);
-  }
-
-  // Override global.db
-  (global as any).db = testDb;
+  // Initialize database
+  await initializeDatabase();
 
   // Create test user
   const user = await UserModel.create('testuser@example.com', 'hashed_password');
@@ -35,9 +23,11 @@ beforeEach(async () => {
 
 // Cleanup after each test
 afterEach(() => {
-  if (testDb) {
-    testDb.close();
+  closeDatabase();
+  if (fs.existsSync(testDbPath)) {
+    fs.unlinkSync(testDbPath);
   }
+  delete process.env.DATABASE_URL;
   delete (global as any).db;
 });
 

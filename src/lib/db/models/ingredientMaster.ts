@@ -82,7 +82,8 @@ export class IngredientMasterModel {
       data.zinc || null
     ) as { lastInsertRowid: number };
 
-    return this.findById(Number(info.lastInsertRowid))!;
+    const id = Number(info.lastInsertRowid);
+    return this.findById(id)!;
   }
 
   static findAll(
@@ -124,7 +125,8 @@ export class IngredientMasterModel {
   static findById(id: number): IngredientMaster | null {
     const db = getDatabase();
     const stmt = db.prepare('SELECT * FROM ingredients_master WHERE id = ?');
-    return (stmt.get(id) as IngredientMaster) || null;
+    const result = stmt.get(id);
+    return (result as IngredientMaster) || null;
   }
 
   static update(

@@ -13,15 +13,15 @@ describe('RecipeModel - Scoring Methods', () => {
   let dbPath: string;
   let userId: number;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     dbPath = mkdtempSync(join(tmpdir(), 'test-'));
     process.env.DATABASE_URL = `file:${join(dbPath, 'test.db')}`;
     process.env.JWT_SECRET = 'test-secret-minimum-32-characters!!';
-    initializeDatabase();
+    await initializeDatabase();
     db = require('@/lib/db/init').getDatabase();
 
     // Create a test user
-    const user = UserModel.create('testuser@test.com', 'hashedpassword');
+    const user = await UserModel.create('testuser@test.com', 'hashedpassword');
     userId = user.id;
 
     // Create test ingredients in ingredients_master

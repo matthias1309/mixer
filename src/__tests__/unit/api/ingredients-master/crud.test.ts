@@ -37,7 +37,7 @@ describe('Ingredients Master API', () => {
     initializeDatabase();
 
     const passwordHash = await bcryptjs.hash('TestPassword123', 10);
-    const user = UserModel.create('user@example.com', passwordHash);
+    const user = await await UserModel.create('user@example.com', passwordHash);
     userId = user.id;
     userToken = generateToken(String(userId), 'user@example.com');
   });
