@@ -36,11 +36,11 @@ describe('GET /api/recipes/ingredients', () => {
     process.env.JWT_SECRET = 'test-secret-key-must-be-32-chars-long';
     // Clear global db instance
     (global as any).db = undefined;
-    initializeDatabase();
+    await initializeDatabase();
 
     // Create test user
     const passwordHash = await bcryptjs.hash('TestPassword123', 10);
-    const user = UserModel.create('test@example.com', passwordHash);
+    const user = await UserModel.create('test@example.com', passwordHash);
     userId = user.id;
     userToken = generateToken(String(userId), 'test@example.com');
   });
@@ -64,7 +64,7 @@ describe('GET /api/recipes/ingredients', () => {
 
   test('should get unique ingredients from all recipes', async () => {
     // Create recipes with various ingredients
-    RecipeModel.create(
+    await RecipeModel.create(
       'Pasta Carbonara',
       userId,
       'Classic Italian pasta',
@@ -77,7 +77,7 @@ describe('GET /api/recipes/ingredients', () => {
       ]
     );
 
-    RecipeModel.create(
+    await RecipeModel.create(
       'Tomato Soup',
       userId,
       'Creamy tomato soup',
@@ -90,7 +90,7 @@ describe('GET /api/recipes/ingredients', () => {
       ]
     );
 
-    RecipeModel.create(
+    await RecipeModel.create(
       'Caesar Salad',
       userId,
       'Fresh salad',
@@ -133,7 +133,7 @@ describe('GET /api/recipes/ingredients', () => {
 
   test('should return normalized (lowercase, trimmed) ingredient names', async () => {
     // Create recipe with various casings and whitespace
-    RecipeModel.create(
+    await RecipeModel.create(
       'Mixed Case Recipe',
       userId,
       'Test recipe',
@@ -167,7 +167,7 @@ describe('GET /api/recipes/ingredients', () => {
 
   test('should not return duplicate ingredients', async () => {
     // Create multiple recipes with overlapping ingredients
-    RecipeModel.create(
+    await RecipeModel.create(
       'Recipe 1',
       userId,
       'First recipe',
@@ -180,7 +180,7 @@ describe('GET /api/recipes/ingredients', () => {
       ]
     );
 
-    RecipeModel.create(
+    await RecipeModel.create(
       'Recipe 2',
       userId,
       'Second recipe',
@@ -193,7 +193,7 @@ describe('GET /api/recipes/ingredients', () => {
       ]
     );
 
-    RecipeModel.create(
+    await RecipeModel.create(
       'Recipe 3',
       userId,
       'Third recipe',

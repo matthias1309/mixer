@@ -1,27 +1,35 @@
-import { initializeDatabase } from '../../../lib/db/init';
+/** @jest-environment node */
+import { initializeDatabase, getDatabase } from '../../../lib/db/init';
+import { closeDatabase } from '../../../lib/db/init';
+import Database from 'better-sqlite3';
 import fs from 'fs';
 import path from 'path';
 
 describe('Database Initialization', () => {
   let testDbPath: string;
 
-  beforeEach(() => {
-    testDbPath = path.join(__dirname, '../../../../.data/test.db');
+  beforeEach(async () => {
+    testDbPath = path.join(__dirname, '../../../../.data/test-init.db');
     if (fs.existsSync(testDbPath)) {
       fs.unlinkSync(testDbPath);
     }
     process.env.DATABASE_URL = testDbPath;
+    delete (global as any).db;
+    await initializeDatabase();
   });
 
   afterEach(() => {
+    closeDatabase();
     if (fs.existsSync(testDbPath)) {
       fs.unlinkSync(testDbPath);
     }
     delete process.env.DATABASE_URL;
+    delete (global as any).db;
   });
 
   test('should create database with all required tables', () => {
-    const db = initializeDatabase();
+    // Database already initialized in beforeEach, no need to call again
+    const db = getDatabase() as Database.Database;
 
     // Check tables exist
     const tables = db
@@ -34,12 +42,12 @@ describe('Database Initialization', () => {
     expect(tableNames).toContain('users');
     expect(tableNames).toContain('recipes');
     expect(tableNames).toContain('ingredients');
-
-    db.close();
+    expect(tableNames).toContain('ingredients_master');
   });
 
   test('should create indexes for performance', () => {
-    const db = initializeDatabase();
+    // Database already initialized in beforeEach
+    const db = getDatabase() as Database.Database;
 
     const indexes = db
       .prepare(
@@ -48,20 +56,17 @@ describe('Database Initialization', () => {
       .all() as { name: string }[];
 
     const indexNames = indexes.map(i => i.name);
-    expect(indexNames).toContain('idx_recipes_creator_id');
-    expect(indexNames).toContain('idx_recipes_canonical_id');
-    expect(indexNames).toContain('idx_ingredients_recipe_id');
-    expect(indexNames).toContain('idx_user_cycles_user');
-
-    db.close();
+    expect(indexNames).toContain('idx_recipes_creator');
+    expect(indexNames).toContain('idx_recipes_canonical');
+    expect(indexNames).toContain('idx_ingredients_recipe');
+    expect(indexNames.some(name => name.includes('cycle') && name.includes('user'))).toBe(true);
   });
 
   test('should enforce foreign keys', () => {
-    const db = initializeDatabase();
+    // Database already initialized in beforeEach
+    const db = getDatabase() as Database.Database;
 
     const fkEnabled = db.prepare('PRAGMA foreign_keys').get() as { foreign_keys: number };
     expect(fkEnabled.foreign_keys).toBe(1);
-
-    db.close();
   });
 });

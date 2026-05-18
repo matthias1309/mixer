@@ -1,46 +1,38 @@
-import Database from 'better-sqlite3';
+/** @jest-environment node */
+import { UserModel } from '../../../../lib/db/models/user';
+import { initializeDatabase, closeDatabase } from '../../../../lib/db/init';
+import { User } from '../../../../types';
 import fs from 'fs';
 import path from 'path';
-import { UserModel } from '../../../../lib/db/models/user';
-import { User } from '../../../../types';
 
-let testDb: Database.Database;
+let testDbPath: string;
 
 // Setup test database before each test
-beforeEach(() => {
-  const testDbPath = ':memory:';
-  testDb = new Database(testDbPath);
-  testDb.pragma('foreign_keys = ON');
+beforeEach(async () => {
+  testDbPath = path.join(__dirname, `../../../../.data/test-user-${Date.now()}.db`);
+  process.env.DATABASE_URL = testDbPath;
 
-  // Read migration file
-  const migrationPath = path.join(__dirname, '../../../../lib/db/migrations/001_create_schema.sql');
-  const migration = fs.readFileSync(migrationPath, 'utf-8');
-
-  // Execute migration
-  const statements = migration.split(';').filter(stmt => stmt.trim());
-  for (const stmt of statements) {
-    testDb.exec(stmt);
-  }
-
-  // Override global.db
-  global.db = testDb;
+  // Initialize database
+  await initializeDatabase();
 });
 
 // Cleanup after each test
 afterEach(() => {
-  if (testDb) {
-    testDb.close();
+  closeDatabase();
+  if (fs.existsSync(testDbPath)) {
+    fs.unlinkSync(testDbPath);
   }
+  delete process.env.DATABASE_URL;
   delete (global as any).db;
 });
 
 describe('UserModel', () => {
   describe('create', () => {
-    it('should create a new user with email and password hash', () => {
+    it('should create a new user with email and password hash', async () => {
       const email = 'test@example.com';
       const passwordHash = 'hashed_password_123';
 
-      const user = UserModel.create(email, passwordHash);
+      const user = await UserModel.create(email, passwordHash);
 
       expect(user).toBeDefined();
       expect(user.id).toBeDefined();
@@ -50,41 +42,41 @@ describe('UserModel', () => {
       expect(user.updated_at).toBeDefined();
     });
 
-    it('should auto-increment user IDs', () => {
-      const user1 = UserModel.create('user1@example.com', 'hash1');
-      const user2 = UserModel.create('user2@example.com', 'hash2');
+    it('should auto-increment user IDs', async () => {
+      const user1 = await UserModel.create('user1@example.com', 'hash1');
+      const user2 = await UserModel.create('user2@example.com', 'hash2');
 
       expect(user2.id).toBe(user1.id + 1);
     });
   });
 
   describe('findById', () => {
-    it('should find a user by id', () => {
-      const created = UserModel.create('test@example.com', 'hashed_password');
-      const found = UserModel.findById(created.id);
+    it('should find a user by id', async () => {
+      const created = await UserModel.create('test@example.com', 'hashed_password');
+      const found = await UserModel.findById(created.id);
 
       expect(found).toBeDefined();
       expect(found?.email).toBe('test@example.com');
       expect(found?.password_hash).toBe('hashed_password');
     });
 
-    it('should return null if user not found', () => {
-      const found = UserModel.findById(999);
+    it('should return null if user not found', async () => {
+      const found = await UserModel.findById(999);
       expect(found).toBeNull();
     });
   });
 
   describe('findByEmail', () => {
-    it('should find a user by email', () => {
-      UserModel.create('test@example.com', 'hashed_password');
-      const found = UserModel.findByEmail('test@example.com');
+    it('should find a user by email', async () => {
+      await UserModel.create('test@example.com', 'hashed_password');
+      const found = await UserModel.findByEmail('test@example.com');
 
       expect(found).toBeDefined();
       expect(found?.email).toBe('test@example.com');
     });
 
-    it('should return null if user not found', () => {
-      const found = UserModel.findByEmail('nonexistent@example.com');
+    it('should return null if user not found', async () => {
+      const found = await UserModel.findByEmail('nonexistent@example.com');
       expect(found).toBeNull();
     });
   });

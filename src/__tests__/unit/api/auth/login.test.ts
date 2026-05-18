@@ -11,7 +11,7 @@ describe('POST /api/auth/login', () => {
   let testDbPath: string;
   let testCounter = 0;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     testCounter++;
     testDbPath = path.join(
       __dirname,
@@ -32,7 +32,7 @@ describe('POST /api/auth/login', () => {
     process.env.JWT_SECRET = 'test-secret-key-must-be-32-chars-long';
     // Clear global db instance
     (global as any).db = undefined;
-    initializeDatabase();
+    await initializeDatabase();
   });
 
   afterEach(() => {
@@ -55,7 +55,7 @@ describe('POST /api/auth/login', () => {
   test('should return 200 with user id and email for valid credentials', async () => {
     // Create a user with hashed password
     const passwordHash = await bcryptjs.hash('SecurePassword123', 10);
-    const user = UserModel.create('test@example.com', passwordHash);
+    const user = await await UserModel.create('test@example.com', passwordHash);
 
     // Login with correct credentials
     const request = new NextRequest('http://localhost:3000/api/auth/login', {
@@ -77,7 +77,7 @@ describe('POST /api/auth/login', () => {
   test('should return 401 for wrong password', async () => {
     // Create a user with hashed password
     const passwordHash = await bcryptjs.hash('SecurePassword123', 10);
-    UserModel.create('test@example.com', passwordHash);
+    await UserModel.create('test@example.com', passwordHash);
 
     // Login with wrong password
     const request = new NextRequest('http://localhost:3000/api/auth/login', {
@@ -114,7 +114,7 @@ describe('POST /api/auth/login', () => {
   test('should set secure httpOnly cookie with HttpOnly and Strict flags', async () => {
     // Create a user with hashed password
     const passwordHash = await bcryptjs.hash('SecurePassword123', 10);
-    UserModel.create('test@example.com', passwordHash);
+    await UserModel.create('test@example.com', passwordHash);
 
     // Login with correct credentials
     const request = new NextRequest('http://localhost:3000/api/auth/login', {
@@ -154,7 +154,7 @@ describe('POST /api/auth/login', () => {
 
     // Test 2: Wrong password
     const passwordHash = await bcryptjs.hash('SecurePassword123', 10);
-    UserModel.create('existing@example.com', passwordHash);
+    await UserModel.create('existing@example.com', passwordHash);
 
     const request2 = new NextRequest('http://localhost:3000/api/auth/login', {
       method: 'POST',
