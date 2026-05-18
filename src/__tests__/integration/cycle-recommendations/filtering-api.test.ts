@@ -32,10 +32,10 @@ describe('GET /api/recipes with phase-based filtering', () => {
     process.env.DATABASE_URL = testDbPath;
     process.env.JWT_SECRET = 'test-secret-key-must-be-32-chars-long';
     (global as any).db = undefined;
-    await initializeDatabase();
+    initializeDatabase();
 
     const passwordHash = await bcryptjs.hash('TestPassword123', 10);
-    const user = await UserModel.create('filter@example.com', passwordHash);
+    const user = UserModel.create('filter@example.com', passwordHash);
     userId = user.id;
     userToken = generateToken(String(userId), 'filter@example.com');
 

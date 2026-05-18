@@ -11,7 +11,7 @@ describe('POST /api/auth/login', () => {
   let testDbPath: string;
   let testCounter = 0;
 
-  beforeEach(async () => {
+  beforeEach(() => {
     testCounter++;
     testDbPath = path.join(
       __dirname,
@@ -32,7 +32,7 @@ describe('POST /api/auth/login', () => {
     process.env.JWT_SECRET = 'test-secret-key-must-be-32-chars-long';
     // Clear global db instance
     (global as any).db = undefined;
-    await initializeDatabase();
+    initializeDatabase();
   });
 
   afterEach(() => {

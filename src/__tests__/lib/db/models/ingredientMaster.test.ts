@@ -10,11 +10,11 @@ describe('IngredientMasterModel', () => {
   let db: Database.Database;
   let dbPath: string;
 
-  beforeEach(async () => {
+  beforeEach(() => {
     dbPath = mkdtempSync(join(tmpdir(), 'test-'));
     process.env.DATABASE_URL = `file:${join(dbPath, 'test.db')}`;
-    await initializeDatabase();
-    db = require('@/lib/db/init').getDatabase() as Database.Database;
+    initializeDatabase();
+    db = require('@/lib/db/init').getDatabase();
   });
 
   afterEach(() => {
