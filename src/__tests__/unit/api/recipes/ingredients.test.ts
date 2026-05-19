@@ -7,20 +7,19 @@ import { generateToken } from '../../../../lib/auth/tokenRefresh';
 import bcryptjs from 'bcryptjs';
 import fs from 'fs';
 import path from 'path';
+import { tmpdir } from 'os';
+import { mkdtempSync, rmSync } from 'fs';
 import { NextRequest } from 'next/server';
 
 describe('GET /api/recipes/ingredients', () => {
   let testDbPath: string;
-  let testCounter = 0;
   let userId: number;
   let userToken: string;
 
   beforeEach(async () => {
-    testCounter++;
-    testDbPath = path.join(
-      __dirname,
-      `../../../../../.data/test-ingredients-${testCounter}.db`
-    );
+    // Use temporary directory for test isolation (same as ingredientMasterAsync.test.ts)
+    const tempDir = mkdtempSync(path.join(tmpdir(), 'test-ingredients-'));
+    testDbPath = path.join(tempDir, 'test.db');
 
     // Close existing database instance if any
     const existingDb = (global as any).db;
@@ -32,7 +31,7 @@ describe('GET /api/recipes/ingredients', () => {
       }
     }
 
-    process.env.DATABASE_URL = testDbPath;
+    process.env.DATABASE_URL = `file:${testDbPath}`;
     process.env.JWT_SECRET = 'test-secret-key-must-be-32-chars-long';
     // Clear global db instance
     (global as any).db = undefined;
@@ -56,8 +55,10 @@ describe('GET /api/recipes/ingredients', () => {
       // ignore
     }
     (global as any).db = undefined;
-    if (fs.existsSync(testDbPath)) {
-      fs.unlinkSync(testDbPath);
+    // Clean up temp directory
+    const tempDir = path.dirname(testDbPath);
+    if (fs.existsSync(tempDir)) {
+      rmSync(tempDir, { recursive: true, force: true });
     }
     delete process.env.DATABASE_URL;
   });
