@@ -110,7 +110,8 @@ export function seedUnits(db: any) {
     'SELECT COUNT(*) as count FROM units'
   ).get() as { count: number };
 
-  if (existingCount.count > 0) {
+  // Check for expected count to ensure idempotency (8 units expected)
+  if (existingCount.count >= 8) {
     // eslint-disable-next-line no-console
     console.log('Units already seeded, skipping...');
     return;
@@ -134,13 +135,13 @@ export function seedUnits(db: any) {
  * Requires units to be seeded first
  * @param db - Database instance (better-sqlite3 Database)
  */
-export function seedConversions(db: any) {
+export function seedUnitConversions(db: any) {
   // Check if we're using SQLite or PostgreSQL
   const isPostgres = db.query !== undefined;
 
   if (isPostgres) {
     // PostgreSQL - use async/await pattern
-    throw new Error('Use seedConversionsAsync for PostgreSQL');
+    throw new Error('Use seedUnitConversionsAsync for PostgreSQL');
   }
 
   // SQLite - synchronous
@@ -148,7 +149,8 @@ export function seedConversions(db: any) {
     'SELECT COUNT(*) as count FROM unit_conversions'
   ).get() as { count: number };
 
-  if (existingCount.count > 0) {
+  // Check for expected count to ensure idempotency (10 conversions expected)
+  if (existingCount.count >= 10) {
     // eslint-disable-next-line no-console
     console.log('Conversions already seeded, skipping...');
     return;
@@ -178,13 +180,13 @@ export function seedConversions(db: any) {
  * Requires units to be seeded first
  * @param db - Database instance (better-sqlite3 Database)
  */
-export function seedDensities(db: any) {
+export function seedUnitDensities(db: any) {
   // Check if we're using SQLite or PostgreSQL
   const isPostgres = db.query !== undefined;
 
   if (isPostgres) {
     // PostgreSQL - use async/await pattern
-    throw new Error('Use seedDensitiesAsync for PostgreSQL');
+    throw new Error('Use seedUnitDensitiesAsync for PostgreSQL');
   }
 
   // SQLite - synchronous
@@ -192,7 +194,8 @@ export function seedDensities(db: any) {
     'SELECT COUNT(*) as count FROM ingredient_densities'
   ).get() as { count: number };
 
-  if (existingCount.count > 0) {
+  // Check for expected count to ensure idempotency (16 densities expected)
+  if (existingCount.count >= 16) {
     // eslint-disable-next-line no-console
     console.log('Densities already seeded, skipping...');
     return;

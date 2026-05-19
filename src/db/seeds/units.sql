@@ -1,27 +1,27 @@
 -- Seed data for units, conversions, and ingredient densities
 
 -- Volume units
-INSERT INTO units (abbreviation, name, category, base_unit) VALUES
+INSERT OR IGNORE INTO units (abbreviation, name, category, base_unit) VALUES
 ('TL', 'Teelöffel', 'volume', 'ml'),
 ('EL', 'Esslöffel', 'volume', 'ml'),
 ('ml', 'Milliliter', 'volume', 'ml'),
 ('l', 'Liter', 'volume', 'ml');
 
 -- Weight units
-INSERT INTO units (abbreviation, name, category, base_unit) VALUES
+INSERT OR IGNORE INTO units (abbreviation, name, category, base_unit) VALUES
 ('g', 'Gramm', 'weight', 'g'),
 ('kg', 'Kilogramm', 'weight', 'g');
 
 -- Count/piece units
-INSERT INTO units (abbreviation, name, category, base_unit) VALUES
+INSERT OR IGNORE INTO units (abbreviation, name, category, base_unit) VALUES
 ('Stück', 'Piece', 'count', 'count');
 
 -- Pinch units
-INSERT INTO units (abbreviation, name, category, base_unit) VALUES
+INSERT OR IGNORE INTO units (abbreviation, name, category, base_unit) VALUES
 ('Prise', 'Pinch', 'pinch', 'pinch');
 
 -- Volume conversions
-INSERT INTO unit_conversions (from_unit_id, to_unit_id, conversion_factor) VALUES
+INSERT OR IGNORE INTO unit_conversions (from_unit_id, to_unit_id, conversion_factor) VALUES
 (1, 2, 0.333),      -- 1 TL = 0.333 EL
 (2, 1, 3.0),        -- 1 EL = 3 TL
 (1, 3, 5.0),        -- 1 TL = 5 ml
@@ -32,12 +32,12 @@ INSERT INTO unit_conversions (from_unit_id, to_unit_id, conversion_factor) VALUE
 (4, 3, 1000.0);     -- 1 l = 1000 ml
 
 -- Weight conversions
-INSERT INTO unit_conversions (from_unit_id, to_unit_id, conversion_factor) VALUES
+INSERT OR IGNORE INTO unit_conversions (from_unit_id, to_unit_id, conversion_factor) VALUES
 (5, 6, 0.001),      -- 1 g = 0.001 kg
 (6, 5, 1000.0);     -- 1 kg = 1000 g
 
 -- Common ingredient densities (in grams per unit)
-INSERT INTO ingredient_densities (ingredient_name, volume_unit_id, weight_in_grams) VALUES
+INSERT OR IGNORE INTO ingredient_densities (ingredient_name, volume_unit_id, weight_in_grams) VALUES
 ('Mehl', 1, 5.0),           -- 1 TL Mehl = 5g
 ('Mehl', 2, 15.0),          -- 1 EL Mehl = 15g
 ('Mehl', 3, 1.0),           -- 1 ml Mehl = 1g
