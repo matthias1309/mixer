@@ -25,6 +25,7 @@ build/
 out/
 coverage/
 .coverage/
+.coverage-*/
 *.tsbuildinfo
 
 # Database

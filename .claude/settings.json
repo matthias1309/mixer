@@ -216,7 +216,12 @@
       "Bash(sqlite3 /tmp/test_densities.db \".mode column\" \".headers on\" \"SELECT id.ingredient_name, u.abbreviation, id.weight_in_grams FROM ingredient_densities id JOIN units u ON id.volume_unit_id = u.id ORDER BY id.ingredient_name, u.abbreviation;\")",
       "Bash(sqlite3 /tmp/test_densities.db \"SELECT ingredient_name, COUNT\\(*\\) as mappings FROM ingredient_densities GROUP BY ingredient_name ORDER BY ingredient_name;\")",
       "Bash(bash /tmp/verify_counts.sh)",
-      "Bash(sqlite3 .data/app.db)"
+      "Bash(sqlite3 .data/app.db)",
+      "Bash(gh pr create --title 'feat: unit conversion and recipe scaling system' --body ' *)",
+      "Bash(git -C /Users/matthias/Claude_Code/mixer status)",
+      "Bash(git -C /Users/matthias/Claude_Code/mixer diff .claude/settings.json)",
+      "Bash(git -C /Users/matthias/Claude_Code/mixer add .claude/settings.json .gitignore)",
+      "Bash(git -C /Users/matthias/Claude_Code/mixer commit -m ' *)"
     ],
     "additionalDirectories": [
       "/private/tmp",
