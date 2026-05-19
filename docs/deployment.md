@@ -791,3 +791,176 @@ WantedBy=multi-user.target
 sudo systemctl enable recipe-monitor
 sudo systemctl start recipe-monitor
 ```
+
+## Backup and Recovery Strategy
+
+### Why Backups Matter
+
+The PostgreSQL database contains:
+- User accounts and authentication data
+- Recipes and ingredient data
+- Application state
+
+Regular backups protect against:
+- Hardware failure
+- Accidental data deletion
+- Corruption
+- Ransomware
+
+### Backup Frequency
+
+**Recommended Schedule**:
+- Daily: Automated full database backup
+- Weekly: Full system backup (database + application code)
+- Monthly: Archive important backups off-device
+
+### Automated Daily Backup Script
+
+Create backup directory:
+
+```bash
+mkdir -p /home/pi/backups/databases
+```
+
+Create backup script:
+
+```bash
+#!/bin/bash
+# Save as: /home/pi/backup-database.sh
+
+BACKUP_DIR="/home/pi/backups/databases"
+TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+BACKUP_FILE="$BACKUP_DIR/recipe_manager_$TIMESTAMP.sql.gz"
+
+# Create backup
+docker-compose exec -T postgres pg_dump -U recipe_user -d recipe_manager | gzip > "$BACKUP_FILE"
+
+# Keep only last 30 days of backups
+find "$BACKUP_DIR" -name "recipe_manager_*.sql.gz" -mtime +30 -delete
+
+# Log backup
+echo "Backup created: $BACKUP_FILE" >> /var/log/recipe-backup.log
+
+# Optional: Upload to external storage
+# scp "$BACKUP_FILE" remote-server:/backups/
+```
+
+Make executable:
+
+```bash
+chmod +x /home/pi/backup-database.sh
+```
+
+Schedule as cron job:
+
+```bash
+# Edit crontab
+crontab -e
+
+# Add line for daily backup at 2:00 AM
+0 2 * * * /home/pi/backup-database.sh
+
+# Add line for weekly full backup (Sundays at 3:00 AM)
+0 3 * * 0 cd /home/pi/apps/mixer && tar -czf /home/pi/backups/full_system_$(date +\%Y\%m\%d).tar.gz .
+```
+
+### Manual Backup
+
+```bash
+# Create manual backup anytime
+docker-compose exec -T postgres pg_dump -U recipe_user -d recipe_manager > /home/pi/backups/manual_backup_$(date +%Y%m%d_%H%M%S).sql
+
+# Compress to save space
+gzip /home/pi/backups/manual_backup_*.sql
+```
+
+### List Available Backups
+
+```bash
+ls -lh /home/pi/backups/databases/
+
+# Example output:
+# -rw-r--r-- 1 pi pi 2.3M May 19 02:00 recipe_manager_20260519_020000.sql.gz
+# -rw-r--r-- 1 pi pi 2.2M May 18 02:00 recipe_manager_20260518_020000.sql.gz
+```
+
+### Restore from Backup
+
+**Full Database Restoration**:
+
+```bash
+# Stop application (prevents writes during restore)
+docker-compose stop app
+
+# Choose backup file
+BACKUP_FILE="/home/pi/backups/databases/recipe_manager_20260519_020000.sql.gz"
+
+# Restore database
+gunzip -c "$BACKUP_FILE" | docker-compose exec -T postgres psql -U recipe_user -d recipe_manager
+
+# Restart application
+docker-compose start app
+
+# Verify restoration
+docker-compose logs app
+```
+
+**Partial Restoration** (specific tables):
+
+```bash
+# Extract and examine backup
+gunzip -c "$BACKUP_FILE" | grep "CREATE TABLE"
+
+# Restore specific table using psql directly
+docker-compose exec -T postgres psql -U recipe_user -d recipe_manager < partial_backup.sql
+```
+
+### Disaster Recovery Plan
+
+In case of total system failure:
+
+1. **Restore Raspberry Pi OS** to fresh SD card
+2. **Install Docker and Docker Compose**
+3. **Clone application repository**:
+   ```bash
+   git clone https://github.com/yourusername/mixer.git
+   cd mixer
+   ```
+4. **Restore database from backup**:
+   ```bash
+   docker-compose up -d postgres
+   gunzip -c /path/to/backup.sql.gz | docker-compose exec -T postgres psql -U recipe_user -d recipe_manager
+   ```
+5. **Start application**:
+   ```bash
+   docker-compose up -d
+   ```
+
+### Backup Verification
+
+Regularly verify backups are valid:
+
+```bash
+# List contents of backup
+gunzip -c "$BACKUP_FILE" | head -20
+
+# Test restoration to temporary database
+docker-compose exec -T postgres createdb -U recipe_user recipe_manager_test
+gunzip -c "$BACKUP_FILE" | docker-compose exec -T postgres psql -U recipe_user -d recipe_manager_test
+docker-compose exec -T postgres dropdb -U recipe_user recipe_manager_test
+```
+
+### External Backup Storage
+
+For extra safety, backup to external location:
+
+```bash
+# Copy to USB drive
+cp /home/pi/backups/databases/*.sql.gz /media/pi/BACKUP_USB/
+
+# Or sync to remote server
+rsync -avz /home/pi/backups/ username@remote-server:/backups/mixer/
+
+# Or upload to cloud storage (example with rclone)
+rclone copy /home/pi/backups/databases/ remote:recipe-backups/
+```
