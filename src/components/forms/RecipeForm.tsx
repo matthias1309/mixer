@@ -247,12 +247,15 @@ export function RecipeForm({ initialData, isEditing = false }: RecipeFormProps) 
                   disabled={isLoading}
                 />
                 <input
-                  type="number"
+                  type="text"
+                  inputMode="numeric"
                   placeholder="Menge"
-                  value={ing.quantity}
-                  onChange={(e) => updateIngredient(idx, 'quantity', parseFloat(e.target.value))}
-                  step="0.1"
-                  min="0.1"
+                  value={Math.round(ing.quantity)}
+                  onChange={(e) => {
+                    const val = e.target.value.replace(',', '.');
+                    const num = parseInt(val);
+                    updateIngredient(idx, 'quantity', isNaN(num) ? 0 : num);
+                  }}
                   className="w-20 border rounded px-3 py-2 text-sm"
                   disabled={isLoading}
                 />

@@ -250,7 +250,11 @@ export class RecipeModel {
   static getIngredients(recipeId: number): Ingredient[] {
     const db = getDatabase();
     const stmt = db.prepare('SELECT * FROM ingredients WHERE recipe_id = ? ORDER BY name ASC');
-    return stmt.all(recipeId) as Ingredient[];
+    const rows = stmt.all(recipeId) as Ingredient[];
+    return rows.map(row => ({
+      ...row,
+      quantity: Math.round(row.quantity)
+    }));
   }
 
   static getUniqueIngredients(): string[] {

@@ -152,11 +152,18 @@ export class RecipeModelAsync {
         'SELECT * FROM ingredients WHERE recipe_id = $1 ORDER BY name ASC',
         [recipeId]
       );
-      return result.rows as Ingredient[];
+      return result.rows.map(row => ({
+        ...row,
+        quantity: Math.round(row.quantity)
+      }));
     } else {
       const sqlite = db as Database.Database;
       const stmt = sqlite.prepare('SELECT * FROM ingredients WHERE recipe_id = ? ORDER BY name ASC');
-      return stmt.all(recipeId) as Ingredient[];
+      const rows = stmt.all(recipeId) as Ingredient[];
+      return rows.map(row => ({
+        ...row,
+        quantity: Math.round(row.quantity)
+      }));
     }
   }
 

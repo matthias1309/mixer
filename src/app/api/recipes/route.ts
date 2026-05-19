@@ -146,9 +146,9 @@ async function handlePOST(request: NextRequest) {
           );
         }
 
-        if (!Number.isFinite(ing.quantity) || ing.quantity <= 0) {
+        if (!Number.isInteger(ing.quantity) || ing.quantity <= 0) {
           return NextResponse.json(
-            { error: 'Ingredient quantity must be a positive number' },
+            { error: 'Ingredient quantity must be a positive integer' },
             { status: HTTP_STATUS.BAD_REQUEST }
           );
         }

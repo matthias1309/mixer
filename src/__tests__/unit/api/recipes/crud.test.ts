@@ -3,6 +3,7 @@ import { GET as GET_LIST, POST as POST_CREATE } from '../../../../app/api/recipe
 import { GET as GET_DETAIL, PUT as PUT_UPDATE, DELETE as DELETE_RECIPE } from '../../../../app/api/recipes/[id]/route';
 import { UserModel } from '../../../../lib/db/models/user';
 import { RecipeModel } from '../../../../lib/db/models/recipe';
+import { RecipeModelAsync } from '../../../../lib/db/models/recipe-async';
 import { initializeDatabase } from '../../../../lib/db/init';
 import { generateToken } from '../../../../lib/auth/tokenRefresh';
 import bcryptjs from 'bcryptjs';
@@ -621,6 +622,142 @@ describe('Recipe CRUD API', () => {
       const data = await response.json();
 
       expect(response.status).toBe(404);
+    });
+  });
+
+  describe('Integer Quantity Validation', () => {
+    test('should accept integer quantities (no decimals)', async () => {
+      const request = new NextRequest('http://localhost:3000/api/recipes', {
+        method: 'POST',
+        headers: {
+          cookie: `sessionToken=${user1Token}`,
+        },
+        body: JSON.stringify({
+          name: 'Integer Test Recipe',
+          ingredients: [
+            { name: 'flour', quantity: 500, unit: 'g' },
+            { name: 'sugar', quantity: 2, unit: 'cups' },
+          ],
+        }),
+      });
+
+      const response = await POST_CREATE(request);
+      expect(response.status).toBe(201);
+    });
+
+    test('should reject decimal quantities with decimal point (e.g., 100.5)', async () => {
+      const request = new NextRequest('http://localhost:3000/api/recipes', {
+        method: 'POST',
+        headers: {
+          cookie: `sessionToken=${user1Token}`,
+        },
+        body: JSON.stringify({
+          name: 'Decimal Point Test',
+          ingredients: [
+            { name: 'flour', quantity: 100.5, unit: 'g' },
+          ],
+        }),
+      });
+
+      const response = await POST_CREATE(request);
+      const data = await response.json();
+      expect(response.status).toBe(400);
+      expect(data.error).toContain('integer');
+    });
+
+    test('should reject zero or negative quantities', async () => {
+      const request = new NextRequest('http://localhost:3000/api/recipes', {
+        method: 'POST',
+        headers: {
+          cookie: `sessionToken=${user1Token}`,
+        },
+        body: JSON.stringify({
+          name: 'Zero Test',
+          ingredients: [
+            { name: 'flour', quantity: 0, unit: 'g' },
+          ],
+        }),
+      });
+
+      const response = await POST_CREATE(request);
+      const data = await response.json();
+      expect(response.status).toBe(400);
+      expect(data.error).toContain('positive');
+    });
+
+    test('should reject negative quantities', async () => {
+      const request = new NextRequest('http://localhost:3000/api/recipes', {
+        method: 'POST',
+        headers: {
+          cookie: `sessionToken=${user1Token}`,
+        },
+        body: JSON.stringify({
+          name: 'Negative Test',
+          ingredients: [
+            { name: 'flour', quantity: -100, unit: 'g' },
+          ],
+        }),
+      });
+
+      const response = await POST_CREATE(request);
+      const data = await response.json();
+      expect(response.status).toBe(400);
+      expect(data.error).toContain('positive');
+    });
+
+    test('PUT should also reject decimal quantities', async () => {
+      const recipe = RecipeModel.create(
+        'Update Test Recipe',
+        user1Id,
+        null,
+        null,
+        1,
+        [{ name: 'flour', quantity: 500, unit: 'g' }]
+      );
+
+      const request = new NextRequest(`http://localhost:3000/api/recipes/${recipe.id}`, {
+        method: 'PUT',
+        headers: {
+          cookie: `sessionToken=${user1Token}`,
+        },
+        body: JSON.stringify({
+          ingredients: [
+            { name: 'flour', quantity: 500.5, unit: 'g' },
+          ],
+        }),
+      });
+
+      const response = await PUT_UPDATE(request, { params: Promise.resolve({ id: String(recipe.id) }) });
+      const data = await response.json();
+      expect(response.status).toBe(400);
+      expect(data.error).toContain('integer');
+    });
+
+    test('should handle integer quantities from locale-formatted strings (e.g., commas converted)', async () => {
+      const request = new NextRequest('http://localhost:3000/api/recipes', {
+        method: 'POST',
+        headers: {
+          cookie: `sessionToken=${user1Token}`,
+        },
+        body: JSON.stringify({
+          name: 'Locale Test Recipe',
+          ingredients: [
+            { name: 'butter', quantity: 100, unit: 'g' },
+            { name: 'sugar', quantity: 250, unit: 'g' },
+          ],
+        }),
+      });
+
+      const response = await POST_CREATE(request);
+      expect(response.status).toBe(201);
+      const data = await response.json();
+
+      const recipe = await RecipeModelAsync.findById(data.id);
+      const ingredients = await RecipeModelAsync.getIngredients(data.id);
+
+      expect(ingredients).toHaveLength(2);
+      expect(ingredients[0].quantity).toBe(100);
+      expect(ingredients[1].quantity).toBe(250);
     });
   });
 });
