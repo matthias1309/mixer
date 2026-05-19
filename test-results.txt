@@ -1,0 +1,5 @@
+
+> recipe-manager@0.1.0 test
+> jest
+
+   Using tsconfig file: ./tsconfig.json

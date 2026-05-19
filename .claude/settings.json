@@ -168,14 +168,18 @@
       "Bash(python3 /tmp/validate_yaml.py)",
       "Bash(bash -n)",
       "Bash(chmod +x /tmp/verify_toc.sh)",
-      "Bash(/tmp/verify_toc.sh)"
+      "Bash(/tmp/verify_toc.sh)",
+      "Bash(grep -E \"\\\\.\\(sql|ts\\)$\")",
+      "Bash(rm -rf .data/test-*.db* && npm test 2>&1 | tail -5)",
+      "Bash(node /tmp/test_unique.js)"
     ],
     "additionalDirectories": [
       "/private/tmp",
       "/Users/matthias/Claude_Code/mixer/src/app/api/ingredients-master",
       "/Users/matthias/Claude_Code/mixer/src/app/ingredients/[id]",
       "/Users/matthias/Claude_Code/mixer/src/app/ingredients",
-      "/Users/matthias/Claude_Code/mixer/docs/roadmap/tickets"
+      "/Users/matthias/Claude_Code/mixer/docs/roadmap/tickets",
+      "/Users/matthias/Claude_Code/mixer/.data"
     ]
   },
   "enabledPlugins": {

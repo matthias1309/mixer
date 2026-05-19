@@ -58,7 +58,7 @@ export class IngredientMasterModelAsync {
     if (isPostgres()) {
       const pool = db as Pool;
       const result = await pool.query(
-        `INSERT INTO nutrition_ingredients (
+        `INSERT INTO ingredients_master (
           name, category, base_unit, base_size,
           kcal, iron, sugar, fat, protein, carbohydrates, fiber,
           salt, sodium, calcium, vitamin_d, magnesium, vitamin_b6, vitamin_b12, vitamin_e, zinc
@@ -91,7 +91,7 @@ export class IngredientMasterModelAsync {
     } else {
       const sqlite = db as Database.Database;
       const stmt = sqlite.prepare(`
-        INSERT INTO nutrition_ingredients (
+        INSERT INTO ingredients_master (
           name, category, base_unit, base_size,
           kcal, iron, sugar, fat, protein, carbohydrates, fiber,
           salt, sodium, calcium, vitamin_d, magnesium, vitamin_b6, vitamin_b12, vitamin_e, zinc
@@ -130,13 +130,13 @@ export class IngredientMasterModelAsync {
     if (isPostgres()) {
       const pool = db as Pool;
       const result = await pool.query(
-        'SELECT * FROM nutrition_ingredients WHERE id = $1',
+        'SELECT * FROM ingredients_master WHERE id = $1',
         [id]
       );
       return (result.rows[0] as IngredientMaster) || null;
     } else {
       const sqlite = db as Database.Database;
-      const stmt = sqlite.prepare('SELECT * FROM nutrition_ingredients WHERE id = ?');
+      const stmt = sqlite.prepare('SELECT * FROM ingredients_master WHERE id = ?');
       return (stmt.get(id) as IngredientMaster) || null;
     }
   }
@@ -155,12 +155,12 @@ export class IngredientMasterModelAsync {
 
       if (searchParam) {
         const countResult = await pool.query(
-          'SELECT COUNT(*) as count FROM nutrition_ingredients WHERE name ILIKE $1',
+          'SELECT COUNT(*) as count FROM ingredients_master WHERE name ILIKE $1',
           [searchParam]
         );
 
         const result = await pool.query(
-          'SELECT * FROM nutrition_ingredients WHERE name ILIKE $1 ORDER BY name ASC LIMIT $2 OFFSET $3',
+          'SELECT * FROM ingredients_master WHERE name ILIKE $1 ORDER BY name ASC LIMIT $2 OFFSET $3',
           [searchParam, pageSize, offset]
         );
 
@@ -170,11 +170,11 @@ export class IngredientMasterModelAsync {
         };
       } else {
         const countResult = await pool.query(
-          'SELECT COUNT(*) as count FROM nutrition_ingredients'
+          'SELECT COUNT(*) as count FROM ingredients_master'
         );
 
         const result = await pool.query(
-          'SELECT * FROM nutrition_ingredients ORDER BY name ASC LIMIT $1 OFFSET $2',
+          'SELECT * FROM ingredients_master ORDER BY name ASC LIMIT $1 OFFSET $2',
           [pageSize, offset]
         );
 
@@ -188,12 +188,12 @@ export class IngredientMasterModelAsync {
 
       if (searchParam) {
         const countStmt = sqlite.prepare(
-          'SELECT COUNT(*) as count FROM nutrition_ingredients WHERE name LIKE ?'
+          'SELECT COUNT(*) as count FROM ingredients_master WHERE name LIKE ?'
         );
         const countResult = countStmt.get(searchParam) as { count: number };
 
         const stmt = sqlite.prepare(
-          'SELECT * FROM nutrition_ingredients WHERE name LIKE ? ORDER BY name ASC LIMIT ? OFFSET ?'
+          'SELECT * FROM ingredients_master WHERE name LIKE ? ORDER BY name ASC LIMIT ? OFFSET ?'
         );
         const ingredients = (stmt.all(searchParam, pageSize, offset) as IngredientMaster[]) || [];
 
@@ -203,12 +203,12 @@ export class IngredientMasterModelAsync {
         };
       } else {
         const countStmt = sqlite.prepare(
-          'SELECT COUNT(*) as count FROM nutrition_ingredients'
+          'SELECT COUNT(*) as count FROM ingredients_master'
         );
         const countResult = countStmt.get() as { count: number };
 
         const stmt = sqlite.prepare(
-          'SELECT * FROM nutrition_ingredients ORDER BY name ASC LIMIT ? OFFSET ?'
+          'SELECT * FROM ingredients_master ORDER BY name ASC LIMIT ? OFFSET ?'
         );
         const ingredients = (stmt.all(pageSize, offset) as IngredientMaster[]) || [];
 
@@ -259,7 +259,7 @@ export class IngredientMasterModelAsync {
     if (isPostgres()) {
       const pool = db as Pool;
       await pool.query(
-        `UPDATE nutrition_ingredients SET
+        `UPDATE ingredients_master SET
           name = $1, category = $2, base_unit = $3, base_size = $4,
           kcal = $5, iron = $6, sugar = $7, fat = $8, protein = $9, carbohydrates = $10, fiber = $11,
           salt = $12, sodium = $13, calcium = $14, vitamin_d = $15, magnesium = $16, vitamin_b6 = $17, vitamin_b12 = $18, vitamin_e = $19, zinc = $20,
@@ -292,7 +292,7 @@ export class IngredientMasterModelAsync {
     } else {
       const sqlite = db as Database.Database;
       const stmt = sqlite.prepare(`
-        UPDATE nutrition_ingredients SET
+        UPDATE ingredients_master SET
           name = ?, category = ?, base_unit = ?, base_size = ?,
           kcal = ?, iron = ?, sugar = ?, fat = ?, protein = ?, carbohydrates = ?, fiber = ?,
           salt = ?, sodium = ?, calcium = ?, vitamin_d = ?, magnesium = ?, vitamin_b6 = ?, vitamin_b12 = ?, vitamin_e = ?, zinc = ?,
@@ -332,10 +332,10 @@ export class IngredientMasterModelAsync {
 
     if (isPostgres()) {
       const pool = db as Pool;
-      await pool.query('DELETE FROM nutrition_ingredients WHERE id = $1', [id]);
+      await pool.query('DELETE FROM ingredients_master WHERE id = $1', [id]);
     } else {
       const sqlite = db as Database.Database;
-      const stmt = sqlite.prepare('DELETE FROM nutrition_ingredients WHERE id = ?');
+      const stmt = sqlite.prepare('DELETE FROM ingredients_master WHERE id = ?');
       stmt.run(id);
     }
   }

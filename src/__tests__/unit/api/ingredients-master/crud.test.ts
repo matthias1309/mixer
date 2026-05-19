@@ -2,7 +2,7 @@
 import { GET as GET_LIST, POST as POST_CREATE } from '../../../../app/api/ingredients-master/route';
 import { GET as GET_DETAIL, PUT as PUT_UPDATE, DELETE as DELETE_INGREDIENT } from '../../../../app/api/ingredients-master/[id]/route';
 import { UserModel } from '../../../../lib/db/models/user';
-import { initializeDatabase } from '../../../../lib/db/init';
+import { initializeDatabase, closeDatabase } from '../../../../lib/db/init';
 import { generateToken } from '../../../../lib/auth/tokenRefresh';
 import bcryptjs from 'bcryptjs';
 import fs from 'fs';
@@ -34,7 +34,7 @@ describe('Ingredients Master API', () => {
     process.env.DATABASE_URL = testDbPath;
     process.env.JWT_SECRET = 'test-secret-key-must-be-32-chars-long';
     (global as any).db = undefined;
-    initializeDatabase();
+    await initializeDatabase();
 
     const passwordHash = await bcryptjs.hash('TestPassword123', 10);
     const user = await await UserModel.create('user@example.com', passwordHash);
@@ -43,15 +43,7 @@ describe('Ingredients Master API', () => {
   });
 
   afterEach(() => {
-    try {
-      const db = (global as any).db;
-      if (db && db.open) {
-        db.close();
-      }
-    } catch (e) {
-      // ignore
-    }
-    (global as any).db = undefined;
+    closeDatabase();
 
     // Clean up database file
     try {

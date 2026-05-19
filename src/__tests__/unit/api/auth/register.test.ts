@@ -1,7 +1,7 @@
 /** @jest-environment node */
 import { POST } from '../../../../app/api/auth/register/route';
 import { UserModel } from '../../../../lib/db/models/user';
-import { initializeDatabase } from '../../../../lib/db/init';
+import { initializeDatabase, closeDatabase } from '../../../../lib/db/init';
 import fs from 'fs';
 import path from 'path';
 import { NextRequest } from 'next/server';
@@ -35,16 +35,7 @@ describe('POST /api/auth/register', () => {
   });
 
   afterEach(() => {
-    // Close database
-    try {
-      const db = (global as any).db;
-      if (db) {
-        db.close();
-      }
-    } catch (e) {
-      // ignore
-    }
-    (global as any).db = undefined;
+    closeDatabase();
     if (fs.existsSync(testDbPath)) {
       fs.unlinkSync(testDbPath);
     }
