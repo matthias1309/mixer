@@ -33,7 +33,7 @@ export class RecipeScaler {
 
     const conversionFactors: Record<string, number> = {
       'TL->EL': 1 / 3,
-      'EL->ml': 1 / 15,
+      'EL->ml': 15,
       'ml->l': 1 / 1000,
     };
 

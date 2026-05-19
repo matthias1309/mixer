@@ -26,37 +26,8 @@ describe('UnitConverter', () => {
     (global as any).db = undefined;
     await initializeDatabase();
 
-    // Seed units, conversions, and densities
-    const db = getDb() as Database.Database;
-
-    const unitStmt = db.prepare(
-      'INSERT INTO units (abbreviation, name, category, base_unit) VALUES (?, ?, ?, ?)'
-    );
-    for (const unit of UNIT_SEEDS) {
-      unitStmt.run(unit.abbreviation, unit.name, unit.category, unit.base_unit);
-    }
-
-    const getUnitId = db.prepare('SELECT id FROM units WHERE abbreviation = ?');
-    const convStmt = db.prepare(
-      'INSERT INTO unit_conversions (from_unit_id, to_unit_id, conversion_factor) VALUES (?, ?, ?)'
-    );
-    for (const conv of CONVERSION_SEEDS) {
-      const from = getUnitId.get(conv.from_abbreviation) as { id: number };
-      const to = getUnitId.get(conv.to_abbreviation) as { id: number };
-      if (from && to) {
-        convStmt.run(from.id, to.id, conv.conversion_factor);
-      }
-    }
-
-    const densityStmt = db.prepare(
-      'INSERT INTO ingredient_densities (ingredient_name, volume_unit_id, weight_in_grams) VALUES (?, ?, ?)'
-    );
-    for (const density of DENSITY_SEEDS) {
-      const unit = getUnitId.get(density.volume_unit_abbreviation) as { id: number };
-      if (unit) {
-        densityStmt.run(density.ingredient_name, unit.id, density.weight_in_grams);
-      }
-    }
+    // Database is already seeded with units, conversions, and densities
+    // during initializeDatabase() call above, so we can skip manual seeding
 
     converter = new UnitConverter();
     await converter.initialize();

@@ -111,5 +111,11 @@ describe('RecipeScaler', () => {
       expect(result.unit).toBe('Prise');
       expect(result.quantity).toBe(5);
     });
+
+    it('promotes EL to ml when quantity >= 16', () => {
+      const result = scaler.promoteUnit(16, 'EL');
+      expect(result.unit).toBe('ml');
+      expect(result.quantity).toBeCloseTo(240, 0); // 16 EL × 15 = 240 ml
+    });
   });
 });
