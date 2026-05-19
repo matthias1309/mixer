@@ -676,3 +676,118 @@ sudo journalctl --vacuum=100M
 # Move database to larger storage if available
 # This requires backup and restore procedure
 ```
+
+## Health Checks
+
+### Automated Health Checks
+
+The deployment includes automatic health checks:
+
+**PostgreSQL Health Check**:
+- Tests database connectivity every 10 seconds
+- Marks container as "healthy" when accessible
+- Application waits for healthy database before starting
+
+**Check Health Status**:
+```bash
+docker-compose ps
+
+# Output shows Health column:
+# - Up (healthy) - working correctly
+# - Up - no health check configured
+# - Unhealthy - repeated check failures
+```
+
+### Manual Health Verification
+
+```bash
+# Application health
+curl http://localhost:3000/api/health
+
+# Database connectivity
+docker-compose exec postgres psql -U recipe_user -d recipe_manager -c "SELECT NOW();"
+
+# Check all services
+docker-compose ps
+
+# View detailed container info
+docker inspect mixer-app-1
+docker inspect mixer-postgres-1
+```
+
+### Monitoring Key Metrics
+
+```bash
+# CPU and Memory Usage
+docker stats --no-stream
+
+# Disk Usage
+docker system df
+
+# Container restart count
+docker-compose ps -q | xargs docker inspect --format='{{.Name}} {{.RestartCount}}'
+
+# Network throughput
+docker stats --no-stream --format "{{.Container}}\t{{.NetIO}}"
+```
+
+### Setting Up Alerts (Optional)
+
+For production use, consider monitoring:
+
+1. **Application availability**: HTTP endpoint responds
+2. **Database connectivity**: Connection pool status
+3. **Disk space**: Free space > 1GB
+4. **Memory usage**: <80% consumption
+5. **Container restarts**: Monitor restart_count trends
+
+Example monitoring script:
+
+```bash
+#!/bin/bash
+# Save as: /home/pi/monitor.sh
+
+while true; do
+  # Check application
+  if ! curl -s http://localhost:3000 > /dev/null; then
+    echo "WARNING: Application not responding"
+  fi
+  
+  # Check disk space
+  DISK_USAGE=$(df /home | tail -1 | awk '{print $5}' | cut -d% -f1)
+  if [ $DISK_USAGE -gt 80 ]; then
+    echo "WARNING: Disk usage above 80%: $DISK_USAGE%"
+  fi
+  
+  # Check container health
+  docker-compose ps | grep "Unhealthy"
+  if [ $? -eq 0 ]; then
+    echo "WARNING: Unhealthy container detected"
+  fi
+  
+  sleep 300  # Check every 5 minutes
+done
+```
+
+Run as systemd service:
+
+```bash
+# Create service file
+sudo nano /etc/systemd/system/recipe-monitor.service
+
+[Unit]
+Description=Recipe Manager Monitoring
+After=docker-compose.service
+
+[Service]
+Type=simple
+ExecStart=/home/pi/monitor.sh
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+
+# Enable and start
+sudo systemctl enable recipe-monitor
+sudo systemctl start recipe-monitor
+```
