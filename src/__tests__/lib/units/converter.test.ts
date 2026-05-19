@@ -148,5 +148,154 @@ describe('UnitConverter', () => {
         UnknownUnitError
       );
     });
+
+    it('throws ImpossibleConversionError for units without conversion', async () => {
+      await expect(converter.getConversionFactor('TL', 'g')).rejects.toThrow(
+        ImpossibleConversionError
+      );
+    });
+  });
+
+  describe('convert - same unit (identity conversion)', () => {
+    it('throws ImpossibleConversionError for ml to ml (no conversion factor)', async () => {
+      await expect(converter.convert(100, 'ml', 'ml')).rejects.toThrow(
+        ImpossibleConversionError
+      );
+    });
+
+    it('throws ImpossibleConversionError for g to g (no conversion factor)', async () => {
+      await expect(converter.convert(250, 'g', 'g')).rejects.toThrow(
+        ImpossibleConversionError
+      );
+    });
+  });
+
+  describe('weightToVolume conversion', () => {
+    it('converts g Mehl to ml', async () => {
+      // Mehl has 1.0 g/ml density
+      const result = await converter.convert(10, 'g', 'ml', 'Mehl');
+      expect(result).toBeCloseTo(10, 1);
+    });
+
+    it('converts kg Zucker to ml', async () => {
+      // Zucker has 0.8 g/ml density, so 1000g = 1250ml
+      const result = await converter.convert(1, 'kg', 'ml', 'Zucker');
+      expect(result).toBeCloseTo(1250, 0);
+    });
+
+    it('throws MissingDensityError when ml density not available for weightToVolume', async () => {
+      // Salz only has TL and EL densities, no ml density
+      await expect(
+        converter.convert(100, 'g', 'ml', 'Salz')
+      ).rejects.toThrow(MissingDensityError);
+    });
+  });
+
+  describe('cross-category impossible conversions', () => {
+    it('throws ImpossibleConversionError for count to weight', async () => {
+      await expect(converter.convert(1, 'Stück', 'g', 'SomeFood')).rejects.toThrow(
+        ImpossibleConversionError
+      );
+    });
+
+    it('throws ImpossibleConversionError for pinch to weight', async () => {
+      await expect(converter.convert(1, 'Prise', 'g', 'SomeFood')).rejects.toThrow(
+        ImpossibleConversionError
+      );
+    });
+
+    it('throws ImpossibleConversionError for weight to count', async () => {
+      await expect(converter.convert(100, 'g', 'Stück', 'SomeFood')).rejects.toThrow(
+        ImpossibleConversionError
+      );
+    });
+  });
+
+  describe('normalizeToBaseUnit - cross-category with density', () => {
+    it('normalizes TL Mehl to ml (base unit)', async () => {
+      const result = await converter.normalizeToBaseUnit(1, 'TL', 'Mehl');
+      expect(result).toEqual({ quantity: 5, unit: 'ml' });
+    });
+
+    it('normalizes kg to g (base unit for weight)', async () => {
+      const result = await converter.normalizeToBaseUnit(2, 'kg');
+      expect(result).toEqual({ quantity: 2000, unit: 'g' });
+    });
+  });
+
+  describe('convert - missing ingredient density', () => {
+    it('throws ImpossibleConversionError without ingredientName for cross-category', async () => {
+      await expect(converter.convert(1, 'TL', 'g')).rejects.toThrow(
+        ImpossibleConversionError
+      );
+    });
+
+    it('throws MissingDensityError for volumeToWeight with missing density per unit', async () => {
+      // Öl has TL and EL but no ml density
+      await expect(
+        converter.convert(100, 'ml', 'g', 'Öl')
+      ).rejects.toThrow(MissingDensityError);
+    });
+  });
+
+  describe('normalizeToBaseUnit - error handling', () => {
+    it('throws UnknownUnitError for unknown unit', async () => {
+      await expect(converter.normalizeToBaseUnit(1, 'unknown')).rejects.toThrow(
+        UnknownUnitError
+      );
+    });
+  });
+
+  describe('convert - additional edge cases', () => {
+    it('converts between different volume units with multiple steps', async () => {
+      // EL to ml conversion
+      const result = await converter.convert(2, 'EL', 'ml');
+      expect(result).toBeCloseTo(30, 0);
+    });
+
+    it('converts multiple density ingredients to verify consistency', async () => {
+      // Test Butter which has different density than Mehl
+      const result = await converter.convert(1, 'EL', 'g', 'Butter');
+      expect(result).toBeCloseTo(15, 1);
+    });
+
+    it('converts Honig (honey) volume to weight', async () => {
+      const result = await converter.convert(1, 'TL', 'g', 'Honig');
+      expect(result).toBeCloseTo(7, 1);
+    });
+
+    it('normalizes l to ml (base unit in volume)', async () => {
+      const result = await converter.normalizeToBaseUnit(1, 'l');
+      expect(result).toEqual({ quantity: 1000, unit: 'ml' });
+    });
+
+    it('normalizes EL to ml with cross-category ingredient', async () => {
+      const result = await converter.normalizeToBaseUnit(1, 'EL', 'Zucker');
+      expect(result.unit).toBe('ml');
+      expect(result.quantity).toBeCloseTo(15, 1);
+    });
+
+    it('converts kg Honig to ml', async () => {
+      // Honig: 1.4 g/ml, so 1000g = 714ml
+      const result = await converter.convert(1, 'kg', 'ml', 'Honig');
+      expect(result).toBeCloseTo(714, 0);
+    });
+
+    it('converts g Öl to ml', async () => {
+      // Öl: 0.9 g/ml (from Butter density), so 9g = 10ml
+      const result = await converter.convert(9, 'g', 'ml', 'Butter');
+      expect(result).toBeCloseTo(10, 0);
+    });
+
+    it('throws UnknownUnitError in normalizeToBaseUnit for unknown unit', async () => {
+      await expect(converter.normalizeToBaseUnit(1, 'invalidUnit')).rejects.toThrow(
+        UnknownUnitError
+      );
+    });
+
+    it('converts g to kg (weight normalization)', async () => {
+      const result = await converter.convert(2000, 'g', 'kg');
+      expect(result).toBeCloseTo(2, 1);
+    });
   });
 });
