@@ -37,9 +37,6 @@ coverage/
 *.sqlite3
 postgres_data/
 
-# Docker
-docker-compose.local.yml
-
 # Logs
 *.log
 npm-debug.log*
