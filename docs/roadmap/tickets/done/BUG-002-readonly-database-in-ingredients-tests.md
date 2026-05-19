@@ -1,7 +1,7 @@
 # BUG-002: Read-only Database Error in ingredients.test.ts
 
 ## Status
-🔴 Open
+✅ Resolved
 
 ## Description
 Two tests in `src/__tests__/unit/api/recipes/ingredients.test.ts` are failing with "attempt to write a readonly database" errors:

@@ -161,7 +161,8 @@
       "Skill(superpowers:test-driven-development)",
       "Skill(superpowers:test-driven-development:*)",
       "Bash(pkill -f \"npm run dev\")",
-      "Bash(mkdir -p /Users/matthias/Claude_Code/mixer/docs/roadmap/tickets/done && mv /Users/matthias/Claude_Code/mixer/docs/roadmap/tickets/BUG-*.md /Users/matthias/Claude_Code/mixer/docs/roadmap/tickets/done/ && ls -la /Users/matthias/Claude_Code/mixer/docs/roadmap/tickets/done/)"
+      "Bash(mkdir -p /Users/matthias/Claude_Code/mixer/docs/roadmap/tickets/done && mv /Users/matthias/Claude_Code/mixer/docs/roadmap/tickets/BUG-*.md /Users/matthias/Claude_Code/mixer/docs/roadmap/tickets/done/ && ls -la /Users/matthias/Claude_Code/mixer/docs/roadmap/tickets/done/)",
+      "Bash(killall node *)"
     ],
     "additionalDirectories": [
       "/private/tmp",
