@@ -3,9 +3,9 @@
 
 CREATE TABLE IF NOT EXISTS unit_conversions (
   id SERIAL PRIMARY KEY,
-  from_unit_id INTEGER NOT NULL REFERENCES units(id),
-  to_unit_id INTEGER NOT NULL REFERENCES units(id),
-  conversion_factor DECIMAL(10, 4) NOT NULL,
+  from_unit_id INTEGER NOT NULL REFERENCES units(id) ON DELETE RESTRICT,
+  to_unit_id INTEGER NOT NULL REFERENCES units(id) ON DELETE RESTRICT,
+  conversion_factor NUMERIC(10, 4) NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   UNIQUE(from_unit_id, to_unit_id)
 );

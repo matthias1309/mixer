@@ -4,8 +4,8 @@
 CREATE TABLE IF NOT EXISTS ingredient_densities (
   id SERIAL PRIMARY KEY,
   ingredient_name VARCHAR(255) NOT NULL,
-  volume_unit_id INTEGER NOT NULL REFERENCES units(id),
-  weight_in_grams DECIMAL(10, 2) NOT NULL,
+  volume_unit_id INTEGER NOT NULL REFERENCES units(id) ON DELETE RESTRICT,
+  weight_in_grams NUMERIC(10, 2) NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   UNIQUE(ingredient_name, volume_unit_id)
 );

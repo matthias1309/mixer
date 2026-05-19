@@ -178,7 +178,16 @@
       "Bash(docker-compose -f /Users/matthias/Claude_Code/mixer/docker-compose.production.yml config)",
       "Bash(grep -E \"\\\\.\\(sh|js|py|bash\\)$\")",
       "Bash(bash -n /Users/matthias/Claude_Code/mixer/scripts/deploy-pi.sh)",
-      "Bash(git mv *)"
+      "Bash(git mv *)",
+      "WebSearch",
+      "Read(//Users/matthias/.claude/plugins/cache/claude-plugins-official/superpowers/5.1.0/skills/subagent-driven-development/**)",
+      "Read(//Users/matthias/.claude/plugins/cache/claude-plugins-official/superpowers/5.1.0/skills/requesting-code-review/**)",
+      "Bash(grep -E \"\\\\.\\(ts|js\\)$\")",
+      "Bash(node -r ts-node/register -e ' *)",
+      "Bash(npx ts-node -e ' *)",
+      "Bash(docker compose -f docker-compose.local.yml exec -T postgres psql -U recipe_user -d recipe_manager -c ' *)",
+      "Bash(docker compose *)",
+      "Bash(node -e ' *)"
     ],
     "additionalDirectories": [
       "/private/tmp",
