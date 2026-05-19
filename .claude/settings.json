@@ -173,7 +173,12 @@
       "Bash(rm -rf .data/test-*.db* && npm test 2>&1 | tail -5)",
       "Bash(node /tmp/test_unique.js)",
       "Bash(git tag *)",
-      "Bash(git reset *)"
+      "Bash(git reset *)",
+      "Bash(docker run *)",
+      "Bash(docker-compose -f /Users/matthias/Claude_Code/mixer/docker-compose.production.yml config)",
+      "Bash(grep -E \"\\\\.\\(sh|js|py|bash\\)$\")",
+      "Bash(bash -n /Users/matthias/Claude_Code/mixer/scripts/deploy-pi.sh)",
+      "Bash(git mv *)"
     ],
     "additionalDirectories": [
       "/private/tmp",
