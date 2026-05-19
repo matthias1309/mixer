@@ -1,6 +1,6 @@
 /** @jest-environment node */
 import { IngredientMasterModelAsync } from '@/lib/db/models/ingredientMasterAsync';
-import { initializeDatabase } from '@/lib/db/init';
+import { initializeDatabase, closeDatabase } from '@/lib/db/init';
 import { mkdtempSync, rmSync } from 'fs';
 import { tmpdir } from 'os';
 import { join } from 'path';
@@ -17,11 +17,7 @@ describe('IngredientMasterModelAsync', () => {
   });
 
   afterEach(() => {
-    const db = (global as any).db;
-    if (db) {
-      db.close();
-    }
-    (global as any).db = undefined;
+    closeDatabase();
     rmSync(dbPath, { recursive: true, force: true });
     delete process.env.DATABASE_URL;
   });

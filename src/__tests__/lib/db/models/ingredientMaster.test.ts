@@ -1,6 +1,6 @@
 /** @jest-environment node */
 import { IngredientMasterModel, CreateIngredientMasterRequest } from '@/lib/db/models/ingredientMaster';
-import { initializeDatabase } from '@/lib/db/init';
+import { initializeDatabase, closeDatabase } from '@/lib/db/init';
 import Database from 'better-sqlite3';
 import { mkdtempSync, rmSync } from 'fs';
 import { tmpdir } from 'os';
@@ -18,10 +18,9 @@ describe('IngredientMasterModel', () => {
   });
 
   afterEach(() => {
-    db?.close();
+    closeDatabase();
     rmSync(dbPath, { recursive: true, force: true });
     delete process.env.DATABASE_URL;
-    delete (global as any).db;
   });
 
   describe('create', () => {

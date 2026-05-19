@@ -2,7 +2,7 @@
 import { RecipeModel } from '@/lib/db/models/recipe';
 import { IngredientMasterModel } from '@/lib/db/models/ingredientMaster';
 import { UserModel } from '@/lib/db/models/user';
-import { initializeDatabase } from '@/lib/db/init';
+import { initializeDatabase, closeDatabase } from '@/lib/db/init';
 import Database from 'better-sqlite3';
 import { mkdtempSync, rmSync } from 'fs';
 import { tmpdir } from 'os';
@@ -62,11 +62,10 @@ describe('RecipeModel - Scoring Methods', () => {
   });
 
   afterEach(() => {
-    db?.close();
+    closeDatabase();
     rmSync(dbPath, { recursive: true, force: true });
     delete process.env.DATABASE_URL;
     delete process.env.JWT_SECRET;
-    delete (global as any).db;
   });
 
   describe('getNutrients', () => {
