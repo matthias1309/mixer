@@ -1,5 +1,21 @@
 # Deployment Guide for Raspberry Pi
 
+## Table of Contents
+
+1. [Prerequisites](#prerequisites)
+2. [Environment Configuration](#environment-configuration)
+3. [Pre-Deployment Setup](#pre-deployment-setup)
+4. [Docker Deployment](#docker-deployment)
+5. [Container Management](#container-management)
+6. [Updating the Application](#updating-the-application)
+7. [Logging and Monitoring](#logging-and-monitoring)
+8. [Troubleshooting](#troubleshooting)
+9. [Health Checks](#health-checks)
+10. [Backup and Recovery Strategy](#backup-and-recovery-strategy)
+11. [Quick Reference](#quick-reference)
+
+---
+
 ## Prerequisites
 
 ### Hardware
@@ -963,4 +979,61 @@ rsync -avz /home/pi/backups/ username@remote-server:/backups/mixer/
 
 # Or upload to cloud storage (example with rclone)
 rclone copy /home/pi/backups/databases/ remote:recipe-backups/
+```
+
+## Quick Reference
+
+### Deployment Checklist
+
+- [ ] Prerequisites installed and verified
+- [ ] Environment file (.env.production) created and configured
+- [ ] Repository cloned to /home/pi/apps/mixer
+- [ ] Application built (npm run build)
+- [ ] Docker images built (docker-compose build)
+- [ ] Containers started (docker-compose up -d)
+- [ ] Application accessible at http://raspberrypi.local:3000
+- [ ] Backup script created and scheduled
+- [ ] Monitoring configured (optional)
+
+### Common Commands
+
+```bash
+# Daily Operations
+docker-compose ps                    # Check service status
+docker-compose logs -f app           # View application logs
+curl http://localhost:3000           # Test application
+
+# Maintenance
+docker-compose restart               # Restart services
+docker-compose down && docker-compose up -d  # Full restart
+git pull && npm install && npm run build  # Update application
+docker system prune -a               # Cleanup unused resources
+
+# Backup
+/home/pi/backup-database.sh          # Run manual backup
+ls -lh /home/pi/backups/databases/   # View backups
+
+# Troubleshooting
+docker-compose logs postgres         # Database logs
+docker stats                         # Resource usage
+df -h                               # Disk space
+free -h                             # Memory usage
+```
+
+### Important Paths
+
+```
+/home/pi/apps/mixer/              # Application directory
+/home/pi/backups/databases/       # Database backups
+.env.production                   # Environment configuration
+docker-compose.yml                # Service configuration
+docs/deployment.md                # This guide
+```
+
+### Support and Documentation
+
+- **Application Code**: `/home/pi/apps/mixer/`
+- **Docker Docs**: https://docs.docker.com/
+- **PostgreSQL Docs**: https://www.postgresql.org/docs/
+- **Raspberry Pi Docs**: https://www.raspberrypi.com/documentation/
 ```
