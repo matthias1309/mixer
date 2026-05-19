@@ -18,6 +18,24 @@ services:
       timeout: 10s
       retries: 3
       start_period: 10s
+    networks:
+      - mixer-network
+
+  mixer-caddy:
+    image: caddy:2-alpine
+    container_name: mixer-caddy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - mixer-app
+    restart: unless-stopped
+    networks:
+      - mixer-network
 
   mixer-db:
     image: postgres:16-alpine
@@ -36,3 +54,15 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - mixer-network
+
+volumes:
+  caddy_data:
+    driver: local
+  caddy_config:
+    driver: local
+
+networks:
+  mixer-network:
+    driver: bridge
