@@ -171,7 +171,9 @@
       "Bash(/tmp/verify_toc.sh)",
       "Bash(grep -E \"\\\\.\\(sql|ts\\)$\")",
       "Bash(rm -rf .data/test-*.db* && npm test 2>&1 | tail -5)",
-      "Bash(node /tmp/test_unique.js)"
+      "Bash(node /tmp/test_unique.js)",
+      "Bash(git tag *)",
+      "Bash(git reset *)"
     ],
     "additionalDirectories": [
       "/private/tmp",
