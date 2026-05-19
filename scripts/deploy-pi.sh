@@ -19,6 +19,7 @@ DB_USER="mixer_user"
 DB_NAME="mixer"
 DB_PASSWORD=""
 JWT_SECRET=""
+NEXTAUTH_SECRET=""
 PI_IP=""
 
 # Function to print colored output
@@ -40,15 +41,16 @@ usage() {
 Usage: $0 [OPTIONS]
 
 OPTIONS:
-  --db-password PASSWORD    PostgreSQL password (required)
-  --jwt-secret SECRET       JWT secret for auth (required)
-  --db-user USERNAME        PostgreSQL user (default: mixer_user)
-  --db-name DBNAME          PostgreSQL database name (default: mixer)
-  --pi-ip IP                PI IP address for verification (optional)
-  --help                    Show this help message
+  --db-password PASSWORD      PostgreSQL password (required)
+  --jwt-secret SECRET         JWT secret for auth (required)
+  --nextauth-secret SECRET    NextAuth secret for OAuth (required for HTTPS)
+  --db-user USERNAME          PostgreSQL user (default: mixer_user)
+  --db-name DBNAME            PostgreSQL database name (default: mixer)
+  --pi-ip IP                  PI IP address for verification (optional)
+  --help                      Show this help message
 
 EXAMPLE:
-  $0 --db-password "secure123" --jwt-secret "jwt-secret-key"
+  $0 --db-password "secure123" --jwt-secret "jwt-key" --nextauth-secret "oauth-key"
 EOF
   exit 1
 }
@@ -62,6 +64,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     --jwt-secret)
       JWT_SECRET="$2"
+      shift 2
+      ;;
+    --nextauth-secret)
+      NEXTAUTH_SECRET="$2"
       shift 2
       ;;
     --db-user)
@@ -87,8 +93,8 @@ while [[ $# -gt 0 ]]; do
 done
 
 # Validate required arguments
-if [[ -z "$DB_PASSWORD" || -z "$JWT_SECRET" ]]; then
-  log_error "Missing required arguments"
+if [[ -z "$DB_PASSWORD" || -z "$JWT_SECRET" || -z "$NEXTAUTH_SECRET" ]]; then
+  log_error "Missing required arguments (db-password, jwt-secret, nextauth-secret required)"
   usage
 fi
 
@@ -145,6 +151,8 @@ DB_USER=$DB_USER
 DB_PASSWORD=$DB_PASSWORD
 DB_NAME=$DB_NAME
 JWT_SECRET=$JWT_SECRET
+NEXTAUTH_URL=https://raspberrypi.local
+NEXTAUTH_SECRET=$NEXTAUTH_SECRET
 NODE_ENV=production
 EOF
 
@@ -153,6 +161,7 @@ log_info ".env.production generated ✓"
 # Step 6: Copy configuration files to PI
 log_info "Copying configuration to PI..."
 scp "$COMPOSE_FILE" "$PI_HOST:$PI_APP_PATH/$COMPOSE_FILE"
+scp "Caddyfile" "$PI_HOST:$PI_APP_PATH/Caddyfile"
 scp "$ENV_FILE" "$PI_HOST:$PI_APP_PATH/.env.production"
 rm "$ENV_FILE"
 log_info "Configuration copied ✓"
@@ -187,17 +196,20 @@ log_info "Database initialized ✓"
 log_info "Verifying deployment..."
 sleep 5
 
-# Try to verify with curl if IP provided
+# Try to verify with curl (Caddy is on port 80, internal app on 3001)
 if [[ -n "$PI_IP" ]]; then
-  if curl -s -m 5 "http://$PI_IP:3001" > /dev/null; then
-    log_info "Application is responding on http://$PI_IP:3001 ✓"
+  # Test HTTP access through Caddy (should redirect to HTTPS)
+  if curl -s -m 5 -L "http://$PI_IP" > /dev/null; then
+    log_info "Application is responding through Caddy reverse proxy on http://$PI_IP ✓"
   else
-    log_warn "Could not verify application response. Check logs manually:"
+    log_warn "Could not verify application response through Caddy. Check logs manually:"
+    log_warn "  ssh $PI_HOST 'cd $PI_APP_PATH && docker compose -f $COMPOSE_FILE logs mixer-caddy'"
     log_warn "  ssh $PI_HOST 'cd $PI_APP_PATH && docker compose -f $COMPOSE_FILE logs mixer-app'"
   fi
 else
   log_info "Application deployed. Verify with:"
   log_info "  ssh $PI_HOST 'cd $PI_APP_PATH && docker compose -f $COMPOSE_FILE ps'"
+  log_info "  ssh $PI_HOST 'cd $PI_APP_PATH && docker compose -f $COMPOSE_FILE logs mixer-caddy'"
   log_info "  ssh $PI_HOST 'cd $PI_APP_PATH && docker compose -f $COMPOSE_FILE logs mixer-app'"
 fi
 
@@ -206,11 +218,18 @@ log_info "========================================"
 log_info "Deployment complete!"
 log_info "========================================"
 log_info "App location: $PI_APP_PATH"
-log_info "Database: PostgreSQL ($DB_USER@$DB_NAME)"
+log_info "Access URL:   https://raspberrypi.local (via Caddy HTTPS reverse proxy)"
+log_info "Database:     PostgreSQL ($DB_USER@$DB_NAME)"
 log_info ""
 log_info "Useful commands:"
 log_info "  View status:     ssh $PI_HOST 'cd $PI_APP_PATH && docker compose -f $COMPOSE_FILE ps'"
-log_info "  View logs:       ssh $PI_HOST 'cd $PI_APP_PATH && docker compose -f $COMPOSE_FILE logs -f mixer-app'"
+log_info "  View Caddy logs: ssh $PI_HOST 'cd $PI_APP_PATH && docker compose -f $COMPOSE_FILE logs -f mixer-caddy'"
+log_info "  View app logs:   ssh $PI_HOST 'cd $PI_APP_PATH && docker compose -f $COMPOSE_FILE logs -f mixer-app'"
 log_info "  Enter database:  ssh $PI_HOST 'cd $PI_APP_PATH && docker compose -f $COMPOSE_FILE --env-file .env.production exec mixer-db psql -U $DB_USER -d $DB_NAME'"
 log_info "  Stop services:   ssh $PI_HOST 'cd $PI_APP_PATH && docker compose -f $COMPOSE_FILE down'"
+log_info ""
+log_info "HTTPS Setup:"
+log_info "  - Caddy automatically manages certificates for .local domains"
+log_info "  - First access may show certificate warning (self-signed is expected)"
+log_info "  - HTTP traffic is automatically redirected to HTTPS"
 log_info ""
