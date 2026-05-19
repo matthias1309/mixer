@@ -3,7 +3,7 @@
 **Type**: Chore  
 **Effort**: 2 story points  
 **Priority**: P1 (Should Have)  
-**Status**: Ready  
+**Status**: Done  
 **Phase**: 5 - E2E & Documentation  
 **Order**: 31st  
 
