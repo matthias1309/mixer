@@ -92,6 +92,9 @@
 - [x] OCR Recipe Upload (~13 pts equivalent) - ✅ 2026-05-15
 - [x] Advanced Phase Filter (~2 pts equivalent) - ✅ 2026-05-15
 
+**Maintenance & Quality (Completed)**
+- [x] [MAINT-002](tickets/MAINT-002-https-setup-raspberry-pi.md) - HTTPS Setup on Raspberry Pi with Caddy (3 pts) - ✅ 2026-05-19
+
 ### 🎯 Ready to Start (Phase 2 - Authentication)
 
 ### 📦 Ready (Phase 5 - Documentation & Deployment)
