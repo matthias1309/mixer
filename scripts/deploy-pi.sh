@@ -20,6 +20,7 @@ DB_NAME="mixer"
 DB_PASSWORD=""
 JWT_SECRET=""
 NEXTAUTH_SECRET=""
+HOSTNAME="raspberrypi.local"
 PI_IP=""
 
 # Function to print colored output
@@ -44,13 +45,14 @@ OPTIONS:
   --db-password PASSWORD      PostgreSQL password (required)
   --jwt-secret SECRET         JWT secret for auth (required)
   --nextauth-secret SECRET    NextAuth secret for OAuth (required for HTTPS)
+  --hostname HOSTNAME         Raspberry Pi hostname (default: raspberrypi.local)
   --db-user USERNAME          PostgreSQL user (default: mixer_user)
   --db-name DBNAME            PostgreSQL database name (default: mixer)
   --pi-ip IP                  PI IP address for verification (optional)
   --help                      Show this help message
 
 EXAMPLE:
-  $0 --db-password "secure123" --jwt-secret "jwt-key" --nextauth-secret "oauth-key"
+  $0 --db-password "secure123" --jwt-secret "jwt-key" --nextauth-secret "oauth-key" --hostname "dockerhome.local"
 EOF
   exit 1
 }
@@ -68,6 +70,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     --nextauth-secret)
       NEXTAUTH_SECRET="$2"
+      shift 2
+      ;;
+    --hostname)
+      HOSTNAME="$2"
       shift 2
       ;;
     --db-user)
@@ -142,7 +148,21 @@ log_info "Copying database migrations to PI..."
 scp -r src/lib/db/migrations/* "$PI_HOST:/opt/containers/apps/mixer/src/lib/db/migrations/" 2>/dev/null || log_warn "Could not copy migrations (optional)"
 log_info "Migrations copied ✓"
 
-# Step 5: Generate .env.production file
+# Step 5: Generate Caddyfile with correct hostname
+log_info "Generating Caddyfile with hostname: $HOSTNAME..."
+CADDY_FILE=$(mktemp)
+cat > "$CADDY_FILE" << EOF
+$HOSTNAME {
+  reverse_proxy mixer-app:3001 {
+    header_up X-Forwarded-Proto https
+    header_up X-Forwarded-Host {host}
+  }
+}
+EOF
+
+log_info "Caddyfile generated ✓"
+
+# Step 5b: Generate .env.production file
 log_info "Generating .env.production file..."
 ENV_FILE=$(mktemp)
 cat > "$ENV_FILE" << EOF
@@ -151,7 +171,7 @@ DB_USER=$DB_USER
 DB_PASSWORD=$DB_PASSWORD
 DB_NAME=$DB_NAME
 JWT_SECRET=$JWT_SECRET
-NEXTAUTH_URL=https://raspberrypi.local
+NEXTAUTH_URL=https://$HOSTNAME
 NEXTAUTH_SECRET=$NEXTAUTH_SECRET
 NODE_ENV=production
 EOF
@@ -161,9 +181,9 @@ log_info ".env.production generated ✓"
 # Step 6: Copy configuration files to PI
 log_info "Copying configuration to PI..."
 scp "$COMPOSE_FILE" "$PI_HOST:$PI_APP_PATH/$COMPOSE_FILE"
-scp "Caddyfile" "$PI_HOST:$PI_APP_PATH/Caddyfile"
+scp "$CADDY_FILE" "$PI_HOST:$PI_APP_PATH/Caddyfile"
 scp "$ENV_FILE" "$PI_HOST:$PI_APP_PATH/.env.production"
-rm "$ENV_FILE"
+rm "$CADDY_FILE" "$ENV_FILE"
 log_info "Configuration copied ✓"
 
 # Step 7: Stop old containers and start new ones
@@ -218,7 +238,7 @@ log_info "========================================"
 log_info "Deployment complete!"
 log_info "========================================"
 log_info "App location: $PI_APP_PATH"
-log_info "Access URL:   https://raspberrypi.local (via Caddy HTTPS reverse proxy)"
+log_info "Access URL:   https://$HOSTNAME (via Caddy HTTPS reverse proxy)"
 log_info "Database:     PostgreSQL ($DB_USER@$DB_NAME)"
 log_info ""
 log_info "Useful commands:"
