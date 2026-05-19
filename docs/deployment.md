@@ -266,4 +266,73 @@ services:
 
 volumes:
   postgres_data:
+
+## Container Management
+
+### Starting/Stopping Services
+
+```bash
+# Start all containers
+docker-compose up -d
+
+# Stop all containers (graceful shutdown)
+docker-compose stop
+
+# Stop and remove containers
+docker-compose down
+
+# Stop and remove everything including volumes
+docker-compose down -v  # WARNING: Deletes database data!
+```
+
+### View Container Status
+
+```bash
+# Show running containers
+docker-compose ps
+
+# Show all containers (including stopped)
+docker ps -a
+
+# Show resource usage
+docker stats
+```
+
+### Accessing Containers
+
+```bash
+# Execute command in app container
+docker-compose exec app sh
+
+# Execute command in postgres container
+docker-compose exec postgres psql -U recipe_user -d recipe_manager
+
+# Example: Connect to database directly
+docker-compose exec postgres psql -U recipe_user -d recipe_manager -c "SELECT version();"
+```
+
+### Restart Services
+
+```bash
+# Restart all services
+docker-compose restart
+
+# Restart specific service
+docker-compose restart app
+
+# Restart with zero downtime (most applications)
+docker-compose up -d --no-deps --build app
+```
+
+### Remove Images and Cleanup
+
+```bash
+# Remove unused images
+docker image prune
+
+# Remove all unused objects (images, containers, networks, volumes)
+docker system prune
+
+# Force remove containers
+docker-compose rm -f
 ```
