@@ -408,3 +408,80 @@ docker-compose exec postgres psql -U recipe_user -d recipe_manager -f migrations
 # Then restart application
 docker-compose restart app
 ```
+
+## Logging and Monitoring
+
+### View Application Logs
+
+```bash
+# View application logs (last 50 lines)
+docker-compose logs app
+
+# View database logs
+docker-compose logs postgres
+
+# View all service logs
+docker-compose logs
+
+# Follow logs in real-time
+docker-compose logs -f app
+
+# View logs from specific time
+docker-compose logs --since 10m app
+
+# View last N lines
+docker-compose logs --tail 100 app
+```
+
+### Application Log Levels
+
+Configure logging detail in `.env.production`:
+
+```bash
+LOG_LEVEL=info    # Standard production (info, warn, error)
+LOG_LEVEL=debug   # Detailed troubleshooting (includes debug messages)
+LOG_LEVEL=error   # Errors only
+```
+
+### Database Logs
+
+```bash
+# View PostgreSQL logs
+docker-compose logs postgres
+
+# Connect to database and check logs
+docker-compose exec postgres psql -U recipe_user -d recipe_manager -c "SELECT * FROM pg_log;"
+```
+
+### Persisting Logs
+
+By default, Docker logs are stored in:
+```
+/var/lib/docker/containers/<container-id>/<container-id>-json.log
+```
+
+To enable persistent logging, add to `docker-compose.yml`:
+
+```yaml
+services:
+  app:
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "10"
+```
+
+This limits logs to 100MB per file, keeping maximum 10 files.
+
+### Health Checks
+
+The PostgreSQL service includes a health check:
+
+```bash
+# View health status
+docker-compose ps
+
+# Health check is automatically performed every 10 seconds
+# Failing health checks trigger automatic restart
+```
