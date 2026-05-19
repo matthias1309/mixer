@@ -485,3 +485,194 @@ docker-compose ps
 # Health check is automatically performed every 10 seconds
 # Failing health checks trigger automatic restart
 ```
+
+## Troubleshooting
+
+### Application won't start
+
+**Symptom**: `docker-compose up` fails or app container exits immediately
+
+**Solution**:
+```bash
+# Check application logs for errors
+docker-compose logs app
+
+# Common issues:
+# 1. Environment variables not set
+# Check .env.production exists and has all required variables
+
+# 2. Database connection failed
+# Verify PostgreSQL is running and healthy
+docker-compose ps
+docker-compose logs postgres
+
+# 3. Port already in use
+# Change port in docker-compose.yml or kill existing process
+sudo lsof -i :3000
+kill -9 <PID>
+```
+
+### Database connection errors
+
+**Symptom**: "Unable to connect to database" in application logs
+
+**Solution**:
+```bash
+# Verify PostgreSQL is running and healthy
+docker-compose ps
+# Status should show "Up (healthy)"
+
+# Check database credentials match environment variables
+cat .env.production | grep DATABASE_URL
+
+# Connect directly to test database
+docker-compose exec postgres psql -U recipe_user -d recipe_manager -c "SELECT 1;"
+
+# Check PostgreSQL logs
+docker-compose logs postgres
+
+# Restart PostgreSQL container
+docker-compose restart postgres
+```
+
+### High memory usage
+
+**Symptom**: Application or database consuming too much memory
+
+**Solution**:
+```bash
+# Monitor resource usage
+docker stats
+
+# Check for memory leaks in application
+docker-compose logs app | grep -i memory
+
+# Restart containers to clear memory
+docker-compose restart
+
+# Consider increasing Raspberry Pi swap:
+# Check current swap
+free -h
+
+# Add swap if needed
+sudo fallocate -l 2G /swapfile
+sudo chmod 600 /swapfile
+sudo mkswap /swapfile
+sudo swapon /swapfile
+```
+
+### Slow performance
+
+**Symptom**: Application responds slowly
+
+**Solution**:
+```bash
+# Check database performance
+docker-compose exec postgres psql -U recipe_user -d recipe_manager -c "\\dt"
+
+# Review application logs for slow queries
+docker-compose logs app | grep -i slow
+
+# Check system resources
+free -h
+df -h
+top
+
+# Check network connectivity
+ping -c 5 8.8.8.8
+
+# Consider optimizing:
+# 1. Database indexes
+# 2. Application caching
+# 3. Raspberry Pi thermal throttling (ensure good cooling)
+```
+
+### Port conflicts
+
+**Symptom**: "Port 3000 already in use" or similar error
+
+**Solution**:
+```bash
+# Find process using port 3000
+sudo lsof -i :3000
+
+# Kill the process
+sudo kill -9 <PID>
+
+# Or change port in docker-compose.yml
+# Change "3000:3000" to "8080:3000"
+
+# Restart services
+docker-compose down
+docker-compose up -d
+```
+
+### Network not accessible
+
+**Symptom**: Cannot reach application from other devices
+
+**Solution**:
+```bash
+# Verify container is running
+docker-compose ps
+
+# Test from Raspberry Pi locally
+curl http://localhost:3000
+
+# Check Raspberry Pi IP address
+hostname -I
+
+# From other device, try:
+curl http://<raspberry-pi-ip>:3000
+
+# Check firewall (if enabled)
+sudo ufw status
+sudo ufw allow 3000
+
+# Verify network connectivity
+ping <raspberry-pi-ip>
+```
+
+### Container keeps restarting
+
+**Symptom**: Container exits and restarts in a loop
+
+**Solution**:
+```bash
+# Check container logs
+docker-compose logs app
+
+# Look for crash reasons in logs
+
+# If database health check is failing:
+docker-compose logs postgres
+
+# Disable auto-restart temporarily to debug
+docker-compose stop
+docker-compose up app  # Without -d flag to see live output
+
+# Check environment variables
+docker-compose config | grep -A 20 "environment:"
+```
+
+### Disk space issues
+
+**Symptom**: "No space left on device" errors
+
+**Solution**:
+```bash
+# Check disk usage
+df -h
+
+# Check Docker usage
+docker system df
+
+# Clean up unused Docker objects
+docker system prune -a
+
+# Check and clean old logs
+sudo journalctl --vacuum=100M
+
+# Move database to larger storage if available
+# This requires backup and restore procedure
+```
