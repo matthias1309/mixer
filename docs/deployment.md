@@ -336,3 +336,75 @@ docker system prune
 # Force remove containers
 docker-compose rm -f
 ```
+
+## Updating the Application
+
+### Update Procedure
+
+When new code is deployed, follow these steps:
+
+```bash
+# 1. Pull latest code
+cd /home/pi/apps/mixer
+git pull origin main
+
+# 2. Check for environment variable changes
+git log --oneline -10
+# Review commit messages for configuration changes
+
+# 3. Install any new dependencies
+npm install
+
+# 4. Build application
+npm run build
+
+# 5. Rebuild Docker image
+docker-compose build
+
+# 6. Restart application (zero-downtime for most cases)
+docker-compose up -d --no-deps --build app
+
+# 7. Verify deployment
+docker-compose logs -f app
+curl http://localhost:3000
+```
+
+### Zero-Downtime Updates
+
+For production deployments requiring zero downtime:
+
+```bash
+# This command updates the app service without affecting other services
+docker-compose up -d --no-deps --build app
+
+# Verify the new version is running
+docker-compose logs app | head -20
+```
+
+### Rollback Procedure
+
+If an update causes issues:
+
+```bash
+# Revert to previous commit
+git revert HEAD
+
+# Rebuild and restart
+docker-compose build
+docker-compose up -d --no-deps --build app
+
+# Monitor logs
+docker-compose logs -f app
+```
+
+### Database Migrations
+
+If a deployment includes database migrations:
+
+```bash
+# Before restarting app, run migrations
+docker-compose exec postgres psql -U recipe_user -d recipe_manager -f migrations/latest.sql
+
+# Then restart application
+docker-compose restart app
+```
