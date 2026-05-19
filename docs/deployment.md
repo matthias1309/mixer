@@ -104,3 +104,52 @@ LOG_LEVEL=info
 | DATABASE_URL | Full connection string | postgresql://recipe_user:pass@localhost:5432/recipe_manager |
 | JWT_SECRET | Token signing key | (generated with openssl) |
 | LOG_LEVEL | Logging detail | info, debug, error |
+
+## Pre-Deployment Setup
+
+### 1. Clone Repository
+
+```bash
+# Create a directory for the application
+mkdir -p /home/pi/apps
+cd /home/pi/apps
+
+# Clone the repository
+git clone https://github.com/yourusername/mixer.git
+cd mixer
+```
+
+### 2. Install Node.js Dependencies
+
+```bash
+npm install
+```
+
+This installs all required npm packages listed in `package.json`.
+
+### 3. Build Application for Production
+
+```bash
+npm run build
+```
+
+This creates an optimized production build in the `.next` directory.
+
+### 4. Verify Build Success
+
+```bash
+# Check that build artifacts exist
+ls -la .next/
+# You should see: standalone, static, server, etc/
+```
+
+### 5. Test Application Locally
+
+Before Docker deployment, optionally test locally:
+
+```bash
+npm start
+# Open browser to http://localhost:3000
+```
+
+Press Ctrl+C to stop.
