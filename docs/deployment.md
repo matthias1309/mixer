@@ -153,3 +153,117 @@ npm start
 ```
 
 Press Ctrl+C to stop.
+
+## Docker Deployment
+
+### Docker Images
+
+The deployment uses two containers:
+
+- **app**: Next.js application (Node.js)
+- **postgres**: PostgreSQL database
+
+### Initial Deployment Steps
+
+#### Step 1: Prepare Docker Environment
+
+```bash
+# Ensure Docker and Docker Compose are running
+sudo systemctl start docker
+sudo systemctl enable docker  # Enable auto-start on boot
+
+# Verify Docker is accessible
+docker ps
+```
+
+#### Step 2: Initialize Database
+
+The first deployment initializes PostgreSQL:
+
+```bash
+# Create database and schema
+docker-compose up -d postgres
+
+# Wait 10 seconds for PostgreSQL to start
+sleep 10
+
+# Run database migrations (if applicable)
+docker-compose exec postgres psql -U recipe_user -d recipe_manager -f /docker-entrypoint-initdb.d/init.sql
+```
+
+#### Step 3: Build and Start Application
+
+```bash
+# Build the application Docker image
+docker-compose build
+
+# Start all containers
+docker-compose up -d
+
+# Verify containers are running
+docker-compose ps
+```
+
+Expected output:
+```
+NAME                COMMAND                  SERVICE             STATUS
+mixer-postgres-1    "docker-entrypoint.s…"   postgres            Up 10 seconds
+mixer-app-1         "node server.js"         app                 Up 5 seconds
+```
+
+#### Step 4: Verify Deployment
+
+```bash
+# Check application logs
+docker-compose logs -f app
+
+# Test application is responding
+curl http://localhost:3000
+
+# Expected: HTML response (home page)
+```
+
+Access the application:
+- **Local network**: `http://raspberrypi.local:3000`
+- **Direct IP**: `http://<your-pi-ip>:3000`
+
+### Docker Compose Configuration
+
+The deployment uses `docker-compose.yml`:
+
+```yaml
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: recipe_user
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: recipe_manager
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U recipe_user -d recipe_manager"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build: .
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://recipe_user:${DB_PASSWORD}@postgres:5432/recipe_manager
+      JWT_SECRET: ${JWT_SECRET}
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: always
+
+volumes:
+  postgres_data:
+```
