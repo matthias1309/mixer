@@ -8,8 +8,25 @@
 4. [Solution Strategy](#solution-strategy)
 5. [Building Block View](#building-block-view)
 6. [Runtime View](#runtime-view)
+   - 6.1 User Registration Flow
+   - 6.2 Recipe Filtering Flow
+   - 6.3 Nutrient Calculation Flow
+   - 6.4 Login Flow
+   - 6.5 Add/Edit Recipe Flow
+   - 6.6 Delete Recipe Flow
+   - 6.7 Logout Flow
 7. [Deployment View](#deployment-view)
 8. [Cross-Cutting Concerns](#cross-cutting-concerns)
+   - 8.1 Security
+   - 8.2 Error Handling
+   - 8.3 Performance
+   - 8.4 Testing Strategy
+   - 8.5 Nutrition Calculation Architecture
+   - 8.6 Logging and Monitoring
+   - 8.7 Frontend State Management
+   - 8.8 API Error Handling & Response Codes
+   - 8.9 CI/CD Pipeline & Deployment
+   - 8.10 Data Validation Strategy
 9. [Architecture Decisions](#architecture-decisions)
 10. [Quality Requirements](#quality-requirements)
 11. [Risks and Technical Debt](#risks-and-technical-debt)
@@ -403,6 +420,73 @@ User              Browser              Server                      Database
   │◀─Display nutrition──│                    │                            │
 ```
 
+### 6.4 Login Flow
+
+```
+User                Browser              Server              Database
+  │                   │                    │                    │
+  ├──Enter login──────▶                    │                    │
+  │  form              │─POST /api/auth/login──▶                │
+  │                   │  {email, password} │─Validate input    │
+  │                   │                    │─Hash input password│
+  │                   │                    │─Fetch user ───────▶
+  │                   │                    │◀─User record      │
+  │                   │                    │─Compare hashes    │
+  │                   │                    │─Generate JWT      │
+  │                   │◀─200 + JWT token──│                    │
+  │                   │─Set httpOnly cookie│                   │
+  │◀──Redirect────────│ (sessionToken)     │                    │
+```
+
+### 6.5 Add/Edit Recipe Flow
+
+```
+User                Browser              Server              Database
+  │                   │                    │                    │
+  ├──Fill recipe──────▶                    │                    │
+  │  form              │                    │                    │
+  │                   │─POST /api/recipes ─▶                    │
+  │                   │  {name, ingredients│─Verify JWT        │
+  │                   │   instructions...} │─Validate data     │
+  │                   │  [JWT token]       │─Create recipe ────▶
+  │                   │                    │◀─Recipe created   │
+  │                   │                    │─Link ingredients──▶
+  │                   │                    │◀─Linked          │
+  │                   │◀─201 + recipe_id──│                    │
+  │◀──Show recipe────│ (redirect to      │                    │
+  │                   │  detail view)      │                    │
+```
+
+### 6.6 Delete Recipe Flow
+
+```
+User                Browser              Server              Database
+  │                   │                    │                    │
+  ├──Click delete ────▶                    │                    │
+  │                   │─DELETE /api/recipes/[id]─▶             │
+  │                   │  [JWT token]       │─Verify JWT        │
+  │                   │                    │─Check ownership   │
+  │                   │                    │─Delete ingredients───▶
+  │                   │                    │◀─Deleted          │
+  │                   │                    │─Delete recipe ────▶
+  │                   │                    │◀─Deleted          │
+  │                   │◀─204 No Content───│                    │
+  │◀──Redirect ────────│ (to recipes list)  │                    │
+```
+
+### 6.7 Logout Flow
+
+```
+User                Browser              Server              Database
+  │                   │                    │                    │
+  ├──Click logout ────▶                    │                    │
+  │                   │─POST /api/auth/logout                   │
+  │                   │                    │─Clear session      │
+  │                   │◀─200 + Set-Cookie─│                    │
+  │                   │  (empty cookie)    │                    │
+  │◀──Redirect ────────│ (to login page)    │                    │
+```
+
 ---
 
 ## 7. Deployment View
@@ -647,17 +731,243 @@ The application uses stateless JWT-based authentication implemented in two layer
 - Prometheus metrics (later)
 - Error tracking (Sentry later)
 
+### 8.7 Frontend State Management
+
+**Pattern**: React Context API with custom hooks
+
+**Architecture**:
+- Global state: Ingredient filter selection (recipe filtering)
+- Local component state: Form inputs, UI toggles
+- Server state: Recipes, user data (managed via API calls)
+
+**Key Components**:
+1. **FilterContext** (`src/contexts/FilterContext.tsx`):
+   - Manages selected ingredients for recipe filtering
+   - Provides `useFilter()` hook for component access
+   - Wrapped at root level in `src/app/layout.tsx`
+
+2. **Custom Hooks**:
+   - `useFilter()`: Access and manage filter state
+   - `useAuth()` (future): Global auth state management
+   - `useRecipes()` (future): Recipe data caching
+
+**Data Flow**:
+```
+Components
+  ↓
+useFilter() Hook
+  ↓
+FilterContext (Global State)
+  ↓
+IngredientFilter Component (updates state)
+RecipeList Component (reads state)
+```
+
+**Performance Optimization**:
+- Filter state relatively static (user-controlled changes only)
+- Reasonable number of subscribers
+- Can be optimized with `React.memo()` if needed
+- Future: Consider Zustand/Redux if complexity grows
+
+**Related**: See [ADR-003](../decisions/ADR-003-context-api-for-ingredient-filter-state.md)
+
+### 8.8 API Error Handling & Response Codes
+
+**Standard Response Format**:
+
+**Success (2xx)**:
+```json
+{
+  "data": {...},
+  "status": 200
+}
+```
+
+**Error (4xx/5xx)**:
+```json
+{
+  "error": "Human-readable error message",
+  "status": 400
+}
+```
+
+**HTTP Status Codes**:
+
+| Code | Meaning | Common Causes |
+|------|---------|--------------|
+| 200 | OK | Successful GET/PUT request |
+| 201 | Created | Resource created successfully |
+| 204 | No Content | Successful DELETE (no body) |
+| 400 | Bad Request | Validation error, invalid input, missing fields |
+| 401 | Unauthorized | Missing/invalid JWT token, expired session |
+| 403 | Forbidden | Insufficient permissions (e.g., not recipe creator) |
+| 404 | Not Found | Resource doesn't exist (recipe, user, ingredient) |
+| 409 | Conflict | Unique constraint violation (e.g., duplicate email) |
+| 500 | Server Error | Unhandled exception, database error |
+
+**Validation Error Pattern**:
+```json
+{
+  "error": "Validation failed",
+  "details": [
+    { "field": "email", "message": "Invalid email format" },
+    { "field": "password", "message": "Must be at least 8 characters" }
+  ]
+}
+```
+
+**Complete API Documentation**: See [docs/api.md](../api.md) for all endpoints, request/response examples, and error codes.
+
+### 8.9 CI/CD Pipeline & Deployment
+
+**Development Workflow**:
+1. **Local Development**: `npm run dev` (Next.js dev server on port 3000)
+2. **Testing**: `npm test` (Jest unit/integration tests)
+3. **Linting**: `npm run lint` (ESLint code quality checks)
+4. **Build**: `npm run build` (Production Next.js build)
+
+**Production Deployment**:
+- **Container**: Docker image built from `Dockerfile`
+- **Orchestration**: Docker Compose on Raspberry Pi
+- **Database**: PostgreSQL container with persistent volume
+- **Reverse Proxy**: Nginx (optional, for SSL/TLS)
+- **Deployment Command**: `docker-compose up -d`
+
+**Deployment Diagram**:
+```
+Code pushed to repository
+    ↓
+GitHub / Git server detects push
+    ↓
+(Future: Automated build trigger)
+    ↓
+Docker build: npm install → npm run build
+    ↓
+Docker image created
+    ↓
+Push to Raspberry Pi
+    ↓
+docker-compose pull
+docker-compose up -d
+    ↓
+Application running (accessible at raspberrypi.local)
+```
+
+**Environment Configuration**:
+- `.env.local`: Local development (SQLite)
+- `.env.production`: RPi production (PostgreSQL)
+- Docker secrets (production JWT_SECRET, DB passwords)
+
+**Health Checks** (future):
+- `/api/health` endpoint for monitoring
+- Database connection verification
+- Health check in docker-compose.yml
+
+**Future CI/CD Enhancements**:
+- GitHub Actions or GitLab CI for automated testing
+- Automated building/pushing to RPi
+- Database migration automation
+- Rollback strategy for failed deployments
+
+**Related Files**:
+- `Dockerfile` (container image)
+- `docker-compose.yml` (production RPi)
+- `docker-compose.local.yml` (local development)
+- `.env.local.example` (environment template)
+
+### 8.10 Data Validation Strategy
+
+**Frontend Validation**:
+- Real-time field validation (email format, password strength)
+- User-friendly error messages
+- Form submit disabled while errors exist
+- Used for UX, not security
+
+**Backend Validation** (enforced):
+- Email format and uniqueness
+- Password length and strength requirements
+- Recipe name/description length limits
+- Ingredient quantity must be positive
+- All numeric fields validated for bounds
+- Type checking via TypeScript
+
+**Database Constraints** (last-line defense):
+- NOT NULL constraints on required fields
+- UNIQUE constraints on email, ingredient name
+- FOREIGN KEY constraints for referential integrity
+- CHECK constraints for value ranges
+
+**Validation Order**:
+1. Frontend: Immediate user feedback
+2. Backend: Security enforcement, data integrity
+3. Database: Physical constraints enforcement
+
+**Related**: See ADR-005 for testing validation logic
+
 ---
 
 ## 9. Architecture Decisions
 
-See `docs/decisions/` for Architecture Decision Records (ADRs).
+All architecture decisions are documented as Architecture Decision Records (ADRs) in `docs/decisions/`. ADRs follow the format: decision context, decision, consequences, and alternatives considered.
 
-**Key Decisions**:
-1. **ADR-001**: Full-Stack Next.js over separate frontend/backend
-2. **ADR-002**: JWT authentication over session-based
-3. **ADR-003**: SQLite → PostgreSQL migration path
-4. **ADR-004**: Lean documentation (Arc42/Req42) over comprehensive upfront docs
+### 9.1 Accepted Decisions
+
+#### ADR-001: JWT Authentication with Refresh Tokens
+**Status**: Accepted  
+**Key Points**:
+- Stateless JWT-based authentication with refresh token rotation
+- Tokens stored in httpOnly cookies for security
+- Supports multi-device/multi-tab scenarios
+- Access tokens: 24-hour expiration
+- **Files**: `src/lib/auth/tokenRefresh.ts`, `src/lib/auth/jwt.ts`, `src/app/api/auth/*`
+
+#### ADR-002: SQLite and PostgreSQL Dual-Database Support
+**Status**: Accepted  
+**Key Points**:
+- SQLite for local development (zero configuration)
+- PostgreSQL for production on Raspberry Pi
+- Database selection via `DATABASE_URL` environment variable
+- Models use raw SQL with prepared statements (no ORM)
+- Schema migrations in `src/lib/db/migrations/`
+- Tested for SQL dialect compatibility
+- **Files**: `src/lib/db/init.ts`, `src/lib/db/connection.ts`, `src/lib/db/models/`
+
+#### ADR-003: Context API for Ingredient Filter State
+**Status**: Accepted  
+**Key Points**:
+- React Context API for global filter state management
+- Eliminates prop drilling across component hierarchy
+- Custom `useFilter()` hook for consuming state
+- Suitable for MVP phase (can migrate to Redux later if needed)
+- **Files**: `src/contexts/FilterContext.tsx`, `src/hooks/useFilter.ts`
+
+#### ADR-004: Next.js App Router (over Pages Router)
+**Status**: Accepted  
+**Key Points**:
+- Modern file-based routing under `app/` directory
+- Server Components by default for better performance
+- Route groups for logical organization without URL impact
+- Improved API route organization
+- Nested layouts for shared UI
+- **Files**: `src/app/`, `src/middleware.ts`
+
+#### ADR-005: Test-Driven Development with Jest
+**Status**: Accepted  
+**Key Points**:
+- Write tests BEFORE implementation code
+- Minimum 80% code coverage requirement
+- Jest for unit/integration tests
+- React Testing Library for component tests
+- Cypress for E2E tests
+- Test organization: `src/__tests__/unit/`, `src/__tests__/integration/`, `tests/e2e/`
+- **Files**: `jest.config.js`, `src/__tests__/`, `tests/`
+
+### 9.2 Future Decision Candidates
+
+- **Caching Strategy**: Redis for recipe caching (when performance becomes critical)
+- **Scalability**: When RPi constraints are reached, consider separate backend service
+- **State Management**: Migrate from Context API to Redux if state complexity grows
+- **API Documentation**: OpenAPI/Swagger integration for automated API docs
 
 ---
 
@@ -726,26 +1036,65 @@ See `docs/decisions/` for Architecture Decision Records (ADRs).
 
 | Term | Definition |
 |------|-----------|
-| **Arc42** | Architecture documentation framework |
+| **Arc42** | Architecture documentation framework (12-section template) |
 | **Req42** | Requirements documentation framework |
-| **JWT** | JSON Web Token - stateless authentication |
-| **TDD** | Test-Driven Development - write tests first |
+| **ADR** | Architecture Decision Record - documents rationale for technical decisions |
+| **JWT** | JSON Web Token - stateless, cryptographically signed authentication token |
+| **Refresh Token** | Long-lived token used to obtain new access tokens (supports token rotation) |
+| **httpOnly Cookie** | Browser cookie inaccessible to JavaScript (prevents XSS token theft) |
+| **TDD** | Test-Driven Development - write tests before implementation code |
 | **DRY** | Don't Repeat Yourself - avoid code duplication |
-| **KISS** | Keep It Simple, Stupid - prefer simplicity |
-| **YAGNI** | You Aren't Gonna Need It - no over-engineering |
-| **RPi** | Raspberry Pi |
-| **MVP** | Minimum Viable Product |
-| **SOLID** | Design principles (Single Responsibility, Open/Closed, Liskov, Interface Segregation, Dependency Inversion) |
+| **KISS** | Keep It Simple, Stupid - prefer simple, understandable code |
+| **YAGNI** | You Aren't Gonna Need It - no over-engineering for hypothetical requirements |
+| **RPi** | Raspberry Pi - ARM-based single-board computer |
+| **MVP** | Minimum Viable Product - minimal feature set to meet core requirements |
+| **SOLID** | Design principles: Single Responsibility, Open/Closed, Liskov, Interface Segregation, Dependency Inversion |
+| **Context API** | React feature for managing global state without prop drilling |
+| **Server Component** | Next.js component rendered on server (default in App Router) |
+| **Route Group** | Next.js convention `(groupName)` for organizing routes without URL impact |
+| **Prepared Statement** | SQL query with parameterized placeholders (prevents SQL injection) |
+| **N+1 Query Problem** | Performance issue when fetching related data results in N+1 queries |
+| **Nutrition Calculation** | On-demand server-side computation of recipe nutrients from ingredient data |
+| **Unit Conversion** | Translation between measurement units (grams, pieces, tablespoons, etc.) |
+
+---
+
+## Related Documentation
+
+This Arc42 document provides the overall architecture overview. For detailed information, see:
+
+- **[API Documentation](../api.md)**: Complete REST API reference with all endpoints, request/response formats, and error codes
+- **[Architecture Decision Records](../decisions/)**: Detailed rationale for all major technical decisions
+  - ADR-001: JWT Authentication with Refresh Tokens
+  - ADR-002: SQLite and PostgreSQL Dual-Database Support
+  - ADR-003: Context API for Ingredient Filter State
+  - ADR-004: Next.js App Router over Pages Router
+  - ADR-005: Test-Driven Development with Jest
+- **[Requirements](../requirements/)**: Functional and non-functional requirements documented with Req42
+- **[Code Review Reports](../code-reviews/)**: Learnings from code reviews and quality assessments
+- **[Implementation Status](../code-reviews/implementation-status.md)**: Current feature status and progress
+- **[CLAUDE.md](./../.claude/CLAUDE.md)**: Project guidelines and development methodology
+- **[Roadmap](../roadmap/kanban.md)**: Feature planning and phase timeline
 
 ---
 
 ## Document Information
 
-- **Version**: 1.1
-- **Last Updated**: 2026-05-14
+- **Version**: 1.2
+- **Last Updated**: 2026-05-19
 - **Status**: Active
 - **Review Frequency**: Quarterly or after major architecture changes
-- **Next Review**: 2026-08-14
+- **Next Review**: 2026-08-19
+
+## Recent Changes (v1.2)
+
+- **Expanded Runtime View**: Added 5 new flow diagrams (Login, Add/Edit Recipe, Delete Recipe, Logout)
+- **Detailed ADRs**: Documented all 5 accepted Architecture Decision Records (ADR-001 through ADR-005)
+- **Frontend State Management**: Added comprehensive section on React Context API pattern
+- **API Error Handling**: Documented HTTP status codes, error formats, and complete API reference link
+- **Data Validation**: Added three-layer validation strategy (frontend, backend, database)
+- **Expanded Glossary**: Added 10+ new terms (ADR, JWT, Refresh Token, Context API, etc.)
+- **Navigation**: Updated Table of Contents with subsections
 
 ## Recent Changes (v1.1)
 
