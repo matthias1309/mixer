@@ -2,7 +2,10 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { ProtectedRoute } from '../../components/ProtectedRoute';
+import { Pagination } from '../../components/Pagination';
 import { IngredientMaster } from '@/lib/db/models/ingredientMaster';
+
+const PAGE_SIZE = 20;
 
 export default function IngredientsPage() {
   const [ingredients, setIngredients] = useState<IngredientMaster[]>([]);
@@ -10,13 +13,18 @@ export default function IngredientsPage() {
   const [search, setSearch] = useState('');
   const [error, setError] = useState('');
   const [deleting, setDeleting] = useState<number | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [total, setTotal] = useState(0);
 
-  const fetchIngredients = useCallback(async function fetchIngredients() {
+  const fetchIngredients = useCallback(async function fetchIngredients(page: number) {
     setLoading(true);
     setError('');
 
     try {
       const url = new URL('/api/ingredients-master', window.location.origin);
+      url.searchParams.set('page', page.toString());
+      url.searchParams.set('pageSize', PAGE_SIZE.toString());
       if (search) {
         url.searchParams.set('search', search);
       }
@@ -31,6 +39,9 @@ export default function IngredientsPage() {
 
       const data = await response.json();
       setIngredients(data.ingredients);
+      setTotalPages(data.totalPages);
+      setTotal(data.total);
+      setCurrentPage(data.page);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Fehler beim Laden von Zutaten');
     } finally {
@@ -39,8 +50,12 @@ export default function IngredientsPage() {
   }, [search]);
 
   useEffect(() => {
-    fetchIngredients();
-  }, [fetchIngredients]);
+    setCurrentPage(1);
+  }, [search]);
+
+  useEffect(() => {
+    fetchIngredients(currentPage);
+  }, [currentPage, fetchIngredients]);
 
   async function handleDelete(id: number) {
     if (!confirm('Sind Sie sicher, dass Sie diese Zutat löschen möchten?')) return;
@@ -57,7 +72,7 @@ export default function IngredientsPage() {
         throw new Error('Fehler beim Löschen der Zutat');
       }
 
-      await fetchIngredients();
+      await fetchIngredients(currentPage);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Fehler beim Löschen der Zutat');
       setDeleting(null);
@@ -151,6 +166,8 @@ export default function IngredientsPage() {
             </table>
           </div>
         )}
+
+        <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
 
         <div className="mt-6">
           <a href="/dashboard" className="text-blue-600 hover:underline">
