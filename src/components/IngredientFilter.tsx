@@ -1,39 +1,23 @@
 'use client';
 
 import { useFilter } from '../hooks/useFilter';
-import { useState, useEffect } from 'react';
+import { useFetch } from '../hooks/useFetch';
+import { useEffect } from 'react';
+
+interface IngredientsResponse {
+  ingredients: string[];
+}
 
 export function IngredientFilter() {
   const { selectedIngredients, toggleIngredient, clearFilters } = useFilter();
-  const [ingredients, setIngredients] = useState<string[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
+  const { data, isLoading, error, fetch: fetchIngredients } = useFetch<IngredientsResponse>(
+    '/api/recipes/ingredients'
+  );
+  const ingredients = data?.ingredients || [];
 
   useEffect(() => {
     fetchIngredients();
-  }, []);
-
-  async function fetchIngredients() {
-    setIsLoading(true);
-    setError('');
-
-    try {
-      const response = await fetch('/api/recipes/ingredients', {
-        credentials: 'include',
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch ingredients');
-      }
-
-      const data = await response.json();
-      setIngredients(data.ingredients || []);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load ingredients');
-    } finally {
-      setIsLoading(false);
-    }
-  }
+  }, [fetchIngredients]);
 
   if (isLoading) {
     return <div className="text-gray-600">Zutaten werden geladen...</div>;

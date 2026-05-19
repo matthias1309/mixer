@@ -3,7 +3,7 @@
 **Type**: Bug  
 **Effort**: 2 story points  
 **Priority**: P1 (Blocker)  
-**Status**: Ready  
+**Status**: Done  
 **Phase**: Testing  
 **Order**: 2nd  
 

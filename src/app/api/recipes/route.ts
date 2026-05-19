@@ -3,7 +3,14 @@ import { RecipeModel } from '@/lib/db/models/recipe';
 import { RecipeModelAsync } from '@/lib/db/models/recipe-async';
 import { authMiddlewareWithRefresh, setTokenCookie } from '@/lib/auth/middleware';
 import { CreateRecipeRequest } from '@/types';
-import { VALIDATION, HTTP_STATUS } from '@/lib/constants';
+import {
+  VALIDATION,
+  HTTP_STATUS,
+  RECIPE_SORT_OPTIONS,
+  RecipeSortOption,
+  DEFAULT_RECIPE_SORT,
+  DEFAULT_PHASE,
+} from '@/lib/constants';
 import { withDatabase } from '@/lib/api/withDatabase';
 
 // GET /api/recipes - List recipes with pagination, search, and sorting
@@ -12,7 +19,7 @@ async function handleGET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10));
     const pageSize = Math.min(100, Math.max(1, parseInt(searchParams.get('pageSize') || '10', 10)));
-    const sort = (searchParams.get('sort') || 'date') as 'date' | 'name' | 'ingredients';
+    const sort = (searchParams.get('sort') || DEFAULT_RECIPE_SORT) as RecipeSortOption;
     const search = searchParams.get('search') || undefined;
     const ingredients = searchParams.get('ingredients');
     const phase = searchParams.get('phase') || undefined;
@@ -25,9 +32,9 @@ async function handleGET(request: NextRequest) {
     if (ingredients) {
       // Filter by ingredients if provided
       const ingredientList = ingredients.split(',').map(ing => ing.trim());
-      result = await RecipeModel.filterByIngredientsWithScoreAsync(ingredientList, page, pageSize, phase || 'menstruation');
+      result = await RecipeModel.filterByIngredientsWithScoreAsync(ingredientList, page, pageSize, phase || DEFAULT_PHASE);
     } else {
-      result = await RecipeModelAsync.listAllWithScoreAsync(page, pageSize, sort, search, phase || 'menstruation');
+      result = await RecipeModelAsync.listAllWithScoreAsync(page, pageSize, sort, search, phase || DEFAULT_PHASE);
     }
 
     const totalPages = Math.ceil(result.total / pageSize);

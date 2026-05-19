@@ -3,7 +3,7 @@
 **Type**: Refactor / Bug  
 **Effort**: 3 story points  
 **Priority**: P2 (Should Have)  
-**Status**: Ready  
+**Status**: Done  
 **Phase**: Code Quality  
 **Order**: 4th  
 

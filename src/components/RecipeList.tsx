@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { RecipeCard, RecipeCardProps } from './RecipeCard';
 import { useFilter } from '../hooks/useFilter';
+import { useFetch } from '../hooks/useFetch';
 
 interface RecipesResponse {
   recipes: RecipeCardProps[];
@@ -21,53 +22,42 @@ export function RecipeList({ phase, minScore = 0 }: RecipeListProps) {
   const [recipes, setRecipes] = useState<RecipeCardProps[]>([]);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
   const { selectedIngredients } = useFilter();
 
-  const fetchRecipes = useCallback(async () => {
-    setIsLoading(true);
-    setError('');
+  const buildUrl = useCallback(() => {
+    const params = new URLSearchParams();
+    params.set('page', page.toString());
+    if (selectedIngredients.length > 0) {
+      params.set('ingredients', selectedIngredients.join(','));
+    }
+    if (phase) {
+      params.set('phase', phase);
+    }
+    return `/api/recipes?${params}`;
+  }, [page, selectedIngredients, phase]);
 
-    try {
-      const params = new URLSearchParams();
-      params.set('page', page.toString());
+  const url = buildUrl();
 
-      if (selectedIngredients.length > 0) {
-        params.set('ingredients', selectedIngredients.join(','));
-      }
-
-      if (phase) {
-        params.set('phase', phase);
-      }
-
-      const response = await fetch(`/api/recipes?${params}`, {
-        credentials: 'include',
-      });
-
-      const data: RecipesResponse = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to fetch recipes');
-      }
-
-      // Filter by minScore on client side
-      const filteredRecipes = data.recipes.filter((recipe: any) => {
+  const handleSuccess = useCallback(
+    (data: RecipesResponse) => {
+      const filteredRecipes = data.recipes.filter((recipe: RecipeCardProps) => {
         if (recipe.score === undefined || recipe.score === null) {
-          return true; // Show recipes without scores
+          return true;
         }
         return recipe.score >= minScore;
       });
-
       setRecipes(filteredRecipes);
       setTotalPages(data.totalPages);
       setPage(data.page);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load recipes');
-    } finally {
-      setIsLoading(false);
-    }
-  }, [page, selectedIngredients, phase, minScore]);
+    },
+    [minScore]
+  );
+
+  const { isLoading, error, fetch: fetchRecipes } = useFetch<RecipesResponse>(
+    url,
+    undefined,
+    handleSuccess
+  );
 
   useEffect(() => {
     fetchRecipes();

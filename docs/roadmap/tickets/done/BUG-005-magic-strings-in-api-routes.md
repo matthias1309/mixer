@@ -3,7 +3,7 @@
 **Type**: Code Quality / Bug  
 **Effort**: 2 story points  
 **Priority**: P2 (Should Have)  
-**Status**: Ready  
+**Status**: Done  
 **Phase**: Code Quality  
 **Order**: 5th  
 

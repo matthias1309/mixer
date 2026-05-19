@@ -155,13 +155,20 @@
       "Bash(node -e \"const Database = require\\('better-sqlite3'\\); const db = new Database\\(':memory:'\\); const result = db.prepare\\('PRAGMA foreign_keys'\\).get\\(\\); console.log\\('foreign_keys:', result.foreign_keys\\);\")",
       "Bash(gh pr comment 7 --body ' *)",
       "Bash(git fetch *)",
-      "Bash(git pull *)"
+      "Bash(git pull *)",
+      "Bash(grep -E \"\\\\.\\(tsx|ts|jsx|js\\)$\")",
+      "Bash(curl -s http://localhost:3000/api/ingredients-master)",
+      "Skill(superpowers:test-driven-development)",
+      "Skill(superpowers:test-driven-development:*)",
+      "Bash(pkill -f \"npm run dev\")",
+      "Bash(mkdir -p /Users/matthias/Claude_Code/mixer/docs/roadmap/tickets/done && mv /Users/matthias/Claude_Code/mixer/docs/roadmap/tickets/BUG-*.md /Users/matthias/Claude_Code/mixer/docs/roadmap/tickets/done/ && ls -la /Users/matthias/Claude_Code/mixer/docs/roadmap/tickets/done/)"
     ],
     "additionalDirectories": [
       "/private/tmp",
       "/Users/matthias/Claude_Code/mixer/src/app/api/ingredients-master",
       "/Users/matthias/Claude_Code/mixer/src/app/ingredients/[id]",
-      "/Users/matthias/Claude_Code/mixer/src/app/ingredients"
+      "/Users/matthias/Claude_Code/mixer/src/app/ingredients",
+      "/Users/matthias/Claude_Code/mixer/docs/roadmap/tickets"
     ]
   },
   "enabledPlugins": {

@@ -36,6 +36,15 @@ export const BCRYPT = {
   COST_FACTOR: 10,
 };
 
+export const RECIPE_SORT_OPTIONS = ['date', 'name', 'ingredients'] as const;
+export type RecipeSortOption = typeof RECIPE_SORT_OPTIONS[number];
+
+export const PHASE_OPTIONS = ['menstruation', 'follicular', 'ovulation', 'luteal'] as const;
+export type PhaseOption = typeof PHASE_OPTIONS[number];
+
+export const DEFAULT_PHASE = 'menstruation';
+export const DEFAULT_RECIPE_SORT = 'date';
+
 export const HTTP_STATUS = {
   OK: 200,
   NO_CONTENT: 204,

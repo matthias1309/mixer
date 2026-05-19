@@ -3,7 +3,7 @@
 **Type**: Bug / Quality Gate  
 **Effort**: 3 story points  
 **Priority**: P1 (Blocker)  
-**Status**: Ready  
+**Status**: Done  
 **Phase**: Testing  
 **Order**: 6th  
 
