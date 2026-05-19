@@ -199,6 +199,16 @@ npm run start
 docker-compose up -d
 ```
 
+### HTTPS Setup
+
+Die App läuft über HTTPS mit automatischem Zertifikat-Management durch Caddy.
+
+```bash
+docker-compose -f docker-compose.production.yml up -d
+```
+
+Details: [HTTPS Setup Guide](docs/deployment/HTTPS-SETUP.md)
+
 ## Technology Stack
 
 ### Frontend
