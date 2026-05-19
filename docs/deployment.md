@@ -49,3 +49,58 @@ free -h
 # Check network connectivity
 ping -c 3 8.8.8.8
 ```
+
+## Environment Configuration
+
+### Create Environment File
+
+1. Copy the example environment file:
+
+```bash
+cp .env.local.example .env.production
+```
+
+2. Edit the production configuration:
+
+```bash
+nano .env.production
+```
+
+3. Set the following variables for Raspberry Pi deployment:
+
+```bash
+# Application
+NODE_ENV=production
+NEXT_PUBLIC_API_URL=http://raspberrypi.local:3000
+
+# Database (PostgreSQL)
+DATABASE_URL=postgresql://recipe_user:your_secure_password@localhost:5432/recipe_manager
+DB_HOST=postgres
+DB_PORT=5432
+DB_NAME=recipe_manager
+DB_USER=recipe_user
+DB_PASSWORD=your_secure_password  # Change this to a strong password!
+
+# JWT
+JWT_SECRET=your_secure_jwt_secret_key_here  # Generate with: openssl rand -base64 32
+
+# Logging
+LOG_LEVEL=info
+```
+
+### Security Considerations
+
+- **JWT_SECRET**: Generate a strong secret using `openssl rand -base64 32`
+- **DB_PASSWORD**: Use a strong password (minimum 16 characters, mixed case, numbers, symbols)
+- **Never commit** `.env.production` to version control
+- Store credentials securely on the Raspberry Pi
+
+### Environment Variables Reference
+
+| Variable | Purpose | Example |
+|----------|---------|---------|
+| NODE_ENV | Node.js environment | production |
+| NEXT_PUBLIC_API_URL | Frontend API endpoint | http://raspberrypi.local:3000 |
+| DATABASE_URL | Full connection string | postgresql://recipe_user:pass@localhost:5432/recipe_manager |
+| JWT_SECRET | Token signing key | (generated with openssl) |
+| LOG_LEVEL | Logging detail | info, debug, error |
