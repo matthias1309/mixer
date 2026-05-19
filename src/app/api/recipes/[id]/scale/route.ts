@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { RecipeModelAsync } from '@/lib/db/models/recipe-async';
 import { authMiddlewareWithRefresh, setTokenCookie } from '@/lib/auth/middleware';
-import { UnitConverter } from '@/lib/units/converter';
 import { RecipeScaler } from '@/lib/units/scaler';
 import { HTTP_STATUS } from '@/lib/constants';
 
@@ -60,15 +59,21 @@ export async function POST(request: NextRequest, props: { params: Params }) {
       );
     }
 
+    // Guard against invalid servings
+    if (!recipe.servings || recipe.servings <= 0) {
+      return NextResponse.json(
+        { error: 'Recipe servings must be greater than 0' },
+        { status: HTTP_STATUS.BAD_REQUEST }
+      );
+    }
+
     // Fetch ingredients
     const ingredients = await RecipeModelAsync.getIngredients(recipeId);
 
     // Calculate scale factor
     const scaleFactor = targetServings / recipe.servings;
 
-    // Initialize UnitConverter and RecipeScaler
-    const converter = new UnitConverter();
-    await converter.initialize();
+    // Initialize RecipeScaler
     const scaler = new RecipeScaler();
 
     // Scale each ingredient
