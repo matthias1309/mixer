@@ -1,9 +1,10 @@
 # MAINT-002: HTTPS auf Raspberry Pi einrichten
 
-**Status:** Open  
+**Status:** Done  
 **Priority:** Medium  
 **Effort:** 3 pts  
 **Created:** 2026-05-17  
+**Completed:** 2026-05-19  
 
 ---
 
