@@ -1,6 +1,5 @@
 /** @jest-environment node */
-import { initializeDatabase, getDatabase } from '../../../lib/db/init';
-import { closeDatabase } from '../../../lib/db/init';
+import { initializeDatabase, getDatabase, closeDatabase } from '../../../lib/db/init';
 import Database from 'better-sqlite3';
 import fs from 'fs';
 import path from 'path';

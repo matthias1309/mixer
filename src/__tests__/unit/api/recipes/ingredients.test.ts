@@ -5,10 +5,9 @@ import { RecipeModel } from '../../../../lib/db/models/recipe';
 import { initializeDatabase } from '../../../../lib/db/init';
 import { generateToken } from '../../../../lib/auth/tokenRefresh';
 import bcryptjs from 'bcryptjs';
-import fs from 'fs';
+import fs, { mkdtempSync, rmSync } from 'fs';
 import path from 'path';
 import { tmpdir } from 'os';
-import { mkdtempSync, rmSync } from 'fs';
 import { NextRequest } from 'next/server';
 
 describe('GET /api/recipes/ingredients', () => {
