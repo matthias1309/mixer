@@ -1036,4 +1036,3 @@ docs/deployment.md                # This guide
 - **Docker Docs**: https://docs.docker.com/
 - **PostgreSQL Docs**: https://www.postgresql.org/docs/
 - **Raspberry Pi Docs**: https://www.raspberrypi.com/documentation/
-```
