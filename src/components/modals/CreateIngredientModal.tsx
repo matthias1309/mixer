@@ -98,7 +98,10 @@ export function CreateIngredientModal({
 
           <div className="flex gap-3 pt-4">
             <button
-              type="submit"
+              type="button"
+              onClick={(e) => {
+                handleSubmit(e as any);
+              }}
               disabled={isLoading}
               className="flex-1 bg-blue-600 text-white py-2 rounded hover:bg-blue-700 disabled:opacity-50"
             >
