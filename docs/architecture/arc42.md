@@ -202,6 +202,7 @@ A single Next.js application that handles both frontend and backend. This is cho
 3. **Lean Documentation**: Grow documentation with features (Arc42/Req42), not upfront
 4. **TDD Approach**: Write tests first to ensure quality and maintainability
 5. **Code Review Focus**: Clean code principles (DRY, KISS, YAGNI) guide all reviews
+6. **Centralized Unit Conversion**: DB-backed unit table as single source of truth, load-once in-memory Map for fast conversions (see ADR-006)
 
 ---
 
@@ -227,7 +228,8 @@ A single Next.js application that handles both frontend and backend. This is cho
 │  │     Next.js API Routes (Backend)     │  │
 │  │  - /api/auth/* (login, register)     │  │
 │  │  - /api/recipes/* (CRUD operations)  │  │
-│  │  - /api/recipes/:id/calculate (NEW)  │  │
+│  │  - /api/recipes/:id/calculate        │  │
+│  │  - /api/recipes/:id/scale            │  │
 │  │  - /api/nutrition/* (ingredients)    │  │
 │  │  - /api/users/* (user profile)       │  │
 │  └──────────────────────────────────────┘  │
@@ -235,7 +237,8 @@ A single Next.js application that handles both frontend and backend. This is cho
 │  ┌──────────────────────────────────────┐  │
 │  │    Business Logic & Calculations     │  │
 │  │  - Nutrition engine (calculator)     │  │
-│  │  - Unit conversions                  │  │
+│  │  - Unit conversion (UnitConverter)   │  │
+│  │  - Recipe scaling (RecipeScaler)     │  │
 │  │  - Ingredient management             │  │
 │  └──────────────────────────────────────┘  │
 │                                             │
@@ -321,11 +324,17 @@ src/
 │   │   ├── jwt.ts           # JWT utilities
 │   │   ├── password.ts      # Password hashing
 │   │   └── middleware.ts    # Auth middleware
-│   ├── nutrition/           # NEW: Nutrition module
+│   ├── nutrition/           # Nutrition module
 │   │   ├── types.ts         # Ingredient, Nutrients, RecipeNutrients types
 │   │   ├── constants.ts     # Nutrient names, units
 │   │   ├── calculator.ts    # Core calculation engine
 │   │   └── conversions.ts   # Unit conversion utilities
+│   ├── units/               # Unit conversion & scaling module (REC-109)
+│   │   ├── types.ts         # Error classes, Unit/ConversionResult interfaces
+│   │   ├── constants.ts     # Categories, promotion rules, rounding rules
+│   │   ├── converter.ts     # UnitConverter: DB-backed, in-memory conversions
+│   │   ├── scaler.ts        # RecipeScaler: pure in-memory scaling
+│   │   └── index.ts         # Barrel export
 │   └── utils/
 │       ├── validation.ts
 │       ├── helpers.ts
@@ -485,6 +494,37 @@ User                Browser              Server              Database
   │                   │◀─200 + Set-Cookie─│                    │
   │                   │  (empty cookie)    │                    │
   │◀──Redirect ────────│ (to login page)    │                    │
+```
+
+### 6.8 Recipe Scaling Flow (REC-109)
+
+```
+User              Browser              Server                        Database
+  │                 │                    │                               │
+  ├──Set servings──▶│                    │                               │
+  │  (e.g. 8)       │─POST /api/recipes/[id]/scale─▶                    │
+  │                 │  { newServings: 8 }│─Verify JWT                   │
+  │                 │  [JWT token]       │─Validate newServings (1-100) │
+  │                 │                    │─Fetch recipe ────────────────▶
+  │                 │                    │◀─recipe (with servings)      │
+  │                 │                    │─Fetch ingredients ───────────▶
+  │                 │                    │◀─ingredients[]               │
+  │                 │                    │                               │
+  │                 │                    │ scaleFactor = 8 / servings   │
+  │                 │                    │ RecipeScaler.scaleIngredient()│
+  │                 │                    │ - quantity × scaleFactor     │
+  │                 │                    │ - promoteUnit() if needed    │
+  │                 │                    │   (3 TL → 1 EL, etc.)       │
+  │                 │                    │ - roundQuantity()            │
+  │                 │                    │ (no DB writes)               │
+  │                 │                    │                               │
+  │                 │◀─200 + scaled recipe─                             │
+  │                 │  { servings: 8,    │                               │
+  │                 │    ingredients: [  │                               │
+  │                 │     {name:"Mehl",  │                               │
+  │                 │      qty:500,      │                               │
+  │                 │      unit:"g"}]}   │                               │
+  │◀─Show result───│                    │                               │
 ```
 
 ---
