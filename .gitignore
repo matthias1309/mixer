@@ -25,6 +25,7 @@ build/
 out/
 coverage/
 .coverage/
+.coverage-*/
 *.tsbuildinfo
 
 # Database
@@ -35,9 +36,6 @@ coverage/
 *.sqlite
 *.sqlite3
 postgres_data/
-
-# Docker
-docker-compose.local.yml
 
 # Logs
 *.log

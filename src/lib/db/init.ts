@@ -2,6 +2,7 @@ import Database from 'better-sqlite3';
 import { Pool } from 'pg';
 import path from 'path';
 import fs from 'fs';
+import { seedDatabase } from '@/db/seeds';
 
 let db: Database.Database;
 let pgPool: Pool | null = null;
@@ -78,6 +79,15 @@ async function _initializeDatabaseInternal(): Promise<void> {
 
     // Run migrations
     await runMigrations(pgPool);
+
+    // Seed database with default data
+    // Note: PostgreSQL async seed functions not yet implemented
+    try {
+      seedDatabase(pgPool);
+    } catch (error) {
+      console.warn('PostgreSQL seeding not yet available:', (error as Error).message);
+      // Continue anyway - seeding can happen separately
+    }
   } else {
     // Initialize SQLite (development or file: DATABASE_URL)
     let dbPath: string;
@@ -116,6 +126,9 @@ async function _initializeDatabaseInternal(): Promise<void> {
 
     // Run migrations
     runMigrationsSync(db);
+
+    // Seed database with default data
+    seedDatabase(db);
   }
 }
 
