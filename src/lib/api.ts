@@ -28,22 +28,3 @@ export async function apiCall<T>(
     return { error: `Network error: ${message}`, status: 0 };
   }
 }
-
-// Auth API helpers
-export async function register(email: string, password: string) {
-  return apiCall('/auth/register', {
-    method: 'POST',
-    body: JSON.stringify({ email, password }),
-  });
-}
-
-export async function login(email: string, password: string) {
-  return apiCall('/auth/login', {
-    method: 'POST',
-    body: JSON.stringify({ email, password }),
-  });
-}
-
-export async function logout() {
-  return apiCall('/auth/logout', { method: 'POST' });
-}

@@ -221,7 +221,11 @@
       "Bash(git -C /Users/matthias/Claude_Code/mixer status)",
       "Bash(git -C /Users/matthias/Claude_Code/mixer diff .claude/settings.json)",
       "Bash(git -C /Users/matthias/Claude_Code/mixer add .claude/settings.json .gitignore)",
-      "Bash(git -C /Users/matthias/Claude_Code/mixer commit -m ' *)"
+      "Bash(git -C /Users/matthias/Claude_Code/mixer commit -m ' *)",
+      "Bash(npx jest *)",
+      "Bash(npx knip *)",
+      "Bash(npx depcheck *)",
+      "Bash(npm uninstall *)"
     ],
     "additionalDirectories": [
       "/private/tmp",
@@ -233,6 +237,6 @@
     ]
   },
   "enabledPlugins": {
-    "superpowers@claude-plugins-official": true
+    "superpowers@claude-plugins-official": false
   }
 }

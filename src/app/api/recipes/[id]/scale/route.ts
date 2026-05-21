@@ -3,20 +3,18 @@ import { RecipeModelAsync } from '@/lib/db/models/recipe-async';
 import { authMiddlewareWithRefresh, setTokenCookie } from '@/lib/auth/middleware';
 import { RecipeScaler } from '@/lib/units/scaler';
 import { HTTP_STATUS } from '@/lib/constants';
+import { withDatabase } from '@/lib/api/withDatabase';
 
 type Params = Promise<{ id: string }>;
 
 // POST /api/recipes/[id]/scale - Scale recipe ingredients to a new serving size
-export async function POST(request: NextRequest, props: { params: Params }) {
+async function handlePOST(request: NextRequest, props: { params: Params }) {
   try {
     const params = await props.params;
     const recipeId = parseInt(params.id, 10);
 
     if (!Number.isFinite(recipeId) || recipeId <= 0) {
-      return NextResponse.json(
-        { error: 'Invalid recipe ID' },
-        { status: HTTP_STATUS.BAD_REQUEST }
-      );
+      return NextResponse.json({ error: 'Invalid recipe ID' }, { status: HTTP_STATUS.BAD_REQUEST });
     }
 
     // Validate request body
@@ -53,10 +51,7 @@ export async function POST(request: NextRequest, props: { params: Params }) {
     // Fetch the recipe
     const recipe = await RecipeModelAsync.findById(recipeId);
     if (!recipe) {
-      return NextResponse.json(
-        { error: 'Recipe not found' },
-        { status: HTTP_STATUS.NOT_FOUND }
-      );
+      return NextResponse.json({ error: 'Recipe not found' }, { status: HTTP_STATUS.NOT_FOUND });
     }
 
     // Guard against invalid servings
@@ -112,3 +107,5 @@ export async function POST(request: NextRequest, props: { params: Params }) {
     );
   }
 }
+
+export const POST = withDatabase(handlePOST);

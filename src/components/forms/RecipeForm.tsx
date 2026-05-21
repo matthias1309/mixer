@@ -5,6 +5,9 @@ import { useRouter } from 'next/navigation';
 import { validateRecipeName } from '../../lib/validation';
 import { IngredientAutocomplete } from './IngredientAutocomplete';
 import { CreateIngredientModal } from '../modals/CreateIngredientModal';
+import { SUPPORTED_UNITS } from '../../lib/units/constants';
+
+const UNIT_OPTIONS = Object.keys(SUPPORTED_UNITS) as (keyof typeof SUPPORTED_UNITS)[];
 
 interface Ingredient {
   name: string;
@@ -111,7 +114,10 @@ export function RecipeForm({ initialData, isEditing = false }: RecipeFormProps) 
   }
 
   function handleSelectIngredient(ingredient: { id: number; name: string }) {
-    setIngredients([...ingredients, { name: ingredient.name, quantity: 1, unit: 'g', masterId: ingredient.id }]);
+    setIngredients([
+      ...ingredients,
+      { name: ingredient.name, quantity: 1, unit: 'g', masterId: ingredient.id },
+    ]);
   }
 
   async function handleCreateNewIngredient(ingredientName: string) {
@@ -128,7 +134,10 @@ export function RecipeForm({ initialData, isEditing = false }: RecipeFormProps) 
     }
 
     const newIngredient = await response.json();
-    setIngredients([...ingredients, { name: newIngredient.name, quantity: 1, unit: 'g', masterId: newIngredient.id }]);
+    setIngredients([
+      ...ingredients,
+      { name: newIngredient.name, quantity: 1, unit: 'g', masterId: newIngredient.id },
+    ]);
     setCreateModalOpen(false);
   }
 
@@ -144,16 +153,16 @@ export function RecipeForm({ initialData, isEditing = false }: RecipeFormProps) 
 
   return (
     <form onSubmit={handleSubmit} className="max-w-2xl bg-white p-6 rounded-lg shadow">
-      <h1 className="text-2xl font-bold mb-6">{isEditing ? 'Rezept bearbeiten' : 'Rezept erstellen'}</h1>
+      <h1 className="text-2xl font-bold mb-6">
+        {isEditing ? 'Rezept bearbeiten' : 'Rezept erstellen'}
+      </h1>
 
       {error && <div className="bg-red-100 text-red-700 p-3 rounded mb-4">{error}</div>}
 
       <div className="space-y-4">
         {/* Name */}
         <div>
-          <label className="block text-sm font-medium mb-1">
-            Rezeptname *
-          </label>
+          <label className="block text-sm font-medium mb-1">Rezeptname *</label>
           <input
             type="text"
             value={name}
@@ -221,7 +230,9 @@ export function RecipeForm({ initialData, isEditing = false }: RecipeFormProps) 
                     setCreateModalQuery(query);
                     setCreateModalOpen(true);
                   }}
-                  addedIngredientIds={ingredients.flatMap((i) => i.masterId !== null ? [i.masterId] : [])}
+                  addedIngredientIds={ingredients.flatMap((i) =>
+                    i.masterId !== null ? [i.masterId] : []
+                  )}
                 />
               </div>
               <button
@@ -259,15 +270,18 @@ export function RecipeForm({ initialData, isEditing = false }: RecipeFormProps) 
                   className="w-20 border rounded px-3 py-2 text-sm"
                   disabled={isLoading}
                 />
-                <input
-                  type="text"
-                  placeholder="Einheit"
+                <select
                   value={ing.unit}
                   onChange={(e) => updateIngredient(idx, 'unit', e.target.value)}
-                  className="w-20 border rounded px-3 py-2 text-sm"
+                  className="w-24 border rounded px-2 py-2 text-sm bg-white"
                   disabled={isLoading}
-                  list="units"
-                />
+                >
+                  {UNIT_OPTIONS.map((u) => (
+                    <option key={u} value={u}>
+                      {u}
+                    </option>
+                  ))}
+                </select>
                 <button
                   type="button"
                   onClick={() => removeIngredient(idx)}
@@ -279,16 +293,6 @@ export function RecipeForm({ initialData, isEditing = false }: RecipeFormProps) 
               </div>
             ))}
           </div>
-
-          <datalist id="units">
-            <option value="g" />
-            <option value="kg" />
-            <option value="ml" />
-            <option value="l" />
-            <option value="tsp" />
-            <option value="tbsp" />
-            <option value="cup" />
-          </datalist>
         </div>
 
         {/* Modal for creating new ingredient */}

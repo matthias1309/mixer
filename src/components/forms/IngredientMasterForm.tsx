@@ -3,13 +3,19 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { IngredientMaster } from '@/lib/db/models/ingredientMaster';
+import { SUPPORTED_UNITS } from '@/lib/units/constants';
+
+const UNIT_OPTIONS = Object.keys(SUPPORTED_UNITS) as (keyof typeof SUPPORTED_UNITS)[];
 
 interface IngredientMasterFormProps {
   initialData?: IngredientMaster;
   isEditing?: boolean;
 }
 
-export function IngredientMasterForm({ initialData, isEditing = false }: IngredientMasterFormProps) {
+export function IngredientMasterForm({
+  initialData,
+  isEditing = false,
+}: IngredientMasterFormProps) {
   const [name, setName] = useState(initialData?.name || '');
   const [category, setCategory] = useState(initialData?.category || '');
   const [baseUnit, setBaseUnit] = useState(initialData?.base_unit || 'g');
@@ -54,7 +60,9 @@ export function IngredientMasterForm({ initialData, isEditing = false }: Ingredi
     }
 
     try {
-      const url = isEditing ? `/api/ingredients-master/${initialData?.id}` : '/api/ingredients-master';
+      const url = isEditing
+        ? `/api/ingredients-master/${initialData?.id}`
+        : '/api/ingredients-master';
       const method = isEditing ? 'PUT' : 'POST';
 
       const body: any = {
@@ -164,14 +172,18 @@ export function IngredientMasterForm({ initialData, isEditing = false }: Ingredi
           <div className="grid grid-cols-2 gap-4 mt-3">
             <div>
               <label className="block text-sm font-medium mb-1">Basiseinheit</label>
-              <input
-                type="text"
+              <select
                 value={baseUnit}
                 onChange={(e) => setBaseUnit(e.target.value)}
-                placeholder="g"
-                className="w-full border rounded px-3 py-2 focus:outline-blue-500"
+                className="w-full border rounded px-3 py-2 focus:outline-blue-500 bg-white"
                 disabled={isLoading}
-              />
+              >
+                {UNIT_OPTIONS.map((u) => (
+                  <option key={u} value={u}>
+                    {u}
+                  </option>
+                ))}
+              </select>
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">Basisgröße</label>
@@ -189,7 +201,9 @@ export function IngredientMasterForm({ initialData, isEditing = false }: Ingredi
 
         {/* Nutrients */}
         <div>
-          <h2 className="text-lg font-semibold mb-3">Nährwerte (pro {baseSize}g)</h2>
+          <h2 className="text-lg font-semibold mb-3">
+            Nährwerte (pro {baseSize} {baseUnit})
+          </h2>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             {nutrientInputs.map((nutrient) => (
               <div key={nutrient.label}>

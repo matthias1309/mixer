@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '../../../hooks/useAuth';
 import { useFilter } from '../../../hooks/useFilter';
+import { ServingsControl } from '../../../components/recipe/ServingsControl';
 
 interface RecipeDetail {
   id: number;
@@ -26,6 +27,13 @@ export default function RecipeDetailPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
+  const [currentServings, setCurrentServings] = useState(0);
+  const [scaledIngredients, setScaledIngredients] = useState<RecipeDetail['ingredients'] | null>(
+    null
+  );
+  const [isScaling, setIsScaling] = useState(false);
+  const [scalingError, setScalingError] = useState('');
+  const [scaledNutrients, setScaledNutrients] = useState<Record<string, number> | null>(null);
   const params = useParams();
   const router = useRouter();
   const { user } = useAuth();
@@ -33,28 +41,69 @@ export default function RecipeDetailPage() {
 
   const id = params.id;
 
-  const fetchRecipe = useCallback(async function fetchRecipe() {
-    setIsLoading(true);
-    setError('');
+  const fetchRecipe = useCallback(
+    async function fetchRecipe() {
+      setIsLoading(true);
+      setError('');
 
-    try {
-      const response = await fetch(`/api/recipes/${id}`, {
-        credentials: 'include',
-      });
+      try {
+        const response = await fetch(`/api/recipes/${id}`, {
+          credentials: 'include',
+        });
 
-      const data = await response.json();
+        const data = await response.json();
 
-      if (!response.ok) {
-        throw new Error(data.error || 'Rezept nicht gefunden');
+        if (!response.ok) {
+          throw new Error(data.error || 'Rezept nicht gefunden');
+        }
+
+        setRecipe(data);
+        setCurrentServings(data.servings);
+        setScaledIngredients(null);
+        setScaledNutrients(null);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Rezept konnte nicht geladen werden');
+      } finally {
+        setIsLoading(false);
       }
+    },
+    [id]
+  );
 
-      setRecipe(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Rezept konnte nicht geladen werden');
-    } finally {
-      setIsLoading(false);
-    }
-  }, [id]);
+  const handleScaleServings = useCallback(
+    async (newServings: number) => {
+      if (!recipe || isScaling) return;
+      setIsScaling(true);
+      setScalingError('');
+      try {
+        const response = await fetch(`/api/recipes/${id}/scale`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ newServings }),
+        });
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.error || 'Skalierung fehlgeschlagen');
+        }
+        setScaledIngredients(data.ingredients);
+        setCurrentServings(newServings);
+        if (recipe.nutrients) {
+          const factor = newServings / recipe.servings;
+          const scaled: Record<string, number> = {};
+          for (const [key, val] of Object.entries(recipe.nutrients)) {
+            scaled[key] = Math.round(val * factor * 100) / 100;
+          }
+          setScaledNutrients(scaled);
+        }
+      } catch (err) {
+        setScalingError(err instanceof Error ? err.message : 'Skalierung fehlgeschlagen');
+      } finally {
+        setIsScaling(false);
+      }
+    },
+    [id, recipe, isScaling]
+  );
 
   useEffect(() => {
     fetchRecipe();
@@ -94,6 +143,8 @@ export default function RecipeDetailPage() {
     return <div className="text-center py-8">Rezept nicht gefunden</div>;
   }
 
+  const displayNutrients = scaledNutrients ?? recipe.nutrients;
+
   return (
     <div className="max-w-2xl">
       <div className="bg-white p-6 rounded-lg shadow">
@@ -129,9 +180,18 @@ export default function RecipeDetailPage() {
         )}
 
         <div className="mb-6">
-          <h2 className="text-lg font-bold mb-2">Zutaten (Portionen: {recipe.servings})</h2>
+          <div className="mb-2">
+            <ServingsControl
+              servings={currentServings}
+              originalServings={recipe.servings}
+              isLoading={isScaling}
+              onDecrease={() => handleScaleServings(currentServings - 1)}
+              onIncrease={() => handleScaleServings(currentServings + 1)}
+            />
+          </div>
+          {scalingError && <p className="text-red-600 text-sm mb-2">{scalingError}</p>}
           <ul className="space-y-1">
-            {recipe.ingredients.map((ing) => {
+            {(scaledIngredients ?? recipe.ingredients).map((ing) => {
               const isSelected = selectedIngredients.includes(ing.name.toLowerCase());
               return (
                 <li
@@ -150,7 +210,7 @@ export default function RecipeDetailPage() {
           </ul>
         </div>
 
-        {recipe.nutrients && Object.values(recipe.nutrients).some(v => v > 0) && (
+        {displayNutrients && Object.values(displayNutrients).some((v) => v > 0) && (
           <div className="mb-6">
             <h2 className="text-lg font-bold mb-3">Nährwerte</h2>
             <div className="grid grid-cols-2 gap-4">
@@ -172,7 +232,7 @@ export default function RecipeDetailPage() {
                 { key: 'vitamin_b6', label: 'Vitamin B6', unit: 'mg' },
                 { key: 'vitamin_b12', label: 'Vitamin B12', unit: 'mcg' },
               ].map(({ key, label, unit }) => {
-                const value = recipe.nutrients?.[key] || 0;
+                const value = displayNutrients[key] || 0;
                 if (value === 0) return null;
                 return (
                   <div key={key} className="bg-gray-50 p-3 rounded">
@@ -203,10 +263,7 @@ export default function RecipeDetailPage() {
       </div>
 
       <div className="mt-6">
-        <a
-          href="/dashboard"
-          className="text-blue-600 hover:underline"
-        >
+        <a href="/dashboard" className="text-blue-600 hover:underline">
           ← Zurück zum Dashboard
         </a>
       </div>
