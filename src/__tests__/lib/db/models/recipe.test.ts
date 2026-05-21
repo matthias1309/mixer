@@ -28,7 +28,6 @@ afterEach(() => {
     fs.unlinkSync(testDbPath);
   }
   delete process.env.DATABASE_URL;
-  delete (global as any).db;
 });
 
 describe('RecipeModel', () => {
@@ -54,17 +53,10 @@ describe('RecipeModel', () => {
     });
 
     it('should create a recipe with ingredients', () => {
-      const recipe = RecipeModel.create(
-        'Pasta',
-        userId,
-        undefined,
-        undefined,
-        undefined,
-        [
-          { name: 'Pasta', quantity: 500, unit: 'g' },
-          { name: 'Tomato Sauce', quantity: 200, unit: 'ml' },
-        ]
-      );
+      const recipe = RecipeModel.create('Pasta', userId, undefined, undefined, undefined, [
+        { name: 'Pasta', quantity: 500, unit: 'g' },
+        { name: 'Tomato Sauce', quantity: 200, unit: 'ml' },
+      ]);
 
       const ingredients = RecipeModel.getIngredients(recipe.id);
       expect(ingredients).toHaveLength(2);
@@ -73,16 +65,9 @@ describe('RecipeModel', () => {
     });
 
     it('should normalize ingredient names (trim + lowercase)', () => {
-      const recipe = RecipeModel.create(
-        'Dish',
-        userId,
-        undefined,
-        undefined,
-        undefined,
-        [
-          { name: '  PASTA  ', quantity: 500, unit: 'g' },
-        ]
-      );
+      const recipe = RecipeModel.create('Dish', userId, undefined, undefined, undefined, [
+        { name: '  PASTA  ', quantity: 500, unit: 'g' },
+      ]);
 
       const ingredients = RecipeModel.getIngredients(recipe.id);
       expect(ingredients[0].name).toBe('pasta');
@@ -133,7 +118,15 @@ describe('RecipeModel', () => {
       RecipeModel.create('Recipe C', userId, 'Description C');
       // Create a duplicate recipe (should be excluded from list)
       const canonical = RecipeModel.create('Duplicate', userId);
-      RecipeModel.create('Duplicate Copy', userId, undefined, undefined, undefined, undefined, canonical.id);
+      RecipeModel.create(
+        'Duplicate Copy',
+        userId,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        canonical.id
+      );
     });
 
     it('should list all non-duplicate recipes', () => {
@@ -157,7 +150,7 @@ describe('RecipeModel', () => {
       // All recipes are created in order, so most recent is last (Duplicate)
       // But since they're all created at the same time, order may vary
       // Just check that we get all 4 recipes
-      const names = result.recipes.map(r => r.name);
+      const names = result.recipes.map((r) => r.name);
       expect(names).toContain('Recipe A');
       expect(names).toContain('Recipe B');
       expect(names).toContain('Recipe C');
@@ -166,7 +159,7 @@ describe('RecipeModel', () => {
 
     it('should sort by name ascending', () => {
       const result = RecipeModel.listAll(1, 10, 'name');
-      const names = result.recipes.map(r => r.name);
+      const names = result.recipes.map((r) => r.name);
       expect(names[0]).toBe('Duplicate');
       expect(names[1]).toBe('Recipe A');
       expect(names[2]).toBe('Recipe B');
@@ -191,46 +184,29 @@ describe('RecipeModel', () => {
       ]);
 
       const result = RecipeModel.listAll(1, 10);
-      const found = result.recipes.find(r => r.id === recipe.id);
+      const found = result.recipes.find((r) => r.id === recipe.id);
       expect(found?.ingredientCount).toBe(2);
     });
   });
 
   describe('findByNameAndIngredients', () => {
     it('should find exact recipe match by name and ingredients', () => {
-      const recipe = RecipeModel.create(
-        'Pasta',
-        userId,
-        undefined,
-        undefined,
-        undefined,
-        [
-          { name: 'Pasta', quantity: 500 },
-          { name: 'Tomato Sauce', quantity: 200 },
-        ]
-      );
+      const recipe = RecipeModel.create('Pasta', userId, undefined, undefined, undefined, [
+        { name: 'Pasta', quantity: 500 },
+        { name: 'Tomato Sauce', quantity: 200 },
+      ]);
 
-      const found = RecipeModel.findByNameAndIngredients(
-        'Pasta',
-        ['Pasta', 'Tomato Sauce']
-      );
+      const found = RecipeModel.findByNameAndIngredients('Pasta', ['Pasta', 'Tomato Sauce']);
 
       expect(found).toBeDefined();
       expect(found?.id).toBe(recipe.id);
     });
 
     it('should not match if ingredient names differ', () => {
-      RecipeModel.create(
-        'Pasta',
-        userId,
-        undefined,
-        undefined,
-        undefined,
-        [
-          { name: 'Pasta', quantity: 500 },
-          { name: 'Tomato Sauce', quantity: 200 },
-        ]
-      );
+      RecipeModel.create('Pasta', userId, undefined, undefined, undefined, [
+        { name: 'Pasta', quantity: 500 },
+        { name: 'Tomato Sauce', quantity: 200 },
+      ]);
 
       const found = RecipeModel.findByNameAndIngredients(
         'Pasta',
@@ -241,17 +217,10 @@ describe('RecipeModel', () => {
     });
 
     it('should not match if ingredient count differs', () => {
-      RecipeModel.create(
-        'Pasta',
-        userId,
-        undefined,
-        undefined,
-        undefined,
-        [
-          { name: 'Pasta', quantity: 500 },
-          { name: 'Tomato Sauce', quantity: 200 },
-        ]
-      );
+      RecipeModel.create('Pasta', userId, undefined, undefined, undefined, [
+        { name: 'Pasta', quantity: 500 },
+        { name: 'Tomato Sauce', quantity: 200 },
+      ]);
 
       const found = RecipeModel.findByNameAndIngredients(
         'Pasta',
@@ -262,17 +231,10 @@ describe('RecipeModel', () => {
     });
 
     it('should normalize names and ingredients for comparison', () => {
-      RecipeModel.create(
-        'Pasta',
-        userId,
-        undefined,
-        undefined,
-        undefined,
-        [
-          { name: 'Pasta', quantity: 500 },
-          { name: 'Tomato Sauce', quantity: 200 },
-        ]
-      );
+      RecipeModel.create('Pasta', userId, undefined, undefined, undefined, [
+        { name: 'Pasta', quantity: 500 },
+        { name: 'Tomato Sauce', quantity: 200 },
+      ]);
 
       const found = RecipeModel.findByNameAndIngredients(
         'pasta', // Different case
@@ -326,14 +288,9 @@ describe('RecipeModel', () => {
     });
 
     it('should update ingredients', () => {
-      const recipe = RecipeModel.create(
-        'Pasta',
-        userId,
-        undefined,
-        undefined,
-        undefined,
-        [{ name: 'Pasta', quantity: 500 }]
-      );
+      const recipe = RecipeModel.create('Pasta', userId, undefined, undefined, undefined, [
+        { name: 'Pasta', quantity: 500 },
+      ]);
 
       RecipeModel.update(recipe.id, undefined, undefined, undefined, undefined, [
         { name: 'Rice', quantity: 300 },
@@ -357,14 +314,9 @@ describe('RecipeModel', () => {
     });
 
     it('should cascade delete ingredients on recipe delete', () => {
-      const recipe = RecipeModel.create(
-        'Pasta',
-        userId,
-        undefined,
-        undefined,
-        undefined,
-        [{ name: 'Pasta', quantity: 500 }]
-      );
+      const recipe = RecipeModel.create('Pasta', userId, undefined, undefined, undefined, [
+        { name: 'Pasta', quantity: 500 },
+      ]);
 
       RecipeModel.delete(recipe.id);
 
@@ -375,17 +327,10 @@ describe('RecipeModel', () => {
 
   describe('getIngredients', () => {
     it('should get all ingredients for a recipe', () => {
-      const recipe = RecipeModel.create(
-        'Pasta',
-        userId,
-        undefined,
-        undefined,
-        undefined,
-        [
-          { name: 'Pasta', quantity: 500, unit: 'g' },
-          { name: 'Sauce', quantity: 300, unit: 'ml' },
-        ]
-      );
+      const recipe = RecipeModel.create('Pasta', userId, undefined, undefined, undefined, [
+        { name: 'Pasta', quantity: 500, unit: 'g' },
+        { name: 'Sauce', quantity: 300, unit: 'ml' },
+      ]);
 
       const ingredients = RecipeModel.getIngredients(recipe.id);
       expect(ingredients).toHaveLength(2);
@@ -394,17 +339,10 @@ describe('RecipeModel', () => {
     });
 
     it('should return ingredients sorted by name', () => {
-      const recipe = RecipeModel.create(
-        'Dish',
-        userId,
-        undefined,
-        undefined,
-        undefined,
-        [
-          { name: 'Zucchini', quantity: 1 },
-          { name: 'Apple', quantity: 1 },
-        ]
-      );
+      const recipe = RecipeModel.create('Dish', userId, undefined, undefined, undefined, [
+        { name: 'Zucchini', quantity: 1 },
+        { name: 'Apple', quantity: 1 },
+      ]);
 
       const ingredients = RecipeModel.getIngredients(recipe.id);
       expect(ingredients[0].name).toBe('apple');

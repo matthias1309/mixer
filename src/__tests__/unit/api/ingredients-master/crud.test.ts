@@ -1,6 +1,10 @@
 /** @jest-environment node */
 import { GET as GET_LIST, POST as POST_CREATE } from '../../../../app/api/ingredients-master/route';
-import { GET as GET_DETAIL, PUT as PUT_UPDATE, DELETE as DELETE_INGREDIENT } from '../../../../app/api/ingredients-master/[id]/route';
+import {
+  GET as GET_DETAIL,
+  PUT as PUT_UPDATE,
+  DELETE as DELETE_INGREDIENT,
+} from '../../../../app/api/ingredients-master/[id]/route';
 import { UserModel } from '../../../../lib/db/models/user';
 import { initializeDatabase, closeDatabase } from '../../../../lib/db/init';
 import { generateToken } from '../../../../lib/auth/tokenRefresh';
@@ -17,23 +21,10 @@ describe('Ingredients Master API', () => {
 
   beforeEach(async () => {
     testCounter++;
-    testDbPath = path.join(
-      __dirname,
-      `../../../../../.data/test-ingredients-${testCounter}.db`
-    );
-
-    const existingDb = (global as any).db;
-    if (existingDb) {
-      try {
-        existingDb.close();
-      } catch (e) {
-        // ignore
-      }
-    }
+    testDbPath = path.join(__dirname, `../../../../../.data/test-ingredients-${testCounter}.db`);
 
     process.env.DATABASE_URL = testDbPath;
     process.env.JWT_SECRET = 'test-secret-key-must-be-32-chars-long';
-    (global as any).db = undefined;
     await initializeDatabase();
 
     const passwordHash = await bcryptjs.hash('TestPassword123', 10);
@@ -234,7 +225,9 @@ describe('Ingredients Master API', () => {
         await POST_CREATE(request);
       }
 
-      const request = new NextRequest('http://localhost:3000/api/ingredients-master?page=2&pageSize=10');
+      const request = new NextRequest(
+        'http://localhost:3000/api/ingredients-master?page=2&pageSize=10'
+      );
       const response = await GET_LIST(request);
       const data = await response.json();
 
@@ -285,9 +278,7 @@ describe('Ingredients Master API', () => {
       const created = await createResponse.json();
 
       // Get detail
-      const request = new NextRequest(
-        `http://localhost:3000/api/ingredients-master/${created.id}`
-      );
+      const request = new NextRequest(`http://localhost:3000/api/ingredients-master/${created.id}`);
       const response = await GET_DETAIL(request, { params: { id: created.id } });
       const data = await response.json();
 

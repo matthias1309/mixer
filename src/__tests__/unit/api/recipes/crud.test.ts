@@ -1,10 +1,14 @@
 /** @jest-environment node */
 import { GET as GET_LIST, POST as POST_CREATE } from '../../../../app/api/recipes/route';
-import { GET as GET_DETAIL, PUT as PUT_UPDATE, DELETE as DELETE_RECIPE } from '../../../../app/api/recipes/[id]/route';
+import {
+  GET as GET_DETAIL,
+  PUT as PUT_UPDATE,
+  DELETE as DELETE_RECIPE,
+} from '../../../../app/api/recipes/[id]/route';
 import { UserModel } from '../../../../lib/db/models/user';
 import { RecipeModel } from '../../../../lib/db/models/recipe';
 import { RecipeModelAsync } from '../../../../lib/db/models/recipe-async';
-import { initializeDatabase } from '../../../../lib/db/init';
+import { initializeDatabase, closeDatabase } from '../../../../lib/db/init';
 import { generateToken } from '../../../../lib/auth/tokenRefresh';
 import bcryptjs from 'bcryptjs';
 import fs from 'fs';
@@ -21,25 +25,10 @@ describe('Recipe CRUD API', () => {
 
   beforeEach(async () => {
     testCounter++;
-    testDbPath = path.join(
-      __dirname,
-      `../../../../../.data/test-recipes-${testCounter}.db`
-    );
-
-    // Close existing database instance if any
-    const existingDb = (global as any).db;
-    if (existingDb) {
-      try {
-        existingDb.close();
-      } catch (e) {
-        // ignore if already closed
-      }
-    }
+    testDbPath = path.join(__dirname, `../../../../../.data/test-recipes-${testCounter}.db`);
 
     process.env.DATABASE_URL = testDbPath;
     process.env.JWT_SECRET = 'test-secret-key-must-be-32-chars-long';
-    // Clear global db instance
-    (global as any).db = undefined;
     await initializeDatabase();
 
     // Create test users
@@ -55,20 +44,12 @@ describe('Recipe CRUD API', () => {
   });
 
   afterEach(() => {
-    // Close database
-    try {
-      const db = (global as any).db;
-      if (db) {
-        db.close();
-      }
-    } catch (e) {
-      // ignore
-    }
-    (global as any).db = undefined;
+    closeDatabase();
     if (fs.existsSync(testDbPath)) {
       fs.unlinkSync(testDbPath);
     }
     delete process.env.DATABASE_URL;
+    delete process.env.JWT_SECRET;
   });
 
   describe('POST /api/recipes - Create recipe with deduplication', () => {
@@ -275,29 +256,15 @@ describe('Recipe CRUD API', () => {
     });
 
     test('should filter recipes by ingredients', async () => {
-      RecipeModel.create(
-        'Pasta Carbonara',
-        user1Id,
-        undefined,
-        undefined,
-        undefined,
-        [
-          { name: 'pasta', quantity: 400, unit: 'g' },
-          { name: 'eggs', quantity: 3, unit: '' },
-        ]
-      );
+      RecipeModel.create('Pasta Carbonara', user1Id, undefined, undefined, undefined, [
+        { name: 'pasta', quantity: 400, unit: 'g' },
+        { name: 'eggs', quantity: 3, unit: '' },
+      ]);
 
-      RecipeModel.create(
-        'Omelette',
-        user1Id,
-        undefined,
-        undefined,
-        undefined,
-        [
-          { name: 'eggs', quantity: 2, unit: '' },
-          { name: 'butter', quantity: 10, unit: 'g' },
-        ]
-      );
+      RecipeModel.create('Omelette', user1Id, undefined, undefined, undefined, [
+        { name: 'eggs', quantity: 2, unit: '' },
+        { name: 'butter', quantity: 10, unit: 'g' },
+      ]);
 
       RecipeModel.create('Pizza', user2Id);
 
@@ -378,7 +345,9 @@ describe('Recipe CRUD API', () => {
         },
       });
 
-      const response = await GET_DETAIL(request, { params: Promise.resolve({ id: String(recipe.id) }) });
+      const response = await GET_DETAIL(request, {
+        params: Promise.resolve({ id: String(recipe.id) }),
+      });
       const data = await response.json();
 
       expect(response.status).toBe(200);
@@ -400,7 +369,9 @@ describe('Recipe CRUD API', () => {
         },
       });
 
-      const response = await GET_DETAIL(request, { params: Promise.resolve({ id: String(recipe.id) }) });
+      const response = await GET_DETAIL(request, {
+        params: Promise.resolve({ id: String(recipe.id) }),
+      });
       const data = await response.json();
 
       expect(response.status).toBe(200);
@@ -449,7 +420,9 @@ describe('Recipe CRUD API', () => {
         }),
       });
 
-      const response = await PUT_UPDATE(request, { params: Promise.resolve({ id: String(recipe.id) }) });
+      const response = await PUT_UPDATE(request, {
+        params: Promise.resolve({ id: String(recipe.id) }),
+      });
       const data = await response.json();
 
       expect(response.status).toBe(200);
@@ -463,14 +436,9 @@ describe('Recipe CRUD API', () => {
     });
 
     test('should update ingredients by owner', async () => {
-      const recipe = RecipeModel.create(
-        'Recipe',
-        user1Id,
-        undefined,
-        undefined,
-        undefined,
-        [{ name: 'tomato', quantity: 2, unit: '' }]
-      );
+      const recipe = RecipeModel.create('Recipe', user1Id, undefined, undefined, undefined, [
+        { name: 'tomato', quantity: 2, unit: '' },
+      ]);
 
       const request = new NextRequest(`http://localhost:3000/api/recipes/${recipe.id}`, {
         method: 'PUT',
@@ -485,7 +453,9 @@ describe('Recipe CRUD API', () => {
         }),
       });
 
-      const response = await PUT_UPDATE(request, { params: Promise.resolve({ id: String(recipe.id) }) });
+      const response = await PUT_UPDATE(request, {
+        params: Promise.resolve({ id: String(recipe.id) }),
+      });
       const data = await response.json();
 
       expect(response.status).toBe(200);
@@ -509,7 +479,9 @@ describe('Recipe CRUD API', () => {
         }),
       });
 
-      const response = await PUT_UPDATE(request, { params: Promise.resolve({ id: String(recipe.id) }) });
+      const response = await PUT_UPDATE(request, {
+        params: Promise.resolve({ id: String(recipe.id) }),
+      });
       const data = await response.json();
 
       expect(response.status).toBe(403);
@@ -528,7 +500,9 @@ describe('Recipe CRUD API', () => {
         body: JSON.stringify({ name: 'Updated' }),
       });
 
-      const response = await PUT_UPDATE(request, { params: Promise.resolve({ id: String(recipe.id) }) });
+      const response = await PUT_UPDATE(request, {
+        params: Promise.resolve({ id: String(recipe.id) }),
+      });
       const data = await response.json();
 
       expect(response.status).toBe(401);
@@ -547,7 +521,9 @@ describe('Recipe CRUD API', () => {
         }),
       });
 
-      const response = await PUT_UPDATE(request, { params: Promise.resolve({ id: String(recipe.id) }) });
+      const response = await PUT_UPDATE(request, {
+        params: Promise.resolve({ id: String(recipe.id) }),
+      });
       const data = await response.json();
 
       expect(response.status).toBe(400);
@@ -567,7 +543,9 @@ describe('Recipe CRUD API', () => {
         },
       });
 
-      const response = await DELETE_RECIPE(request, { params: Promise.resolve({ id: String(recipeId) }) });
+      const response = await DELETE_RECIPE(request, {
+        params: Promise.resolve({ id: String(recipeId) }),
+      });
 
       expect(response.status).toBe(204);
 
@@ -586,7 +564,9 @@ describe('Recipe CRUD API', () => {
         },
       });
 
-      const response = await DELETE_RECIPE(request, { params: Promise.resolve({ id: String(recipe.id) }) });
+      const response = await DELETE_RECIPE(request, {
+        params: Promise.resolve({ id: String(recipe.id) }),
+      });
       const data = await response.json();
 
       expect(response.status).toBe(403);
@@ -604,7 +584,9 @@ describe('Recipe CRUD API', () => {
         method: 'DELETE',
       });
 
-      const response = await DELETE_RECIPE(request, { params: Promise.resolve({ id: String(recipe.id) }) });
+      const response = await DELETE_RECIPE(request, {
+        params: Promise.resolve({ id: String(recipe.id) }),
+      });
       const data = await response.json();
 
       expect(response.status).toBe(401);
@@ -653,9 +635,7 @@ describe('Recipe CRUD API', () => {
         },
         body: JSON.stringify({
           name: 'Decimal Point Test',
-          ingredients: [
-            { name: 'flour', quantity: 100.5, unit: 'g' },
-          ],
+          ingredients: [{ name: 'flour', quantity: 100.5, unit: 'g' }],
         }),
       });
 
@@ -673,9 +653,7 @@ describe('Recipe CRUD API', () => {
         },
         body: JSON.stringify({
           name: 'Zero Test',
-          ingredients: [
-            { name: 'flour', quantity: 0, unit: 'g' },
-          ],
+          ingredients: [{ name: 'flour', quantity: 0, unit: 'g' }],
         }),
       });
 
@@ -693,9 +671,7 @@ describe('Recipe CRUD API', () => {
         },
         body: JSON.stringify({
           name: 'Negative Test',
-          ingredients: [
-            { name: 'flour', quantity: -100, unit: 'g' },
-          ],
+          ingredients: [{ name: 'flour', quantity: -100, unit: 'g' }],
         }),
       });
 
@@ -706,14 +682,9 @@ describe('Recipe CRUD API', () => {
     });
 
     test('PUT should also reject decimal quantities', async () => {
-      const recipe = RecipeModel.create(
-        'Update Test Recipe',
-        user1Id,
-        null,
-        null,
-        1,
-        [{ name: 'flour', quantity: 500, unit: 'g' }]
-      );
+      const recipe = RecipeModel.create('Update Test Recipe', user1Id, null, null, 1, [
+        { name: 'flour', quantity: 500, unit: 'g' },
+      ]);
 
       const request = new NextRequest(`http://localhost:3000/api/recipes/${recipe.id}`, {
         method: 'PUT',
@@ -721,13 +692,13 @@ describe('Recipe CRUD API', () => {
           cookie: `sessionToken=${user1Token}`,
         },
         body: JSON.stringify({
-          ingredients: [
-            { name: 'flour', quantity: 500.5, unit: 'g' },
-          ],
+          ingredients: [{ name: 'flour', quantity: 500.5, unit: 'g' }],
         }),
       });
 
-      const response = await PUT_UPDATE(request, { params: Promise.resolve({ id: String(recipe.id) }) });
+      const response = await PUT_UPDATE(request, {
+        params: Promise.resolve({ id: String(recipe.id) }),
+      });
       const data = await response.json();
       expect(response.status).toBe(400);
       expect(data.error).toContain('integer');

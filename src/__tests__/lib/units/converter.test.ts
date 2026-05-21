@@ -10,11 +10,7 @@ import Database from 'better-sqlite3';
 import { mkdtempSync, rmSync } from 'fs';
 import { tmpdir } from 'os';
 import { join } from 'path';
-import {
-  UNIT_SEEDS,
-  CONVERSION_SEEDS,
-  DENSITY_SEEDS,
-} from '@/db/seeds/units';
+import { UNIT_SEEDS, CONVERSION_SEEDS, DENSITY_SEEDS } from '@/db/seeds/units';
 
 describe('UnitConverter', () => {
   let converter: UnitConverter;
@@ -23,7 +19,6 @@ describe('UnitConverter', () => {
   beforeAll(async () => {
     dbPath = mkdtempSync(join(tmpdir(), 'units-test-'));
     process.env.DATABASE_URL = `file:${join(dbPath, 'test.db')}`;
-    (global as any).db = undefined;
     await initializeDatabase();
 
     // Database is already seeded with units, conversions, and densities
@@ -66,15 +61,11 @@ describe('UnitConverter', () => {
     });
 
     it('throws UnknownUnitError for unknown unit', async () => {
-      await expect(converter.convert(1, 'unknown', 'ml')).rejects.toThrow(
-        UnknownUnitError
-      );
+      await expect(converter.convert(1, 'unknown', 'ml')).rejects.toThrow(UnknownUnitError);
     });
 
     it('throws ImpossibleConversionError for incompatible units', async () => {
-      await expect(converter.convert(1, 'TL', 'g')).rejects.toThrow(
-        ImpossibleConversionError
-      );
+      await expect(converter.convert(1, 'TL', 'g')).rejects.toThrow(ImpossibleConversionError);
     });
   });
 
@@ -90,9 +81,9 @@ describe('UnitConverter', () => {
     });
 
     it('throws MissingDensityError when density not found', async () => {
-      await expect(
-        converter.convert(1, 'TL', 'g', 'UnknownIngredient')
-      ).rejects.toThrow(MissingDensityError);
+      await expect(converter.convert(1, 'TL', 'g', 'UnknownIngredient')).rejects.toThrow(
+        MissingDensityError
+      );
     });
   });
 
@@ -129,15 +120,11 @@ describe('UnitConverter', () => {
 
   describe('convert - same unit (identity conversion)', () => {
     it('throws ImpossibleConversionError for ml to ml (no conversion factor)', async () => {
-      await expect(converter.convert(100, 'ml', 'ml')).rejects.toThrow(
-        ImpossibleConversionError
-      );
+      await expect(converter.convert(100, 'ml', 'ml')).rejects.toThrow(ImpossibleConversionError);
     });
 
     it('throws ImpossibleConversionError for g to g (no conversion factor)', async () => {
-      await expect(converter.convert(250, 'g', 'g')).rejects.toThrow(
-        ImpossibleConversionError
-      );
+      await expect(converter.convert(250, 'g', 'g')).rejects.toThrow(ImpossibleConversionError);
     });
   });
 
@@ -156,9 +143,7 @@ describe('UnitConverter', () => {
 
     it('throws MissingDensityError when ml density not available for weightToVolume', async () => {
       // Salz only has TL and EL densities, no ml density
-      await expect(
-        converter.convert(100, 'g', 'ml', 'Salz')
-      ).rejects.toThrow(MissingDensityError);
+      await expect(converter.convert(100, 'g', 'ml', 'Salz')).rejects.toThrow(MissingDensityError);
     });
   });
 
@@ -196,24 +181,18 @@ describe('UnitConverter', () => {
 
   describe('convert - missing ingredient density', () => {
     it('throws ImpossibleConversionError without ingredientName for cross-category', async () => {
-      await expect(converter.convert(1, 'TL', 'g')).rejects.toThrow(
-        ImpossibleConversionError
-      );
+      await expect(converter.convert(1, 'TL', 'g')).rejects.toThrow(ImpossibleConversionError);
     });
 
     it('throws MissingDensityError for volumeToWeight with missing density per unit', async () => {
       // Öl has TL and EL but no ml density
-      await expect(
-        converter.convert(100, 'ml', 'g', 'Öl')
-      ).rejects.toThrow(MissingDensityError);
+      await expect(converter.convert(100, 'ml', 'g', 'Öl')).rejects.toThrow(MissingDensityError);
     });
   });
 
   describe('normalizeToBaseUnit - error handling', () => {
     it('throws UnknownUnitError for unknown unit', async () => {
-      await expect(converter.normalizeToBaseUnit(1, 'unknown')).rejects.toThrow(
-        UnknownUnitError
-      );
+      await expect(converter.normalizeToBaseUnit(1, 'unknown')).rejects.toThrow(UnknownUnitError);
     });
   });
 

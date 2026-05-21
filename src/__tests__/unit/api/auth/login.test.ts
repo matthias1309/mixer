@@ -13,25 +13,10 @@ describe('POST /api/auth/login', () => {
 
   beforeEach(async () => {
     testCounter++;
-    testDbPath = path.join(
-      __dirname,
-      `../../../../../.data/test-login-${testCounter}.db`
-    );
-
-    // Close existing database instance if any
-    const existingDb = (global as any).db;
-    if (existingDb) {
-      try {
-        existingDb.close();
-      } catch (e) {
-        // ignore if already closed
-      }
-    }
+    testDbPath = path.join(__dirname, `../../../../../.data/test-login-${testCounter}.db`);
 
     process.env.DATABASE_URL = testDbPath;
     process.env.JWT_SECRET = 'test-secret-key-must-be-32-chars-long';
-    // Clear global db instance
-    (global as any).db = undefined;
     await initializeDatabase();
   });
 
@@ -41,6 +26,7 @@ describe('POST /api/auth/login', () => {
       fs.unlinkSync(testDbPath);
     }
     delete process.env.DATABASE_URL;
+    delete process.env.JWT_SECRET;
   });
 
   test('should return 200 with user id and email for valid credentials', async () => {

@@ -3,7 +3,7 @@ import { GET as GET_RECIPES } from '@/app/api/recipes/route';
 import { RecipeModel } from '@/lib/db/models/recipe';
 import { IngredientMasterModel } from '@/lib/db/models/ingredientMaster';
 import { UserModel } from '@/lib/db/models/user';
-import { initializeDatabase } from '@/lib/db/init';
+import { initializeDatabase, closeDatabase } from '@/lib/db/init';
 import { generateToken } from '@/lib/auth/tokenRefresh';
 import bcryptjs from 'bcryptjs';
 import fs from 'fs';
@@ -20,18 +20,8 @@ describe('GET /api/recipes with phase-based filtering', () => {
     testCounter++;
     testDbPath = path.join(__dirname, `../../../../../.data/test-filter-${testCounter}.db`);
 
-    const existingDb = (global as any).db;
-    if (existingDb) {
-      try {
-        existingDb.close();
-      } catch (e) {
-        // ignore
-      }
-    }
-
     process.env.DATABASE_URL = testDbPath;
     process.env.JWT_SECRET = 'test-secret-key-must-be-32-chars-long';
-    (global as any).db = undefined;
     await initializeDatabase();
 
     const passwordHash = await bcryptjs.hash('TestPassword123', 10);
@@ -64,15 +54,7 @@ describe('GET /api/recipes with phase-based filtering', () => {
   });
 
   afterEach(() => {
-    try {
-      const db = (global as any).db;
-      if (db && db.open) {
-        db.close();
-      }
-    } catch (e) {
-      // ignore
-    }
-    (global as any).db = undefined;
+    closeDatabase();
 
     try {
       if (fs.existsSync(testDbPath)) {
@@ -91,6 +73,7 @@ describe('GET /api/recipes with phase-based filtering', () => {
     }
 
     delete process.env.DATABASE_URL;
+    delete process.env.JWT_SECRET;
   });
 
   test('should return recipes with score field when phase parameter provided', async () => {
@@ -111,14 +94,14 @@ describe('GET /api/recipes with phase-based filtering', () => {
     const menstruationResponse = await GET_RECIPES(menstruationRequest);
     const menstruationData = await menstruationResponse.json();
 
-    const ovulationRequest = new NextRequest(
-      'http://localhost:3000/api/recipes?phase=ovulation'
-    );
+    const ovulationRequest = new NextRequest('http://localhost:3000/api/recipes?phase=ovulation');
     const ovulationResponse = await GET_RECIPES(ovulationRequest);
     const ovulationData = await ovulationResponse.json();
 
     // Find the iron-rich spinach dish in both responses
-    const spinachMenstruation = menstruationData.recipes.find((r: any) => r.name === 'Iron-Rich Dish');
+    const spinachMenstruation = menstruationData.recipes.find(
+      (r: any) => r.name === 'Iron-Rich Dish'
+    );
     const spinachOvulation = ovulationData.recipes.find((r: any) => r.name === 'Iron-Rich Dish');
 
     // Iron is more important in menstruation, so score should be higher

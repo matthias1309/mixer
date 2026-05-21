@@ -1,7 +1,7 @@
 /** @jest-environment node */
 import { POST as POST_CYCLE, GET as GET_CYCLE } from '@/app/api/users/cycle/route';
 import { UserModel } from '@/lib/db/models/user';
-import { initializeDatabase } from '@/lib/db/init';
+import { initializeDatabase, closeDatabase } from '@/lib/db/init';
 import { generateToken } from '@/lib/auth/tokenRefresh';
 import bcryptjs from 'bcryptjs';
 import fs from 'fs';
@@ -18,18 +18,8 @@ describe('Cycle API Endpoints', () => {
     testCounter++;
     testDbPath = path.join(__dirname, `../../../../../.data/test-cycle-${testCounter}.db`);
 
-    const existingDb = (global as any).db;
-    if (existingDb) {
-      try {
-        existingDb.close();
-      } catch (e) {
-        // ignore
-      }
-    }
-
     process.env.DATABASE_URL = testDbPath;
     process.env.JWT_SECRET = 'test-secret-key-must-be-32-chars-long';
-    (global as any).db = undefined;
     await initializeDatabase();
 
     const passwordHash = await bcryptjs.hash('TestPassword123', 10);
@@ -39,15 +29,7 @@ describe('Cycle API Endpoints', () => {
   });
 
   afterEach(() => {
-    try {
-      const db = (global as any).db;
-      if (db && db.open) {
-        db.close();
-      }
-    } catch (e) {
-      // ignore
-    }
-    (global as any).db = undefined;
+    closeDatabase();
 
     try {
       if (fs.existsSync(testDbPath)) {
@@ -66,6 +48,7 @@ describe('Cycle API Endpoints', () => {
     }
 
     delete process.env.DATABASE_URL;
+    delete process.env.JWT_SECRET;
   });
 
   describe('POST /api/users/cycle', () => {
@@ -155,7 +138,9 @@ describe('Cycle API Endpoints', () => {
       expect(response.status).toBe(200);
       expect(data.data.current_phase).toBeDefined();
       expect(data.data.current_phase.phase).toBeDefined();
-      expect(['Menstruation', 'Follicular', 'Ovulation', 'Luteal']).toContain(data.data.current_phase.phase.name);
+      expect(['Menstruation', 'Follicular', 'Ovulation', 'Luteal']).toContain(
+        data.data.current_phase.phase.name
+      );
     });
 
     test('should require authentication', async () => {

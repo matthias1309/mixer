@@ -1,18 +1,18 @@
 /** @jest-environment node */
-import { IngredientMasterModelAsync } from '@/lib/db/models/ingredientMasterAsync';
-import { initializeDatabase, closeDatabase } from '@/lib/db/init';
 import { mkdtempSync, rmSync } from 'fs';
 import { tmpdir } from 'os';
 import { join } from 'path';
+import { initializeDatabase, closeDatabase, getDb } from '@/lib/db/init';
+import { IngredientMasterModelAsync } from '@/lib/db/models/ingredientMasterAsync';
+import type Database from 'better-sqlite3';
 
 describe('IngredientMasterModelAsync', () => {
   let dbPath: string;
 
   beforeEach(async () => {
+    closeDatabase();
     dbPath = mkdtempSync(join(tmpdir(), 'test-'));
     process.env.DATABASE_URL = `file:${join(dbPath, 'test.db')}`;
-    // Clear global db instance
-    (global as any).db = undefined;
     await initializeDatabase();
   });
 
@@ -70,9 +70,13 @@ describe('IngredientMasterModelAsync', () => {
   test('should reject duplicate ingredient names', async () => {
     await IngredientMasterModelAsync.create({ name: 'Apple' });
 
-    await expect(
-      IngredientMasterModelAsync.create({ name: 'Apple' })
-    ).rejects.toThrow();
+    let threw = false;
+    try {
+      await IngredientMasterModelAsync.create({ name: 'Apple' });
+    } catch (e) {
+      threw = true;
+    }
+    expect(threw).toBe(true);
   });
 
   test('should find all ingredients', async () => {

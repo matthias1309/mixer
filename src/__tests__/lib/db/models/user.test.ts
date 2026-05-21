@@ -23,7 +23,6 @@ afterEach(() => {
     fs.unlinkSync(testDbPath);
   }
   delete process.env.DATABASE_URL;
-  delete (global as any).db;
 });
 
 describe('UserModel', () => {

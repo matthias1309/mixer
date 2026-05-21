@@ -2,7 +2,7 @@
 import { POST as POST_SCALE } from '../../app/api/recipes/[id]/scale/route';
 import { RecipeModel } from '../../lib/db/models/recipe';
 import { UserModel } from '../../lib/db/models/user';
-import { initializeDatabase } from '../../lib/db/init';
+import { initializeDatabase, closeDatabase } from '../../lib/db/init';
 import { generateToken } from '../../lib/auth/tokenRefresh';
 import bcryptjs from 'bcryptjs';
 import fs from 'fs';
@@ -17,23 +17,10 @@ describe('POST /api/recipes/[id]/scale', () => {
 
   beforeEach(async () => {
     testCounter++;
-    testDbPath = path.join(
-      __dirname,
-      `../../../.data/test-scale-${testCounter}.db`
-    );
-
-    const existingDb = (global as any).db;
-    if (existingDb) {
-      try {
-        existingDb.close();
-      } catch {
-        // ignore if already closed
-      }
-    }
+    testDbPath = path.join(__dirname, `../../../.data/test-scale-${testCounter}.db`);
 
     process.env.DATABASE_URL = testDbPath;
     process.env.JWT_SECRET = 'test-secret-key-must-be-32-chars-long';
-    (global as any).db = undefined;
     await initializeDatabase();
 
     const passwordHash = await bcryptjs.hash('TestPassword123', 10);
@@ -43,45 +30,28 @@ describe('POST /api/recipes/[id]/scale', () => {
   });
 
   afterEach(() => {
-    try {
-      const db = (global as any).db;
-      if (db) {
-        db.close();
-      }
-    } catch {
-      // ignore
-    }
-    (global as any).db = undefined;
+    closeDatabase();
     if (fs.existsSync(testDbPath)) {
       fs.unlinkSync(testDbPath);
     }
     delete process.env.DATABASE_URL;
+    delete process.env.JWT_SECRET;
   });
 
   function makeRequest(recipeId: string | number, body: unknown, token?: string) {
-    return new NextRequest(
-      `http://localhost:3000/api/recipes/${recipeId}/scale`,
-      {
-        method: 'POST',
-        headers: token ? { cookie: `sessionToken=${token}` } : {},
-        body: JSON.stringify(body),
-      }
-    );
+    return new NextRequest(`http://localhost:3000/api/recipes/${recipeId}/scale`, {
+      method: 'POST',
+      headers: token ? { cookie: `sessionToken=${token}` } : {},
+      body: JSON.stringify(body),
+    });
   }
 
   describe('happy path', () => {
     it('returns scaled ingredients for a valid request (unauthenticated)', async () => {
-      const recipe = RecipeModel.create(
-        'Pasta',
-        userId,
-        null,
-        null,
-        4,
-        [
-          { name: 'pasta', quantity: 400, unit: 'g' },
-          { name: 'eggs', quantity: 4, unit: 'Stück' },
-        ]
-      );
+      const recipe = RecipeModel.create('Pasta', userId, null, null, 4, [
+        { name: 'pasta', quantity: 400, unit: 'g' },
+        { name: 'eggs', quantity: 4, unit: 'Stück' },
+      ]);
 
       const request = makeRequest(recipe.id, { newServings: 8 });
       const response = await POST_SCALE(request, {
@@ -108,14 +78,9 @@ describe('POST /api/recipes/[id]/scale', () => {
     });
 
     it('scales down correctly (e.g., 4 servings → 2)', async () => {
-      const recipe = RecipeModel.create(
-        'Soup',
-        userId,
-        null,
-        null,
-        4,
-        [{ name: 'water', quantity: 1000, unit: 'ml' }]
-      );
+      const recipe = RecipeModel.create('Soup', userId, null, null, 4, [
+        { name: 'water', quantity: 1000, unit: 'ml' },
+      ]);
 
       const request = makeRequest(recipe.id, { newServings: 2 });
       const response = await POST_SCALE(request, {
@@ -133,14 +98,9 @@ describe('POST /api/recipes/[id]/scale', () => {
     });
 
     it('promotes units when threshold is exceeded (ml → l)', async () => {
-      const recipe = RecipeModel.create(
-        'Tea',
-        userId,
-        null,
-        null,
-        1,
-        [{ name: 'water', quantity: 500, unit: 'ml' }]
-      );
+      const recipe = RecipeModel.create('Tea', userId, null, null, 1, [
+        { name: 'water', quantity: 500, unit: 'ml' },
+      ]);
 
       // 500ml * (4/1) = 2000ml → should promote to 2l
       const request = makeRequest(recipe.id, { newServings: 4 });
@@ -156,14 +116,9 @@ describe('POST /api/recipes/[id]/scale', () => {
     });
 
     it('handles ingredient with null unit', async () => {
-      const recipe = RecipeModel.create(
-        'Recipe',
-        userId,
-        null,
-        null,
-        2,
-        [{ name: 'cloves', quantity: 2, unit: '' }]
-      );
+      const recipe = RecipeModel.create('Recipe', userId, null, null, 2, [
+        { name: 'cloves', quantity: 2, unit: '' },
+      ]);
 
       const request = makeRequest(recipe.id, { newServings: 4 });
       const response = await POST_SCALE(request, {
@@ -177,14 +132,9 @@ describe('POST /api/recipes/[id]/scale', () => {
     });
 
     it('works with authentication and refreshes token', async () => {
-      const recipe = RecipeModel.create(
-        'My Recipe',
-        userId,
-        null,
-        null,
-        2,
-        [{ name: 'flour', quantity: 200, unit: 'g' }]
-      );
+      const recipe = RecipeModel.create('My Recipe', userId, null, null, 2, [
+        { name: 'flour', quantity: 200, unit: 'g' },
+      ]);
 
       const request = makeRequest(recipe.id, { newServings: 4 }, userToken);
       const response = await POST_SCALE(request, {
@@ -197,14 +147,9 @@ describe('POST /api/recipes/[id]/scale', () => {
     });
 
     it('scales to same number of servings (factor = 1, no change)', async () => {
-      const recipe = RecipeModel.create(
-        'Cake',
-        userId,
-        null,
-        null,
-        4,
-        [{ name: 'sugar', quantity: 200, unit: 'g' }]
-      );
+      const recipe = RecipeModel.create('Cake', userId, null, null, 4, [
+        { name: 'sugar', quantity: 200, unit: 'g' },
+      ]);
 
       const request = makeRequest(recipe.id, { newServings: 4 });
       const response = await POST_SCALE(request, {
@@ -320,14 +265,9 @@ describe('POST /api/recipes/[id]/scale', () => {
     });
 
     it('accepts newServings = 100 (boundary)', async () => {
-      const recipe = RecipeModel.create(
-        'Big Batch',
-        userId,
-        null,
-        null,
-        4,
-        [{ name: 'flour', quantity: 100, unit: 'g' }]
-      );
+      const recipe = RecipeModel.create('Big Batch', userId, null, null, 4, [
+        { name: 'flour', quantity: 100, unit: 'g' },
+      ]);
 
       const request = makeRequest(recipe.id, { newServings: 100 });
       const response = await POST_SCALE(request, {
@@ -338,14 +278,9 @@ describe('POST /api/recipes/[id]/scale', () => {
     });
 
     it('accepts newServings = 1 (boundary)', async () => {
-      const recipe = RecipeModel.create(
-        'Single',
-        userId,
-        null,
-        null,
-        4,
-        [{ name: 'flour', quantity: 400, unit: 'g' }]
-      );
+      const recipe = RecipeModel.create('Single', userId, null, null, 4, [
+        { name: 'flour', quantity: 400, unit: 'g' },
+      ]);
 
       const request = makeRequest(recipe.id, { newServings: 1 });
       const response = await POST_SCALE(request, {
@@ -388,14 +323,9 @@ describe('POST /api/recipes/[id]/scale', () => {
     });
 
     it('does not modify the recipe in the database', async () => {
-      const recipe = RecipeModel.create(
-        'Unchanged',
-        userId,
-        null,
-        null,
-        4,
-        [{ name: 'pasta', quantity: 400, unit: 'g' }]
-      );
+      const recipe = RecipeModel.create('Unchanged', userId, null, null, 4, [
+        { name: 'pasta', quantity: 400, unit: 'g' },
+      ]);
 
       const request = makeRequest(recipe.id, { newServings: 8 });
       await POST_SCALE(request, {

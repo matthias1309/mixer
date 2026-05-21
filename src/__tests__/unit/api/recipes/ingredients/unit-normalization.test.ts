@@ -2,7 +2,7 @@
 import { POST } from '../../../../../app/api/recipes/[id]/ingredients/route';
 import { UserModel } from '../../../../../lib/db/models/user';
 import { RecipeModel } from '../../../../../lib/db/models/recipe';
-import { initializeDatabase, getDb } from '../../../../../lib/db/init';
+import { initializeDatabase, closeDatabase, getDb } from '../../../../../lib/db/init';
 import { generateToken } from '../../../../../lib/auth/tokenRefresh';
 import { UNIT_SEEDS, CONVERSION_SEEDS, DENSITY_SEEDS } from '../../../../../db/seeds/units';
 import bcryptjs from 'bcryptjs';
@@ -23,18 +23,8 @@ describe('POST /api/recipes/[id]/ingredients - Unit Normalization', () => {
     tempDir = mkdtempSync(join(tmpdir(), 'test-ingredient-norm-'));
     testDbPath = join(tempDir, 'test.db');
 
-    const existingDb = (global as any).db;
-    if (existingDb) {
-      try {
-        existingDb.close();
-      } catch (e) {
-        // ignore
-      }
-    }
-
     process.env.DATABASE_URL = `file:${testDbPath}`;
     process.env.JWT_SECRET = 'test-secret-key-must-be-32-chars-long';
-    (global as any).db = undefined;
     await initializeDatabase();
 
     // Database is already seeded with units, conversions, and densities
@@ -53,19 +43,12 @@ describe('POST /api/recipes/[id]/ingredients - Unit Normalization', () => {
   });
 
   afterEach(() => {
-    try {
-      const db = (global as any).db;
-      if (db) {
-        db.close();
-      }
-    } catch (e) {
-      // ignore
-    }
-    (global as any).db = undefined;
+    closeDatabase();
     if (existsSync(tempDir)) {
       rmSync(tempDir, { recursive: true, force: true });
     }
     delete process.env.DATABASE_URL;
+    delete process.env.JWT_SECRET;
   });
 
   function makeRequest(recipeId: number, body: object, token?: string): NextRequest {
@@ -81,7 +64,11 @@ describe('POST /api/recipes/[id]/ingredients - Unit Normalization', () => {
 
   describe('Volume unit normalization', () => {
     it('creates ingredient with ml unit - normalized_unit is ml, normalized_quantity equals quantity', async () => {
-      const request = makeRequest(recipeId, { name: 'water', quantity: 250, unit: 'ml' }, userToken);
+      const request = makeRequest(
+        recipeId,
+        { name: 'water', quantity: 250, unit: 'ml' },
+        userToken
+      );
       const response = await POST(request, { params: Promise.resolve({ id: String(recipeId) }) });
       const data = await response.json();
 
@@ -123,7 +110,11 @@ describe('POST /api/recipes/[id]/ingredients - Unit Normalization', () => {
     });
 
     it('creates ingredient with kg unit - normalized to g', async () => {
-      const request = makeRequest(recipeId, { name: 'potatoes', quantity: 2, unit: 'kg' }, userToken);
+      const request = makeRequest(
+        recipeId,
+        { name: 'potatoes', quantity: 2, unit: 'kg' },
+        userToken
+      );
       const response = await POST(request, { params: Promise.resolve({ id: String(recipeId) }) });
       const data = await response.json();
 
@@ -135,7 +126,11 @@ describe('POST /api/recipes/[id]/ingredients - Unit Normalization', () => {
 
   describe('Unknown unit rejection', () => {
     it('returns 400 for unknown unit', async () => {
-      const request = makeRequest(recipeId, { name: 'flour', quantity: 100, unit: 'cups' }, userToken);
+      const request = makeRequest(
+        recipeId,
+        { name: 'flour', quantity: 100, unit: 'cups' },
+        userToken
+      );
       const response = await POST(request, { params: Promise.resolve({ id: String(recipeId) }) });
       const data = await response.json();
 
@@ -155,7 +150,11 @@ describe('POST /api/recipes/[id]/ingredients - Unit Normalization', () => {
 
   describe('Non-normalizable units (Stück, Prise)', () => {
     it('creates ingredient with Stück unit - succeeds with null normalized values', async () => {
-      const request = makeRequest(recipeId, { name: 'tomato', quantity: 3, unit: 'Stück' }, userToken);
+      const request = makeRequest(
+        recipeId,
+        { name: 'tomato', quantity: 3, unit: 'Stück' },
+        userToken
+      );
       const response = await POST(request, { params: Promise.resolve({ id: String(recipeId) }) });
       const data = await response.json();
 
@@ -168,7 +167,11 @@ describe('POST /api/recipes/[id]/ingredients - Unit Normalization', () => {
     });
 
     it('creates ingredient with Prise unit - succeeds with null normalized values', async () => {
-      const request = makeRequest(recipeId, { name: 'salt', quantity: 1, unit: 'Prise' }, userToken);
+      const request = makeRequest(
+        recipeId,
+        { name: 'salt', quantity: 1, unit: 'Prise' },
+        userToken
+      );
       const response = await POST(request, { params: Promise.resolve({ id: String(recipeId) }) });
       const data = await response.json();
 
@@ -205,7 +208,11 @@ describe('POST /api/recipes/[id]/ingredients - Unit Normalization', () => {
     });
 
     it('creates ingredient with g unit - stores both original and normalized values', async () => {
-      const request = makeRequest(recipeId, { name: 'butter', quantity: 100, unit: 'g' }, userToken);
+      const request = makeRequest(
+        recipeId,
+        { name: 'butter', quantity: 100, unit: 'g' },
+        userToken
+      );
       const response = await POST(request, { params: Promise.resolve({ id: String(recipeId) }) });
       const data = await response.json();
 

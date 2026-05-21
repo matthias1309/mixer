@@ -12,25 +12,10 @@ describe('POST /api/auth/register', () => {
 
   beforeEach(async () => {
     testCounter++;
-    testDbPath = path.join(
-      __dirname,
-      `../../../../../.data/test-register-${testCounter}.db`
-    );
-
-    // Close existing database instance if any
-    const existingDb = (global as any).db;
-    if (existingDb) {
-      try {
-        existingDb.close();
-      } catch (e) {
-        // ignore if already closed
-      }
-    }
+    testDbPath = path.join(__dirname, `../../../../../.data/test-register-${testCounter}.db`);
 
     process.env.DATABASE_URL = testDbPath;
     process.env.JWT_SECRET = 'test-secret-key-must-be-32-chars-long';
-    // Clear global db instance
-    (global as any).db = undefined;
     await initializeDatabase();
   });
 
@@ -40,6 +25,7 @@ describe('POST /api/auth/register', () => {
       fs.unlinkSync(testDbPath);
     }
     delete process.env.DATABASE_URL;
+    delete process.env.JWT_SECRET;
   });
 
   test('should register new user with valid email and password', async () => {

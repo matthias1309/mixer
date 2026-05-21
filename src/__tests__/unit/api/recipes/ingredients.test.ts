@@ -2,7 +2,7 @@
 import { GET } from '../../../../app/api/recipes/ingredients/route';
 import { UserModel } from '../../../../lib/db/models/user';
 import { RecipeModel } from '../../../../lib/db/models/recipe';
-import { initializeDatabase } from '../../../../lib/db/init';
+import { initializeDatabase, closeDatabase } from '../../../../lib/db/init';
 import { generateToken } from '../../../../lib/auth/tokenRefresh';
 import bcryptjs from 'bcryptjs';
 import fs, { mkdtempSync, rmSync } from 'fs';
@@ -20,20 +20,8 @@ describe('GET /api/recipes/ingredients', () => {
     const tempDir = mkdtempSync(path.join(tmpdir(), 'test-ingredients-'));
     testDbPath = path.join(tempDir, 'test.db');
 
-    // Close existing database instance if any
-    const existingDb = (global as any).db;
-    if (existingDb) {
-      try {
-        existingDb.close();
-      } catch (e) {
-        // ignore if already closed
-      }
-    }
-
     process.env.DATABASE_URL = `file:${testDbPath}`;
     process.env.JWT_SECRET = 'test-secret-key-must-be-32-chars-long';
-    // Clear global db instance
-    (global as any).db = undefined;
     await initializeDatabase();
 
     // Create test user
@@ -44,22 +32,14 @@ describe('GET /api/recipes/ingredients', () => {
   });
 
   afterEach(() => {
-    // Close database
-    try {
-      const db = (global as any).db;
-      if (db) {
-        db.close();
-      }
-    } catch (e) {
-      // ignore
-    }
-    (global as any).db = undefined;
+    closeDatabase();
     // Clean up temp directory
     const tempDir = path.dirname(testDbPath);
     if (fs.existsSync(tempDir)) {
       rmSync(tempDir, { recursive: true, force: true });
     }
     delete process.env.DATABASE_URL;
+    delete process.env.JWT_SECRET;
   });
 
   test('should get unique ingredients from all recipes', async () => {
@@ -77,31 +57,17 @@ describe('GET /api/recipes/ingredients', () => {
       ]
     );
 
-    RecipeModel.create(
-      'Tomato Soup',
-      userId,
-      'Creamy tomato soup',
-      'Simmer and blend',
-      2,
-      [
-        { name: 'tomato', quantity: 500, unit: 'g' },
-        { name: 'cream', quantity: 200, unit: 'ml' },
-        { name: 'onion', quantity: 1, unit: '' },
-      ]
-    );
+    RecipeModel.create('Tomato Soup', userId, 'Creamy tomato soup', 'Simmer and blend', 2, [
+      { name: 'tomato', quantity: 500, unit: 'g' },
+      { name: 'cream', quantity: 200, unit: 'ml' },
+      { name: 'onion', quantity: 1, unit: '' },
+    ]);
 
-    RecipeModel.create(
-      'Caesar Salad',
-      userId,
-      'Fresh salad',
-      'Mix and serve',
-      1,
-      [
-        { name: 'lettuce', quantity: 200, unit: 'g' },
-        { name: 'eggs', quantity: 2, unit: '' },
-        { name: 'parmesan', quantity: 50, unit: 'g' },
-      ]
-    );
+    RecipeModel.create('Caesar Salad', userId, 'Fresh salad', 'Mix and serve', 1, [
+      { name: 'lettuce', quantity: 200, unit: 'g' },
+      { name: 'eggs', quantity: 2, unit: '' },
+      { name: 'parmesan', quantity: 50, unit: 'g' },
+    ]);
 
     const request = new NextRequest('http://localhost:3000/api/recipes/ingredients', {
       method: 'GET',
@@ -133,19 +99,12 @@ describe('GET /api/recipes/ingredients', () => {
 
   test('should return normalized (lowercase, trimmed) ingredient names', async () => {
     // Create recipe with various casings and whitespace
-    await RecipeModel.create(
-      'Mixed Case Recipe',
-      userId,
-      'Test recipe',
-      'Instructions',
-      1,
-      [
-        { name: '  TOMATO  ', quantity: 1, unit: 'g' },
-        { name: 'Potato', quantity: 1, unit: 'g' },
-        { name: '  onion', quantity: 1, unit: 'g' },
-        { name: 'GARLIC ', quantity: 1, unit: 'g' },
-      ]
-    );
+    await RecipeModel.create('Mixed Case Recipe', userId, 'Test recipe', 'Instructions', 1, [
+      { name: '  TOMATO  ', quantity: 1, unit: 'g' },
+      { name: 'Potato', quantity: 1, unit: 'g' },
+      { name: '  onion', quantity: 1, unit: 'g' },
+      { name: 'GARLIC ', quantity: 1, unit: 'g' },
+    ]);
 
     const request = new NextRequest('http://localhost:3000/api/recipes/ingredients', {
       method: 'GET',
@@ -167,43 +126,22 @@ describe('GET /api/recipes/ingredients', () => {
 
   test('should not return duplicate ingredients', async () => {
     // Create multiple recipes with overlapping ingredients
-    await RecipeModel.create(
-      'Recipe 1',
-      userId,
-      'First recipe',
-      'Instructions',
-      1,
-      [
-        { name: 'salt', quantity: 1, unit: 'g' },
-        { name: 'pepper', quantity: 1, unit: 'g' },
-        { name: 'oil', quantity: 10, unit: 'ml' },
-      ]
-    );
+    await RecipeModel.create('Recipe 1', userId, 'First recipe', 'Instructions', 1, [
+      { name: 'salt', quantity: 1, unit: 'g' },
+      { name: 'pepper', quantity: 1, unit: 'g' },
+      { name: 'oil', quantity: 10, unit: 'ml' },
+    ]);
 
-    await RecipeModel.create(
-      'Recipe 2',
-      userId,
-      'Second recipe',
-      'Instructions',
-      1,
-      [
-        { name: 'salt', quantity: 2, unit: 'g' },
-        { name: 'pepper', quantity: 2, unit: 'g' },
-        { name: 'garlic', quantity: 3, unit: 'g' },
-      ]
-    );
+    await RecipeModel.create('Recipe 2', userId, 'Second recipe', 'Instructions', 1, [
+      { name: 'salt', quantity: 2, unit: 'g' },
+      { name: 'pepper', quantity: 2, unit: 'g' },
+      { name: 'garlic', quantity: 3, unit: 'g' },
+    ]);
 
-    await RecipeModel.create(
-      'Recipe 3',
-      userId,
-      'Third recipe',
-      'Instructions',
-      1,
-      [
-        { name: 'salt', quantity: 1, unit: 'g' },
-        { name: 'onion', quantity: 1, unit: 'g' },
-      ]
-    );
+    await RecipeModel.create('Recipe 3', userId, 'Third recipe', 'Instructions', 1, [
+      { name: 'salt', quantity: 1, unit: 'g' },
+      { name: 'onion', quantity: 1, unit: 'g' },
+    ]);
 
     const request = new NextRequest('http://localhost:3000/api/recipes/ingredients', {
       method: 'GET',

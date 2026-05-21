@@ -13,7 +13,6 @@ describe('Database Initialization', () => {
       fs.unlinkSync(testDbPath);
     }
     process.env.DATABASE_URL = testDbPath;
-    delete (global as any).db;
     await initializeDatabase();
   });
 
@@ -23,7 +22,6 @@ describe('Database Initialization', () => {
       fs.unlinkSync(testDbPath);
     }
     delete process.env.DATABASE_URL;
-    delete (global as any).db;
   });
 
   test('should create database with all required tables', () => {
@@ -32,12 +30,10 @@ describe('Database Initialization', () => {
 
     // Check tables exist
     const tables = db
-      .prepare(
-        "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'"
-      )
+      .prepare("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'")
       .all() as { name: string }[];
 
-    const tableNames = tables.map(t => t.name);
+    const tableNames = tables.map((t) => t.name);
     expect(tableNames).toContain('users');
     expect(tableNames).toContain('recipes');
     expect(tableNames).toContain('ingredients');
@@ -49,16 +45,14 @@ describe('Database Initialization', () => {
     const db = getDatabase() as Database.Database;
 
     const indexes = db
-      .prepare(
-        "SELECT name FROM sqlite_master WHERE type='index' AND name LIKE 'idx_%'"
-      )
+      .prepare("SELECT name FROM sqlite_master WHERE type='index' AND name LIKE 'idx_%'")
       .all() as { name: string }[];
 
-    const indexNames = indexes.map(i => i.name);
+    const indexNames = indexes.map((i) => i.name);
     expect(indexNames).toContain('idx_recipes_creator');
     expect(indexNames).toContain('idx_recipes_canonical');
     expect(indexNames).toContain('idx_ingredients_recipe');
-    expect(indexNames.some(name => name.includes('cycle') && name.includes('user'))).toBe(true);
+    expect(indexNames.some((name) => name.includes('cycle') && name.includes('user'))).toBe(true);
   });
 
   test('should enforce foreign keys', () => {
