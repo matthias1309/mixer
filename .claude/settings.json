@@ -221,7 +221,13 @@
       "Bash(git -C /Users/matthias/Claude_Code/mixer status)",
       "Bash(git -C /Users/matthias/Claude_Code/mixer diff .claude/settings.json)",
       "Bash(git -C /Users/matthias/Claude_Code/mixer add .claude/settings.json .gitignore)",
-      "Bash(git -C /Users/matthias/Claude_Code/mixer commit -m ' *)"
+      "Bash(git -C /Users/matthias/Claude_Code/mixer commit -m ' *)",
+      "Bash(git -C /Users/matthias/Claude_Code/mixer push)",
+      "Bash(git -C /Users/matthias/Claude_Code/mixer add docker-compose.local.yml)",
+      "Bash(git -C /Users/matthias/Claude_Code/mixer commit -m 'chore\\(docker\\): simplify local dev to postgres-only container *)",
+      "Bash(git -C /Users/matthias/Claude_Code/mixer add docker-compose.local.yml .gitignore)",
+      "Bash(git -C /Users/matthias/Claude_Code/mixer add docs/code-reviews/REC-109-unit-conversion.md docs/decisions/ADR-006-unit-conversion-system.md docs/architecture/arc42.md)",
+      "Bash(git -C /Users/matthias/Claude_Code/mixer commit -m 'docs: add architecture docs, ADR-006, and code review for REC-109 *)"
     ],
     "additionalDirectories": [
       "/private/tmp",
