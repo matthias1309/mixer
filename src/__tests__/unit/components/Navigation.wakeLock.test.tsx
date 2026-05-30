@@ -13,9 +13,11 @@ jest.mock('@/hooks/useWakeLock', () => ({
   }),
 }));
 
+let mockUser: { email: string } | null = { email: 'test@example.com' };
+
 jest.mock('@/hooks/useAuth', () => ({
   useAuth: () => ({
-    user: { email: 'test@example.com' },
+    user: mockUser,
     logout: jest.fn(),
   }),
 }));
@@ -29,6 +31,7 @@ describe('Navigation wake lock toggle', () => {
   beforeEach(() => {
     mockIsSupported = true;
     mockIsActive = false;
+    mockUser = { email: 'test@example.com' };
     mockToggle.mockClear();
   });
 
@@ -54,5 +57,11 @@ describe('Navigation wake lock toggle', () => {
     render(<Navigation />);
     const button = screen.getByRole('button', { name: /bildschirm wach halten/i });
     expect(button).toHaveClass('bg-yellow-500');
+  });
+
+  it('renders wake lock toggle for non-logged-in users when supported', () => {
+    mockUser = null;
+    render(<Navigation />);
+    expect(screen.getByRole('button', { name: /bildschirm wach halten/i })).toBeInTheDocument();
   });
 });

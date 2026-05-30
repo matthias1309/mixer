@@ -23,25 +23,26 @@ export function Navigation() {
             Zutaten
           </Link>
 
+          {isSupported && (
+            <button
+              onClick={toggle}
+              aria-label="Bildschirm wach halten"
+              title={isActive ? 'Bildschirmsperre deaktivieren' : 'Bildschirmsperre aktivieren'}
+              className={`px-3 py-1 rounded text-sm font-medium ${
+                isActive
+                  ? 'bg-yellow-500 hover:bg-yellow-600 text-white'
+                  : 'bg-blue-500 hover:bg-blue-400 text-white border border-blue-300'
+              }`}
+            >
+              {isActive ? 'Bildschirm: AN' : 'Bildschirm: AUS'}
+            </button>
+          )}
+
           {user ? (
             <>
               <Link href="/cycle" className="hover:underline">
                 Zyklus
               </Link>
-              {isSupported && (
-                <button
-                  onClick={toggle}
-                  aria-label="Bildschirm wach halten"
-                  title={isActive ? 'Bildschirmsperre deaktivieren' : 'Bildschirmsperre aktivieren'}
-                  className={`px-3 py-1 rounded text-sm font-medium ${
-                    isActive
-                      ? 'bg-yellow-500 hover:bg-yellow-600 text-white'
-                      : 'bg-blue-500 hover:bg-blue-400 text-white border border-blue-300'
-                  }`}
-                >
-                  {isActive ? 'Bildschirm: AN' : 'Bildschirm: AUS'}
-                </button>
-              )}
               <span className="text-sm opacity-75">{user.email}</span>
               <button
                 onClick={() => logout()}

@@ -42,10 +42,6 @@ export default function DashboardPage() {
         <div className="lg:col-span-1">
           <div className="space-y-4">
             <div>
-              <h3 className="font-bold mb-2">Zutatenfilter</h3>
-              <IngredientFilter />
-            </div>
-            <div>
               <h3 className="font-bold mb-2">Phasenfilter</h3>
               <PhaseFilter
                 onFilterChange={(phase, score) => {
@@ -54,6 +50,10 @@ export default function DashboardPage() {
                 }}
                 currentPhase={selectedPhase ?? undefined}
               />
+            </div>
+            <div>
+              <h3 className="font-bold mb-2">Zutatenfilter</h3>
+              <IngredientFilter />
             </div>
           </div>
         </div>
