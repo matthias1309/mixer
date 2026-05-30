@@ -8,6 +8,8 @@ This checklist ensures all code contributions meet the project's quality standar
 
 **Success Criteria**: A contribution is approved when it passes all applicable checks and has no "blocker" issues.
 
+> **Note:** The core rules (coding style, testing practices, git workflow) are now maintained in `.claude/rules/`. This checklist is the detailed, example-rich working document for conducting reviews.
+
 ---
 
 ## Quick Reference Checklist
