@@ -16,20 +16,17 @@ export function Navigation() {
         </Link>
 
         <div className="flex gap-6 items-center">
+          <Link href="/dashboard" className="hover:underline">
+            Rezepte
+          </Link>
+          <Link href="/ingredients" className="hover:underline">
+            Zutaten
+          </Link>
+
           {user ? (
             <>
-              <span className="text-sm">{user.email}</span>
-              <Link href="/" className="hover:underline">
-                Startseite
-              </Link>
-              <Link href="/dashboard" className="hover:underline">
-                Übersicht
-              </Link>
-              <Link href="/ingredients" className="hover:underline">
-                Zutaten
-              </Link>
               <Link href="/cycle" className="hover:underline">
-                Zyklus-Verfolgung
+                Zyklus
               </Link>
               {isSupported && (
                 <button
@@ -45,6 +42,7 @@ export function Navigation() {
                   {isActive ? 'Bildschirm: AN' : 'Bildschirm: AUS'}
                 </button>
               )}
+              <span className="text-sm opacity-75">{user.email}</span>
               <button
                 onClick={() => logout()}
                 className="bg-red-600 px-3 py-1 rounded hover:bg-red-700"

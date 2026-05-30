@@ -4,9 +4,9 @@ import IngredientsPage from '../../../app/ingredients/page';
 // Mock fetch
 global.fetch = jest.fn();
 
-// Mock ProtectedRoute to bypass auth
-jest.mock('../../../components/ProtectedRoute', () => ({
-  ProtectedRoute: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+// Mock useAuth — page is public, no login required
+jest.mock('../../../hooks/useAuth', () => ({
+  useAuth: () => ({ user: null, isLoading: false }),
 }));
 
 describe('IngredientsPage - Pagination', () => {
