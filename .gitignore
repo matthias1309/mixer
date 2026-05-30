@@ -46,3 +46,9 @@ yarn-error.log*
 # OS
 Thumbs.db
 .DS_Store
+
+# Claude Code — personal overrides (each developer maintains their own copy)
+CLAUDE.local.md
+
+# Claude Code — hook logs (generated at runtime)
+.claude/logs/

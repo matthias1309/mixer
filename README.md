@@ -314,22 +314,9 @@ A recipe with high magnesium and calcium gets a score of 92 for Luteal phase ("P
 
 ## Development
 
-### Code Style
-- TypeScript strict mode
-- ESLint for linting
-- Prettier for formatting
+### Conventions
 
-### Testing Requirements
-- 80%+ code coverage target
-- Unit tests for business logic
-- Integration tests for APIs
-- E2E tests for user flows
-
-### Git Workflow
-- Feature branches from main
-- Conventional commits
-- Pull request reviews
-- Merge to main when approved
+See `.claude/rules/` for coding style, testing practices, and git workflow guidelines.
 
 ## Known Limitations
 

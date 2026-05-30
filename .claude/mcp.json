@@ -1,0 +1,27 @@
+{
+  "mcpServers": {
+    "postgres": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-postgres",
+        "postgresql://recipe_user:recipe_password@localhost:5432/recipe_manager"
+      ],
+      "description": "PostgreSQL MCP server — lets Claude inspect the schema and run read-only queries against the local dev database. NEVER point this at production."
+    },
+
+    "github": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-github"
+      ],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "REPLACE_WITH_YOUR_GITHUB_TOKEN"
+      },
+      "description": "GitHub MCP server — enables Claude to read issues, PRs, and repo metadata. Replace the token value with a real PAT that has repo scope."
+    }
+  }
+}
