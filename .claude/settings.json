@@ -225,7 +225,8 @@
       "Bash(npx jest *)",
       "Bash(npx knip *)",
       "Bash(npx depcheck *)",
-      "Bash(npm uninstall *)"
+      "Bash(npm uninstall *)",
+      "Bash(sysctl -n hw.logicalcpu)"
     ],
     "additionalDirectories": [
       "/private/tmp",
