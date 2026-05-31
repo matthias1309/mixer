@@ -13,26 +13,25 @@ export async function POST(request: NextRequest, props: { params: Params }) {
     const recipeId = parseInt(params.id, 10);
 
     if (!Number.isFinite(recipeId) || recipeId <= 0) {
-      return NextResponse.json(
-        { error: 'Invalid recipe ID' },
-        { status: HTTP_STATUS.BAD_REQUEST }
-      );
+      return NextResponse.json({ error: 'Invalid recipe ID' }, { status: HTTP_STATUS.BAD_REQUEST });
     }
 
     const auth = await authMiddlewareWithRefresh(request);
     if (!auth) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: HTTP_STATUS.UNAUTHORIZED }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: HTTP_STATUS.UNAUTHORIZED });
     }
 
     const body = await request.json();
     const { portions } = body;
 
-    if (!portions || portions <= 0) {
+    if (
+      typeof portions !== 'number' ||
+      !Number.isFinite(portions) ||
+      portions <= 0 ||
+      portions > 1000
+    ) {
       return NextResponse.json(
-        { error: 'Portions must be > 0' },
+        { error: 'Portions must be a positive number (max 1000)' },
         { status: HTTP_STATUS.BAD_REQUEST }
       );
     }
@@ -40,23 +39,22 @@ export async function POST(request: NextRequest, props: { params: Params }) {
     const db = getDatabase();
 
     // Fetch recipe and verify ownership
-    const recipe = db.prepare(
-      'SELECT * FROM recipes WHERE id = ? AND creator_id = ?'
-    ).get(recipeId, auth.userId) as any;
+    const recipe = db
+      .prepare('SELECT * FROM recipes WHERE id = ? AND creator_id = ?')
+      .get(recipeId, auth.userId) as any;
 
     if (!recipe) {
-      return NextResponse.json(
-        { error: 'Recipe not found' },
-        { status: HTTP_STATUS.NOT_FOUND }
-      );
+      return NextResponse.json({ error: 'Recipe not found' }, { status: HTTP_STATUS.NOT_FOUND });
     }
 
     // Fetch recipe ingredients
-    const recipeIngredients = db.prepare(
-      `SELECT id, recipe_id, ingredient_id, amount, unit, calculated_base_amount
+    const recipeIngredients = db
+      .prepare(
+        `SELECT id, recipe_id, ingredient_id, amount, unit, calculated_base_amount
        FROM recipe_ingredients
        WHERE recipe_id = ?`
-    ).all(recipeId) as any[];
+      )
+      .all(recipeId) as any[];
 
     if (recipeIngredients.length === 0) {
       return NextResponse.json(
@@ -77,23 +75,20 @@ export async function POST(request: NextRequest, props: { params: Params }) {
     }
 
     // Calculate nutrients
-    const nutrients = calculateRecipeNutrients(
-      recipeIngredients,
-      ingredientMap,
-      portions
-    );
+    const nutrients = calculateRecipeNutrients(recipeIngredients, ingredientMap, portions);
 
     // Store/update in database
-    const existing = db.prepare(
-      'SELECT id FROM recipe_nutrients WHERE recipe_id = ?'
-    ).get(recipeId) as any;
+    const existing = db
+      .prepare('SELECT id FROM recipe_nutrients WHERE recipe_id = ?')
+      .get(recipeId) as any;
 
     if (existing) {
-      const updateClauses = NUTRIENT_KEYS.flatMap(key =>
-        [`total_${key} = ?`, `per_portion_${key} = ?`]
-      ).join(', ');
+      const updateClauses = NUTRIENT_KEYS.flatMap((key) => [
+        `total_${key} = ?`,
+        `per_portion_${key} = ?`,
+      ]).join(', ');
 
-      const values = NUTRIENT_KEYS.flatMap(key => [
+      const values = NUTRIENT_KEYS.flatMap((key) => [
         nutrients.total[key as keyof typeof nutrients.total],
         nutrients.per_portion[key as keyof typeof nutrients.per_portion],
       ]);
@@ -107,7 +102,7 @@ export async function POST(request: NextRequest, props: { params: Params }) {
       const columns = [
         'recipe_id',
         'portions',
-        ...NUTRIENT_KEYS.flatMap(key => [`total_${key}`, `per_portion_${key}`]),
+        ...NUTRIENT_KEYS.flatMap((key) => [`total_${key}`, `per_portion_${key}`]),
         'last_calculated',
       ];
       const placeholders = Array(columns.length).fill('?').join(', ');
@@ -115,7 +110,7 @@ export async function POST(request: NextRequest, props: { params: Params }) {
       const values = [
         recipeId,
         portions,
-        ...NUTRIENT_KEYS.flatMap(key => [
+        ...NUTRIENT_KEYS.flatMap((key) => [
           nutrients.total[key as keyof typeof nutrients.total],
           nutrients.per_portion[key as keyof typeof nutrients.per_portion],
         ]),
@@ -131,9 +126,6 @@ export async function POST(request: NextRequest, props: { params: Params }) {
     return NextResponse.json({ status: 200, data: nutrients });
   } catch (error) {
     console.error('Calculation error:', error);
-    return NextResponse.json(
-      { status: 500, error: 'Calculation failed' },
-      { status: 500 }
-    );
+    return NextResponse.json({ status: 500, error: 'Calculation failed' }, { status: 500 });
   }
 }

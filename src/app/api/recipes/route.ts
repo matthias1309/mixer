@@ -9,6 +9,7 @@ import {
   RECIPE_SORT_OPTIONS,
   RecipeSortOption,
   DEFAULT_RECIPE_SORT,
+  PHASE_OPTIONS,
   DEFAULT_PHASE,
 } from '@/lib/constants';
 import { withDatabase } from '@/lib/api/withDatabase';
@@ -19,10 +20,17 @@ async function handleGET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10));
     const pageSize = Math.min(100, Math.max(1, parseInt(searchParams.get('pageSize') || '10', 10)));
-    const sort = (searchParams.get('sort') || DEFAULT_RECIPE_SORT) as RecipeSortOption;
+    const rawSort = searchParams.get('sort') || DEFAULT_RECIPE_SORT;
+    const sort = (RECIPE_SORT_OPTIONS as readonly string[]).includes(rawSort)
+      ? (rawSort as RecipeSortOption)
+      : DEFAULT_RECIPE_SORT;
     const search = searchParams.get('search') || undefined;
     const ingredients = searchParams.get('ingredients');
-    const phase = searchParams.get('phase') || undefined;
+    const rawPhase = searchParams.get('phase');
+    const phase =
+      rawPhase && (PHASE_OPTIONS as readonly string[]).includes(rawPhase)
+        ? rawPhase
+        : DEFAULT_PHASE;
 
     // Try to refresh token if authenticated
     const auth = await authMiddlewareWithRefresh(request);
@@ -31,10 +39,15 @@ async function handleGET(request: NextRequest) {
     let result;
     if (ingredients) {
       // Filter by ingredients if provided
-      const ingredientList = ingredients.split(',').map(ing => ing.trim());
-      result = await RecipeModel.filterByIngredientsWithScoreAsync(ingredientList, page, pageSize, phase || DEFAULT_PHASE);
+      const ingredientList = ingredients.split(',').map((ing) => ing.trim());
+      result = await RecipeModel.filterByIngredientsWithScoreAsync(
+        ingredientList,
+        page,
+        pageSize,
+        phase
+      );
     } else {
-      result = await RecipeModelAsync.listAllWithScoreAsync(page, pageSize, sort, search, phase || DEFAULT_PHASE);
+      result = await RecipeModelAsync.listAllWithScoreAsync(page, pageSize, sort, search, phase);
     }
 
     const totalPages = Math.ceil(result.total / pageSize);
@@ -99,7 +112,9 @@ async function handlePOST(request: NextRequest) {
     // Validate description
     if (body.description && body.description.length > VALIDATION.RECIPE_DESCRIPTION_MAX_LENGTH) {
       return NextResponse.json(
-        { error: `Description must be at most ${VALIDATION.RECIPE_DESCRIPTION_MAX_LENGTH} characters` },
+        {
+          error: `Description must be at most ${VALIDATION.RECIPE_DESCRIPTION_MAX_LENGTH} characters`,
+        },
         { status: HTTP_STATUS.BAD_REQUEST }
       );
     }
@@ -107,7 +122,9 @@ async function handlePOST(request: NextRequest) {
     // Validate instructions
     if (body.instructions && body.instructions.length > VALIDATION.RECIPE_INSTRUCTIONS_MAX_LENGTH) {
       return NextResponse.json(
-        { error: `Instructions must be at most ${VALIDATION.RECIPE_INSTRUCTIONS_MAX_LENGTH} characters` },
+        {
+          error: `Instructions must be at most ${VALIDATION.RECIPE_INSTRUCTIONS_MAX_LENGTH} characters`,
+        },
         { status: HTTP_STATUS.BAD_REQUEST }
       );
     }
@@ -141,7 +158,9 @@ async function handlePOST(request: NextRequest) {
 
         if (ing.name.length > VALIDATION.INGREDIENT_NAME_MAX_LENGTH) {
           return NextResponse.json(
-            { error: `Ingredient name must be at most ${VALIDATION.INGREDIENT_NAME_MAX_LENGTH} characters` },
+            {
+              error: `Ingredient name must be at most ${VALIDATION.INGREDIENT_NAME_MAX_LENGTH} characters`,
+            },
             { status: HTTP_STATUS.BAD_REQUEST }
           );
         }
@@ -157,10 +176,13 @@ async function handlePOST(request: NextRequest) {
 
     // Check for duplicates
     const normalizedIngredients = body.ingredients
-      ? body.ingredients.map(i => i.name.trim().toLowerCase()).sort()
+      ? body.ingredients.map((i) => i.name.trim().toLowerCase()).sort()
       : [];
 
-    const duplicate = await RecipeModelAsync.findByNameAndIngredients(body.name, normalizedIngredients);
+    const duplicate = await RecipeModelAsync.findByNameAndIngredients(
+      body.name,
+      normalizedIngredients
+    );
 
     let canonicalId: number | null = null;
     let isDuplicate = false;

@@ -3,6 +3,7 @@ import bcryptjs from 'bcryptjs';
 import { UserModel } from '../../../../lib/db/models/user';
 import { generateToken } from '../../../../lib/auth/tokenRefresh';
 import { setTokenCookie } from '../../../../lib/auth/middleware';
+import { checkRateLimit } from '../../../../lib/auth/rateLimiter';
 import { RegisterRequest } from '../../../../types';
 import { withDatabase } from '../../../../lib/api/withDatabase';
 
@@ -19,21 +20,27 @@ function validatePassword(password: string): boolean {
 // POST /api/auth/register
 async function handler(request: NextRequest) {
   try {
+    const ip = request.headers.get('x-forwarded-for')?.split(',')[0].trim() ?? 'unknown';
+    const { allowed, retryAfterMs } = checkRateLimit(`register:${ip}`, 5, 60 * 60 * 1000);
+    if (!allowed) {
+      return NextResponse.json(
+        { error: 'Too many registration attempts. Please try again later.' },
+        {
+          status: 429,
+          headers: { 'Retry-After': String(Math.ceil(retryAfterMs / 1000)) },
+        }
+      );
+    }
+
     const body = (await request.json()) as RegisterRequest;
 
     // Validate input
     if (!body.email || !body.password) {
-      return NextResponse.json(
-        { error: 'Email and password are required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Email and password are required' }, { status: 400 });
     }
 
     if (!validateEmail(body.email)) {
-      return NextResponse.json(
-        { error: 'Invalid email format' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Invalid email format' }, { status: 400 });
     }
 
     if (!validatePassword(body.password)) {
@@ -46,10 +53,7 @@ async function handler(request: NextRequest) {
     // Check if user already exists
     const existing = await UserModel.findByEmail(body.email);
     if (existing) {
-      return NextResponse.json(
-        { error: 'Email already exists' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Email already exists' }, { status: 400 });
     }
 
     // Hash password and create user
@@ -74,10 +78,7 @@ async function handler(request: NextRequest) {
     return setTokenCookie(response, token);
   } catch (error) {
     console.error('Registration error:', error);
-    return NextResponse.json(
-      { error: 'Registration failed' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Registration failed' }, { status: 500 });
   }
 }
 

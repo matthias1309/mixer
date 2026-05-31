@@ -7,26 +7,17 @@ export function authMiddleware(req: NextRequest): NextResponse {
   const tokenCookie = req.cookies.get('sessionToken');
 
   if (!tokenCookie?.value) {
-    return NextResponse.json(
-      { error: 'Unauthorized' },
-      { status: HTTP_STATUS.UNAUTHORIZED }
-    );
+    return NextResponse.json({ error: 'Unauthorized' }, { status: HTTP_STATUS.UNAUTHORIZED });
   }
 
   const result = verifyTokenDetailed(tokenCookie.value);
 
   if (result.error === 'expired') {
-    return NextResponse.json(
-      { error: 'Forbidden' },
-      { status: HTTP_STATUS.FORBIDDEN }
-    );
+    return NextResponse.json({ error: 'Forbidden' }, { status: HTTP_STATUS.FORBIDDEN });
   }
 
   if (result.error === 'invalid') {
-    return NextResponse.json(
-      { error: 'Unauthorized' },
-      { status: HTTP_STATUS.UNAUTHORIZED }
-    );
+    return NextResponse.json({ error: 'Unauthorized' }, { status: HTTP_STATUS.UNAUTHORIZED });
   }
 
   const requestHeaders = new Headers(req.headers);
@@ -61,7 +52,7 @@ export async function authMiddlewareWithRefresh(request: NextRequest) {
 export function setTokenCookie<T>(response: NextResponse<T>, token: string): NextResponse<T> {
   response.cookies.set('sessionToken', token, {
     httpOnly: true,
-    secure: false, // Allow HTTP for self-hosted deployments
+    secure: process.env.NODE_ENV === 'production',
     sameSite: 'strict',
     maxAge: 60 * 60, // 1 hour
     path: '/',
@@ -73,7 +64,7 @@ export function setTokenCookie<T>(response: NextResponse<T>, token: string): Nex
 export function clearTokenCookie<T>(response: NextResponse<T>): NextResponse<T> {
   response.cookies.set('sessionToken', '', {
     httpOnly: true,
-    secure: false, // Allow HTTP for self-hosted deployments
+    secure: process.env.NODE_ENV === 'production',
     sameSite: 'strict',
     maxAge: 0,
     path: '/',

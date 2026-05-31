@@ -24,6 +24,14 @@ async function handlePOST(request: NextRequest) {
       );
     }
 
+    const parsedDate = new Date(last_menstruation_date);
+    if (isNaN(parsedDate.getTime()) || parsedDate > new Date()) {
+      return NextResponse.json(
+        { error: 'Last menstruation date must be a valid date in the past' },
+        { status: HTTP_STATUS.BAD_REQUEST }
+      );
+    }
+
     if (!cycle_length_days || cycle_length_days < 21 || cycle_length_days > 35) {
       return NextResponse.json(
         { error: 'Cycle length must be between 21 and 35 days' },
@@ -34,10 +42,13 @@ async function handlePOST(request: NextRequest) {
     const userId = parseInt(auth.userId, 10);
     const cycle = await UserModel.saveCycle(userId, last_menstruation_date, cycle_length_days);
 
-    let response = NextResponse.json({
-      success: true,
-      data: cycle,
-    }, { status: HTTP_STATUS.OK });
+    let response = NextResponse.json(
+      {
+        success: true,
+        data: cycle,
+      },
+      { status: HTTP_STATUS.OK }
+    );
 
     response = setTokenCookie(response, auth.newToken);
     return response;
@@ -64,16 +75,21 @@ async function handleGET(request: NextRequest) {
     const cycle = await UserModel.getCycle(userId);
 
     if (!cycle) {
-      return NextResponse.json({
-        success: false,
-        data: null,
-      }, { status: HTTP_STATUS.OK });
+      return NextResponse.json(
+        {
+          success: false,
+          data: null,
+        },
+        { status: HTTP_STATUS.OK }
+      );
     }
 
     // Calculate current phase
     const lastDate = new Date(cycle.last_menstruation_date);
     const today = new Date();
-    const dayOfCycle = Math.floor((today.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24)) % cycle.cycle_length_days;
+    const dayOfCycle =
+      Math.floor((today.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24)) %
+      cycle.cycle_length_days;
     const cycleProgress = dayOfCycle / cycle.cycle_length_days;
 
     // Determine phase (menstruation, follicular, ovulation, luteal)
@@ -101,10 +117,13 @@ async function handleGET(request: NextRequest) {
       },
     };
 
-    let response = NextResponse.json({
-      success: true,
-      data: responseData,
-    }, { status: HTTP_STATUS.OK });
+    let response = NextResponse.json(
+      {
+        success: true,
+        data: responseData,
+      },
+      { status: HTTP_STATUS.OK }
+    );
 
     response = setTokenCookie(response, auth.newToken);
     return response;

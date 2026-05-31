@@ -40,7 +40,10 @@
       "Edit(**)",
       "Write(**)",
       "WebSearch",
-      "Bash(rm /Users/matthias/Claude_Code/mixer/.claude/CLAUDE.md && echo \"done\")"
+      "Bash(rm /Users/matthias/Claude_Code/mixer/.claude/CLAUDE.md && echo \"done\")",
+      "Bash(git worktree *)",
+      "Read(//Users/matthias/Claude Code/mixer/.claude/**)",
+      "Bash(npm audit *)"
     ],
     "deny": [
       "Bash(rm -rf /)",

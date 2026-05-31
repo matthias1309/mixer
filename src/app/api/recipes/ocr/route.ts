@@ -14,26 +14,22 @@ export async function POST(request: NextRequest) {
     if (!auth) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    const user = { userId: typeof auth.userId === 'string' ? parseInt(auth.userId, 10) : auth.userId };
+    const user = {
+      userId: typeof auth.userId === 'string' ? parseInt(auth.userId, 10) : auth.userId,
+    };
 
     // Parse multipart form data
     const formData = await request.formData();
     const file = formData.get('file') as File;
 
     if (!file) {
-      return NextResponse.json(
-        { error: 'No file provided' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'No file provided' }, { status: 400 });
     }
 
     // Validate file
     const validationError = getValidationError(file);
     if (validationError) {
-      return NextResponse.json(
-        { error: validationError },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: validationError }, { status: 400 });
     }
 
     // Convert file to buffer
@@ -41,29 +37,28 @@ export async function POST(request: NextRequest) {
     const buffer = Buffer.from(await file.arrayBuffer());
 
     // Start OCR processing (async)
-    console.log(`[OCR POST] Setting cache for uploadId: ${uploadId}`);
-    ocrCache.set(uploadId, { status: 'processing' });
-    console.log(`[OCR POST] Cache size: ${ocrCache.size}, keys:`, Array.from(ocrCache.keys()));
+    ocrCache.set(uploadId, { status: 'processing', userId: user.userId });
 
-    processOcrAsync(uploadId, buffer, user.userId).catch(err => {
+    processOcrAsync(uploadId, buffer, user.userId).catch((err) => {
       console.error(`[OCR POST] Processing error for ${uploadId}:`, err);
       ocrCache.set(uploadId, {
         status: 'error',
+        userId: user.userId,
         error: 'OCR processing failed',
       });
     });
 
-    return NextResponse.json({
-      uploadId,
-      status: 'processing',
-      estimatedTime: 5,
-    }, { status: 200 });
+    return NextResponse.json(
+      {
+        uploadId,
+        status: 'processing',
+        estimatedTime: 5,
+      },
+      { status: 200 }
+    );
   } catch (error) {
     console.error('Upload error:', error);
-    return NextResponse.json(
-      { error: 'Upload failed' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Upload failed' }, { status: 500 });
   }
 }
 
@@ -86,6 +81,7 @@ async function processOcrAsync(
     // Store result
     ocrCache.set(uploadId, {
       status: 'complete',
+      userId,
       raw_text: rawText,
       ingredients: parsed,
     });
@@ -93,6 +89,7 @@ async function processOcrAsync(
     console.error('OCR processing error:', error);
     ocrCache.set(uploadId, {
       status: 'error',
+      userId,
       error: 'Failed to process image',
     });
   }

@@ -2,6 +2,7 @@
 import { POST } from '../../../../app/api/auth/login/route';
 import { UserModel } from '../../../../lib/db/models/user';
 import { initializeDatabase, closeDatabase } from '../../../../lib/db/init';
+import { clearRateLimitStore } from '../../../../lib/auth/rateLimiter';
 import bcryptjs from 'bcryptjs';
 import fs from 'fs';
 import path from 'path';
@@ -17,6 +18,7 @@ describe('POST /api/auth/login', () => {
 
     process.env.DATABASE_URL = testDbPath;
     process.env.JWT_SECRET = 'test-secret-key-must-be-32-chars-long';
+    clearRateLimitStore();
     await initializeDatabase();
   });
 
