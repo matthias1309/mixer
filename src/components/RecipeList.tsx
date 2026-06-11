@@ -53,11 +53,11 @@ export function RecipeList({ phase, minScore = 0 }: RecipeListProps) {
     [minScore]
   );
 
-  const { isLoading, error, fetch: fetchRecipes } = useFetch<RecipesResponse>(
-    url,
-    undefined,
-    handleSuccess
-  );
+  const {
+    isLoading,
+    error,
+    fetch: fetchRecipes,
+  } = useFetch<RecipesResponse>(url, undefined, handleSuccess);
 
   useEffect(() => {
     fetchRecipes();

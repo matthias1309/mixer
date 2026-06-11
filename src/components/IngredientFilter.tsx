@@ -10,9 +10,12 @@ interface IngredientsResponse {
 
 export function IngredientFilter() {
   const { selectedIngredients, toggleIngredient, clearFilters } = useFilter();
-  const { data, isLoading, error, fetch: fetchIngredients } = useFetch<IngredientsResponse>(
-    '/api/recipes/ingredients'
-  );
+  const {
+    data,
+    isLoading,
+    error,
+    fetch: fetchIngredients,
+  } = useFetch<IngredientsResponse>('/api/recipes/ingredients');
   const ingredients = data?.ingredients || [];
   const [search, setSearch] = useState('');
   const visibleIngredients = ingredients.filter((name) =>
@@ -44,10 +47,7 @@ export function IngredientFilter() {
       />
 
       {selectedIngredients.length > 0 && (
-        <button
-          onClick={clearFilters}
-          className="text-sm text-blue-600 hover:underline mb-3"
-        >
+        <button onClick={clearFilters} className="text-sm text-blue-600 hover:underline mb-3">
           Filter löschen
         </button>
       )}

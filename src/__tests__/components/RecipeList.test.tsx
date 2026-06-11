@@ -39,7 +39,7 @@ describe('RecipeList Component', () => {
     );
 
     // Wait for error to appear and verify it's displayed
-    await new Promise(resolve => setTimeout(resolve, 150));
+    await new Promise((resolve) => setTimeout(resolve, 150));
     expect(screen.getByText(/Failed to fetch/i)).toBeInTheDocument();
   });
 });
