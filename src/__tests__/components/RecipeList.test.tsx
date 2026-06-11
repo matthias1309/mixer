@@ -23,7 +23,7 @@ describe('RecipeList Component', () => {
     );
 
     // Component should render without crashing
-    expect(screen.getByText(/Rezepte werden geladen|Rezepte gefunden/)).toBeInTheDocument();
+    expect(document.querySelectorAll('.animate-pulse')).toHaveLength(3);
   });
 
   it('should display error message on failed fetch', async () => {
@@ -39,7 +39,7 @@ describe('RecipeList Component', () => {
     );
 
     // Wait for error to appear and verify it's displayed
-    await new Promise(resolve => setTimeout(resolve, 150));
+    await new Promise((resolve) => setTimeout(resolve, 150));
     expect(screen.getByText(/Failed to fetch/i)).toBeInTheDocument();
   });
 });

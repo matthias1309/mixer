@@ -2,7 +2,7 @@
 
 import { useFilter } from '../hooks/useFilter';
 import { useFetch } from '../hooks/useFetch';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 interface IngredientsResponse {
   ingredients: string[];
@@ -10,10 +10,17 @@ interface IngredientsResponse {
 
 export function IngredientFilter() {
   const { selectedIngredients, toggleIngredient, clearFilters } = useFilter();
-  const { data, isLoading, error, fetch: fetchIngredients } = useFetch<IngredientsResponse>(
-    '/api/recipes/ingredients'
-  );
+  const {
+    data,
+    isLoading,
+    error,
+    fetch: fetchIngredients,
+  } = useFetch<IngredientsResponse>('/api/recipes/ingredients');
   const ingredients = data?.ingredients || [];
+  const [search, setSearch] = useState('');
+  const visibleIngredients = ingredients.filter((name) =>
+    name.toLowerCase().includes(search.toLowerCase())
+  );
 
   useEffect(() => {
     fetchIngredients();
@@ -29,13 +36,18 @@ export function IngredientFilter() {
 
   return (
     <div className="bg-white p-4 rounded-lg shadow">
-      <h2 className="text-lg font-bold mb-4 text-gray-800">Nach Zutaten filtern</h2>
+      <h2 className="text-lg font-bold mb-3 text-gray-800">Nach Zutaten filtern</h2>
+
+      <input
+        type="text"
+        placeholder="Zutaten suchen..."
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        className="w-full border rounded px-2 py-1 text-sm mb-3 focus:outline-blue-500"
+      />
 
       {selectedIngredients.length > 0 && (
-        <button
-          onClick={clearFilters}
-          className="text-sm text-blue-600 hover:underline mb-3"
-        >
+        <button onClick={clearFilters} className="text-sm text-blue-600 hover:underline mb-3">
           Filter löschen
         </button>
       )}
@@ -43,8 +55,10 @@ export function IngredientFilter() {
       <div className="space-y-2">
         {ingredients.length === 0 ? (
           <p className="text-gray-600 text-sm">Keine Zutaten verfügbar</p>
+        ) : visibleIngredients.length === 0 ? (
+          <p className="text-gray-500 text-sm">Keine Treffer für „{search}"</p>
         ) : (
-          ingredients.map((ingredient) => (
+          visibleIngredients.map((ingredient) => (
             <label key={ingredient} className="flex items-center cursor-pointer">
               <input
                 type="checkbox"
