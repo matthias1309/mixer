@@ -2,14 +2,19 @@
 
 import { useState } from 'react';
 
-const PHASES = ['none', 'menstruation', 'follicular', 'ovulation', 'luteal'];
-const PHASE_LABELS: Record<string, string> = {
-  none: 'Keine Zyklus-Filterung',
-  menstruation: 'Menstruell 🔴',
-  follicular: 'Follikulär 🟡',
-  ovulation: 'Ovulation 🩷',
-  luteal: 'Luteal 🟦',
-};
+interface Phase {
+  id: string;
+  label: string;
+  emoji: string;
+  activeClass: string;
+}
+
+const PHASES: Phase[] = [
+  { id: 'menstruation', label: 'Menstruation', emoji: '🔴', activeClass: 'bg-red-500 text-white' },
+  { id: 'follicular', label: 'Follikulär', emoji: '🟡', activeClass: 'bg-yellow-400 text-white' },
+  { id: 'ovulation', label: 'Ovulation', emoji: '🩷', activeClass: 'bg-pink-500 text-white' },
+  { id: 'luteal', label: 'Luteal', emoji: '🟦', activeClass: 'bg-blue-500 text-white' },
+];
 
 interface PhaseFilterProps {
   onFilterChange: (phase: string, minScore: number) => void;
@@ -19,7 +24,6 @@ interface PhaseFilterProps {
 export default function PhaseFilter({ onFilterChange, currentPhase }: PhaseFilterProps) {
   const [selectedPhase, setSelectedPhase] = useState(currentPhase || 'menstruation');
   const [minScore, setMinScore] = useState(50);
-  const currentPhaseLabel = currentPhase ? PHASE_LABELS[currentPhase] : 'Keine Zyklus-Daten';
 
   const handlePhaseChange = (phase: string) => {
     setSelectedPhase(phase);
@@ -35,24 +39,25 @@ export default function PhaseFilter({ onFilterChange, currentPhase }: PhaseFilte
     <div className="phase-filter space-y-4">
       <div>
         <label className="block text-sm font-medium mb-2">Zyklusphase</label>
-        <select
-          value={selectedPhase}
-          onChange={(e) => handlePhaseChange(e.target.value)}
-          className="w-full border rounded px-3 py-2 focus:outline-blue-500"
-        >
-          {currentPhase && (
-            <option value={currentPhase}>
-              Automatisch: {PHASE_LABELS[currentPhase]}
-            </option>
-          )}
-          <optgroup label="Mit anderen Phasen vergleichen">
-            {PHASES.filter(p => p !== 'none').map(phase => (
-              <option key={phase} value={phase}>
-                {PHASE_LABELS[phase]}
-              </option>
-            ))}
-          </optgroup>
-        </select>
+        <div className="flex flex-wrap gap-2">
+          {PHASES.map((phase) => {
+            const isActive = selectedPhase === phase.id;
+            return (
+              <button
+                key={phase.id}
+                onClick={() => handlePhaseChange(phase.id)}
+                className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${
+                  isActive
+                    ? `${phase.activeClass} border-transparent`
+                    : 'bg-gray-100 text-gray-700 border-gray-200 hover:bg-gray-200'
+                }`}
+              >
+                <span>{phase.emoji}</span>
+                <span>{phase.label}</span>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       <div>
@@ -62,7 +67,7 @@ export default function PhaseFilter({ onFilterChange, currentPhase }: PhaseFilte
           min="0"
           max="100"
           value={minScore}
-          onChange={e => handleScoreChange(parseInt(e.target.value))}
+          onChange={(e) => handleScoreChange(parseInt(e.target.value))}
           className="w-full"
         />
       </div>

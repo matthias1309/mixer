@@ -34,6 +34,7 @@ export default function RecipeDetailPage() {
   const [isScaling, setIsScaling] = useState(false);
   const [scalingError, setScalingError] = useState('');
   const [scaledNutrients, setScaledNutrients] = useState<Record<string, number> | null>(null);
+  const [isNutrientsOpen, setIsNutrientsOpen] = useState(false);
   const params = useParams();
   const router = useRouter();
   const { user } = useAuth();
@@ -210,47 +211,57 @@ export default function RecipeDetailPage() {
           </ul>
         </div>
 
-        {displayNutrients && Object.values(displayNutrients).some((v) => v > 0) && (
-          <div className="mb-6">
-            <h2 className="text-lg font-bold mb-3">Nährwerte</h2>
-            <div className="grid grid-cols-2 gap-4">
-              {[
-                { key: 'kcal', label: 'Kalorien', unit: 'kcal' },
-                { key: 'protein', label: 'Protein', unit: 'g' },
-                { key: 'fat', label: 'Fett', unit: 'g' },
-                { key: 'carbohydrates', label: 'Kohlenhydrate', unit: 'g' },
-                { key: 'sugar', label: 'Zucker', unit: 'g' },
-                { key: 'fiber', label: 'Ballaststoffe', unit: 'g' },
-                { key: 'salt', label: 'Salz', unit: 'mg' },
-                { key: 'sodium', label: 'Natrium', unit: 'mg' },
-                { key: 'calcium', label: 'Calcium', unit: 'mg' },
-                { key: 'iron', label: 'Eisen', unit: 'mg' },
-                { key: 'magnesium', label: 'Magnesium', unit: 'mg' },
-                { key: 'zinc', label: 'Zink', unit: 'mg' },
-                { key: 'vitamin_d', label: 'Vitamin D', unit: 'mcg' },
-                { key: 'vitamin_e', label: 'Vitamin E', unit: 'mg' },
-                { key: 'vitamin_b6', label: 'Vitamin B6', unit: 'mg' },
-                { key: 'vitamin_b12', label: 'Vitamin B12', unit: 'mcg' },
-              ].map(({ key, label, unit }) => {
-                const value = displayNutrients[key] || 0;
-                if (value === 0) return null;
-                return (
-                  <div key={key} className="bg-gray-50 p-3 rounded">
-                    <div className="text-sm text-gray-600">{label}</div>
-                    <div className="text-lg font-semibold text-gray-800">
-                      {value.toFixed(2)} {unit}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
         {recipe.instructions && (
           <div className="mb-6">
             <h2 className="text-lg font-bold mb-2">Anweisungen</h2>
             <p className="text-gray-700 whitespace-pre-wrap">{recipe.instructions}</p>
+          </div>
+        )}
+
+        {displayNutrients && Object.values(displayNutrients).some((v) => v > 0) && (
+          <div className="mb-6">
+            <button
+              onClick={() => setIsNutrientsOpen((open) => !open)}
+              className="flex items-center gap-2 w-full text-left text-lg font-bold mb-3 hover:text-blue-600 transition-colors"
+            >
+              <span>Nährwerte</span>
+              <span className="text-gray-400 text-sm font-normal">
+                {isNutrientsOpen ? '▲ ausblenden' : '▼ anzeigen'}
+              </span>
+            </button>
+            {isNutrientsOpen && (
+              <div className="grid grid-cols-2 gap-4">
+                {[
+                  { key: 'kcal', label: 'Kalorien', unit: 'kcal' },
+                  { key: 'protein', label: 'Protein', unit: 'g' },
+                  { key: 'fat', label: 'Fett', unit: 'g' },
+                  { key: 'carbohydrates', label: 'Kohlenhydrate', unit: 'g' },
+                  { key: 'sugar', label: 'Zucker', unit: 'g' },
+                  { key: 'fiber', label: 'Ballaststoffe', unit: 'g' },
+                  { key: 'salt', label: 'Salz', unit: 'mg' },
+                  { key: 'sodium', label: 'Natrium', unit: 'mg' },
+                  { key: 'calcium', label: 'Calcium', unit: 'mg' },
+                  { key: 'iron', label: 'Eisen', unit: 'mg' },
+                  { key: 'magnesium', label: 'Magnesium', unit: 'mg' },
+                  { key: 'zinc', label: 'Zink', unit: 'mg' },
+                  { key: 'vitamin_d', label: 'Vitamin D', unit: 'mcg' },
+                  { key: 'vitamin_e', label: 'Vitamin E', unit: 'mg' },
+                  { key: 'vitamin_b6', label: 'Vitamin B6', unit: 'mg' },
+                  { key: 'vitamin_b12', label: 'Vitamin B12', unit: 'mcg' },
+                ].map(({ key, label, unit }) => {
+                  const value = displayNutrients[key] || 0;
+                  if (value === 0) return null;
+                  return (
+                    <div key={key} className="bg-gray-50 p-3 rounded">
+                      <div className="text-sm text-gray-600">{label}</div>
+                      <div className="text-lg font-semibold text-gray-800">
+                        {value.toFixed(2)} {unit}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         )}
 

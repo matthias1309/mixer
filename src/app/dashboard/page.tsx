@@ -36,7 +36,38 @@ export default function DashboardPage() {
 
   return (
     <div className="py-6">
-      <h1 className="text-3xl font-bold mb-6">Rezepte</h1>
+      <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
+        <h1 className="text-3xl font-bold">Rezepte</h1>
+
+        {user && (
+          <div className="flex gap-2 flex-wrap items-center">
+            <a
+              href="/recipes/new"
+              className="bg-blue-600 text-white px-5 py-2 rounded hover:bg-blue-700 font-medium"
+            >
+              + Rezept erstellen
+            </a>
+            <a
+              href="/recipes/upload"
+              className="border border-blue-600 text-blue-600 px-4 py-2 rounded hover:bg-blue-50"
+            >
+              📸 Aus Foto
+            </a>
+            <a
+              href="/cycle"
+              className="border border-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-50"
+            >
+              📊 Zyklus
+            </a>
+            <a
+              href="/ingredients"
+              className="border border-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-50"
+            >
+              🧂 Zutaten
+            </a>
+          </div>
+        )}
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         <div className="lg:col-span-1">
@@ -62,32 +93,6 @@ export default function DashboardPage() {
           <RecipeList phase={selectedPhase} minScore={minScore} />
         </div>
       </div>
-
-      {user && (
-        <div className="mt-6 flex gap-4 flex-wrap">
-          <a
-            href="/recipes/new"
-            className="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700"
-          >
-            + Rezept erstellen
-          </a>
-          <a
-            href="/recipes/upload"
-            className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
-          >
-            📸 Aus Foto hochladen
-          </a>
-          <a href="/cycle" className="bg-pink-600 text-white px-6 py-2 rounded hover:bg-pink-700">
-            📊 Zyklus verfolgen
-          </a>
-          <a
-            href="/ingredients"
-            className="bg-purple-600 text-white px-6 py-2 rounded hover:bg-purple-700"
-          >
-            🧂 Zutaten verwalten
-          </a>
-        </div>
-      )}
     </div>
   );
 }

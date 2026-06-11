@@ -56,12 +56,47 @@ describe('Navigation wake lock toggle', () => {
     mockIsActive = true;
     render(<Navigation />);
     const button = screen.getByRole('button', { name: /bildschirm wach halten/i });
-    expect(button).toHaveClass('bg-yellow-500');
+    expect(button).toHaveClass('text-yellow-300');
   });
 
   it('renders wake lock toggle for non-logged-in users when supported', () => {
     mockUser = null;
     render(<Navigation />);
     expect(screen.getByRole('button', { name: /bildschirm wach halten/i })).toBeInTheDocument();
+  });
+
+  // TC-005-05
+  // Given any user views the navigation bar
+  // When the wake lock button is displayed
+  // Then the button does not contain the text "Bildschirm: AN" or "Bildschirm: AUS"
+  // And the button contains an SVG element
+  // And the active/inactive state is visually distinguishable via CSS class
+  it('should show an SVG icon instead of text label on the wake lock button', () => {
+    // Arrange
+    render(<Navigation />);
+    const button = screen.getByRole('button', { name: /bildschirm wach halten/i });
+
+    // Assert — no text label
+    expect(button).not.toHaveTextContent('Bildschirm: AUS');
+    expect(button).not.toHaveTextContent('Bildschirm: AN');
+
+    // Assert — SVG icon present
+    expect(button.querySelector('svg')).toBeInTheDocument();
+  });
+
+  it('should apply a distinguishable CSS class to the icon when active vs inactive', () => {
+    // Arrange — inactive
+    render(<Navigation />);
+    const inactiveButton = screen.getByRole('button', { name: /bildschirm wach halten/i });
+
+    // Assert — inactive has reduced opacity class
+    expect(inactiveButton).toHaveClass('opacity-50');
+
+    // Re-render active state
+    mockIsActive = true;
+    const { unmount } = render(<Navigation />);
+    const activeButton = screen.getAllByRole('button', { name: /bildschirm wach halten/i })[1];
+    expect(activeButton).toHaveClass('text-yellow-300');
+    unmount();
   });
 });
