@@ -287,8 +287,8 @@ export default function RecipeDetailPage() {
           <div className="bg-white rounded-lg p-6 max-w-sm w-full mx-4 shadow-xl">
             <h2 className="text-xl font-bold mb-3">Rezept löschen</h2>
             <p className="text-gray-700 mb-6">
-              Möchten Sie <strong>„{recipe.name}"</strong> wirklich löschen? Diese Aktion kann
-              nicht rückgängig gemacht werden.
+              Möchten Sie <strong>„{recipe.name}"</strong> wirklich löschen? Diese Aktion kann nicht
+              rückgängig gemacht werden.
             </p>
             <div className="flex justify-end gap-3">
               <button

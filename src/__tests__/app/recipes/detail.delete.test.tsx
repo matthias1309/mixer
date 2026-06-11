@@ -90,7 +90,8 @@ it('should close the modal and not delete when Abbrechen is clicked', async () =
 // Then a DELETE request is sent and the user is redirected
 it('should send DELETE request and redirect when confirmed in modal', async () => {
   // Arrange
-  global.fetch = jest.fn()
+  global.fetch = jest
+    .fn()
     .mockResolvedValueOnce({ ok: true, json: async () => mockRecipe } as unknown as Response)
     .mockResolvedValueOnce({ ok: true, json: async () => ({}) } as unknown as Response);
 
