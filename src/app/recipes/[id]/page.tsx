@@ -35,6 +35,7 @@ export default function RecipeDetailPage() {
   const [scalingError, setScalingError] = useState('');
   const [scaledNutrients, setScaledNutrients] = useState<Record<string, number> | null>(null);
   const [isNutrientsOpen, setIsNutrientsOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const params = useParams();
   const router = useRouter();
   const { user } = useAuth();
@@ -110,10 +111,9 @@ export default function RecipeDetailPage() {
     fetchRecipe();
   }, [fetchRecipe]);
 
-  async function handleDelete() {
-    if (!confirm('Sind Sie sicher, dass Sie dieses Rezept löschen möchten?')) return;
-
+  async function handleDeleteConfirm() {
     setIsDeleting(true);
+    setIsDeleteModalOpen(false);
 
     try {
       const response = await fetch(`/api/recipes/${id}`, {
@@ -163,7 +163,7 @@ export default function RecipeDetailPage() {
                 Bearbeiten
               </a>
               <button
-                onClick={handleDelete}
+                onClick={() => setIsDeleteModalOpen(true)}
                 disabled={isDeleting}
                 className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 disabled:opacity-50"
               >
@@ -278,6 +278,37 @@ export default function RecipeDetailPage() {
           ← Zurück zum Dashboard
         </a>
       </div>
+
+      {isDeleteModalOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+          onKeyDown={(e) => e.key === 'Escape' && setIsDeleteModalOpen(false)}
+        >
+          <div className="bg-white rounded-lg p-6 max-w-sm w-full mx-4 shadow-xl">
+            <h2 className="text-xl font-bold mb-3">Rezept löschen</h2>
+            <p className="text-gray-700 mb-6">
+              Möchten Sie <strong>„{recipe.name}"</strong> wirklich löschen? Diese Aktion kann
+              nicht rückgängig gemacht werden.
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setIsDeleteModalOpen(false)}
+                autoFocus
+                className="px-4 py-2 rounded border border-gray-300 hover:bg-gray-50"
+              >
+                Abbrechen
+              </button>
+              <button
+                onClick={handleDeleteConfirm}
+                disabled={isDeleting}
+                className="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700 disabled:opacity-50"
+              >
+                {isDeleting ? 'Wird gelöscht…' : 'Ja, löschen'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

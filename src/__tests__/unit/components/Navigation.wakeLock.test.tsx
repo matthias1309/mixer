@@ -27,6 +27,9 @@ jest.mock('next/link', () => ({
   default: ({ children, href }: any) => <a href={href}>{children}</a>,
 }));
 
+// The Navigation renders two wake-lock buttons: one in the desktop bar (hidden md:flex)
+// and one in the mobile bar (flex md:hidden). JSDOM does not apply CSS media queries,
+// so both are present in the DOM at test time. Tests use getAllByRole and check [0].
 describe('Navigation wake lock toggle', () => {
   beforeEach(() => {
     mockIsSupported = true;
@@ -37,7 +40,8 @@ describe('Navigation wake lock toggle', () => {
 
   it('renders wake lock toggle button when supported', () => {
     render(<Navigation />);
-    expect(screen.getByRole('button', { name: /bildschirm wach halten/i })).toBeInTheDocument();
+    const buttons = screen.getAllByRole('button', { name: /bildschirm wach halten/i });
+    expect(buttons.length).toBeGreaterThanOrEqual(1);
   });
 
   it('does not render toggle when not supported', () => {
@@ -48,21 +52,22 @@ describe('Navigation wake lock toggle', () => {
 
   it('calls toggle when button is clicked', () => {
     render(<Navigation />);
-    fireEvent.click(screen.getByRole('button', { name: /bildschirm wach halten/i }));
+    fireEvent.click(screen.getAllByRole('button', { name: /bildschirm wach halten/i })[0]);
     expect(mockToggle).toHaveBeenCalled();
   });
 
   it('shows active state visually when isActive is true', () => {
     mockIsActive = true;
     render(<Navigation />);
-    const button = screen.getByRole('button', { name: /bildschirm wach halten/i });
-    expect(button).toHaveClass('text-yellow-300');
+    const buttons = screen.getAllByRole('button', { name: /bildschirm wach halten/i });
+    buttons.forEach((btn) => expect(btn).toHaveClass('text-yellow-300'));
   });
 
   it('renders wake lock toggle for non-logged-in users when supported', () => {
     mockUser = null;
     render(<Navigation />);
-    expect(screen.getByRole('button', { name: /bildschirm wach halten/i })).toBeInTheDocument();
+    const buttons = screen.getAllByRole('button', { name: /bildschirm wach halten/i });
+    expect(buttons.length).toBeGreaterThanOrEqual(1);
   });
 
   // TC-005-05
@@ -74,29 +79,30 @@ describe('Navigation wake lock toggle', () => {
   it('should show an SVG icon instead of text label on the wake lock button', () => {
     // Arrange
     render(<Navigation />);
-    const button = screen.getByRole('button', { name: /bildschirm wach halten/i });
+    const buttons = screen.getAllByRole('button', { name: /bildschirm wach halten/i });
 
-    // Assert — no text label
-    expect(button).not.toHaveTextContent('Bildschirm: AUS');
-    expect(button).not.toHaveTextContent('Bildschirm: AN');
-
-    // Assert — SVG icon present
-    expect(button.querySelector('svg')).toBeInTheDocument();
+    buttons.forEach((button) => {
+      // Assert — no text label
+      expect(button).not.toHaveTextContent('Bildschirm: AUS');
+      expect(button).not.toHaveTextContent('Bildschirm: AN');
+      // Assert — SVG icon present
+      expect(button.querySelector('svg')).toBeInTheDocument();
+    });
   });
 
   it('should apply a distinguishable CSS class to the icon when active vs inactive', () => {
     // Arrange — inactive
     render(<Navigation />);
-    const inactiveButton = screen.getByRole('button', { name: /bildschirm wach halten/i });
-
-    // Assert — inactive has reduced opacity class
-    expect(inactiveButton).toHaveClass('opacity-50');
+    const inactiveButtons = screen.getAllByRole('button', { name: /bildschirm wach halten/i });
+    inactiveButtons.forEach((btn) => expect(btn).toHaveClass('opacity-50'));
 
     // Re-render active state
     mockIsActive = true;
     const { unmount } = render(<Navigation />);
-    const activeButton = screen.getAllByRole('button', { name: /bildschirm wach halten/i })[1];
-    expect(activeButton).toHaveClass('text-yellow-300');
+    const activeButtons = screen.getAllByRole('button', { name: /bildschirm wach halten/i });
+    // Only the newly rendered ones (second render) should be active
+    const freshActive = activeButtons.slice(inactiveButtons.length);
+    freshActive.forEach((btn) => expect(btn).toHaveClass('text-yellow-300'));
     unmount();
   });
 });
