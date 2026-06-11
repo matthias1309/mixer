@@ -6,7 +6,11 @@ jest.mock('@/hooks/useAuth', () => ({
 }));
 
 jest.mock('@/hooks/useFilter', () => ({
-  useFilter: () => ({ selectedIngredients: [], toggleIngredient: jest.fn(), clearFilters: jest.fn() }),
+  useFilter: () => ({
+    selectedIngredients: [],
+    toggleIngredient: jest.fn(),
+    clearFilters: jest.fn(),
+  }),
 }));
 
 jest.mock('@/contexts/FilterContext', () => ({
@@ -49,8 +53,7 @@ it('should show the primary CTA above the recipe list', async () => {
 
   // Assert — CTA appears before recipe list in document order
   // DOCUMENT_POSITION_FOLLOWING means recipeList comes after cta
-  const ctaBeforeList =
-    cta.compareDocumentPosition(recipeList) & Node.DOCUMENT_POSITION_FOLLOWING;
+  const ctaBeforeList = cta.compareDocumentPosition(recipeList) & Node.DOCUMENT_POSITION_FOLLOWING;
   expect(ctaBeforeList).toBeTruthy();
 });
 
