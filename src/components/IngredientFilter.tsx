@@ -57,7 +57,7 @@ export function IngredientFilter() {
         {ingredients.length === 0 ? (
           <p className="text-gray-600 text-sm">Keine Zutaten verfügbar</p>
         ) : visibleIngredients.length === 0 ? (
-          <p className="text-gray-500 text-sm">Keine Treffer für „{search}"</p>
+          <p className="text-gray-500 text-sm">Keine Treffer für „{search}“</p>
         ) : (
           visibleIngredients.map((ingredient) => (
             <label key={ingredient} className="flex items-center cursor-pointer">
