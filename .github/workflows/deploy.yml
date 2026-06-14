@@ -36,7 +36,12 @@ jobs:
             cd ~/mixer
             git fetch origin main
             git reset --hard origin/main
-            npm ci
+            # `npm ci` deletes and reinstalls node_modules from scratch on
+            # every run, including recompiling the native better-sqlite3
+            # addon — too memory-hungry for the Uberspace host and gets
+            # OOM-killed (exit 137). `npm install` is incremental and only
+            # touches what package-lock.json actually changed.
+            npm install
             # Load build-time env (BASE_PATH, NEXT_PUBLIC_*) explicitly. The
             # client bundle bakes in NEXT_PUBLIC_BASE_PATH at build time, but
             # `next build` does not reliably auto-load .env.production in a
