@@ -49,7 +49,8 @@ independent phases; each phase is its own PR / session so context stays small.
    only surfaces in production under `/rezepte`. (Highest-risk phase → do on Opus.)
 2. **`better-sqlite3` is a native module** → it must be compiled against the
    host's Node 22 ABI. Therefore **build on the host** (`npm ci` over SSH), do not
-   upload prebuilt artifacts from CI.
+   upload prebuilt artifacts from CI. Pinned to `^10.1.0` (down from `^11.x`) —
+   see Phase 3 notes.
 3. **Data migration is one-time** and runs locally (Pi PostgreSQL → SQLite file),
    then the resulting `.db` is copied to Uberspace once.
 
@@ -138,21 +139,53 @@ SQLite autoincrement sequences were inspected and confirmed correct.
 **Goal:** Reproducible server bring-up documented in
 `docs/deployment/uberspace-setup.md`.
 
-- [ ] `uberspace tools version use node 22`
-- [ ] `git clone` app to `~/mixer`, `npm ci`, `npm run build`
-- [ ] Place migrated DB at `~/data/mixer.db`
-- [ ] Secrets in `~/mixer/.env.production` (NOT in repo): `JWT_SECRET`,
+- [x] `uberspace tools version use node 22`
+- [x] `git clone` app to `~/mixer`, `npm ci`, `npm run build`
+- [x] Place migrated DB at `~/data/mixer.db`
+- [x] Secrets in `~/mixer/.env.production` (NOT in repo): `JWT_SECRET`,
       `NEXTAUTH_SECRET`, `DATABASE_URL=file:/home/mattmaxx/data/mixer.db`,
       `NEXTAUTH_URL=https://matt-maxx.de/rezepte`, `BASE_PATH=/rezepte`,
       `PORT=8723`.
-- [ ] supervisord service `~/etc/services.d/mixer.ini` (template committed under
+- [x] supervisord service `~/etc/services.d/mixer.ini` (template committed under
       `deploy/mixer.ini`), then `supervisorctl reread && update && start mixer`.
-- [ ] `uberspace web backend matt-maxx.de/rezepte --http --port 8723`.
+- [x] `uberspace web backend matt-maxx.de/rezepte --http --port 8723`.
 
 **Resolved inputs:** Uberspace user = `mattmaxx`; app port = `8723` (confirm it is
 free on first setup with `ss -tlpn` and adjust if taken); domain `matt-maxx.de` is
 already pointed at Uberspace. Secret *values* still go into GitHub secrets / host
 env only — never the repo.
+
+### Issues found and resolved during host bring-up
+
+1. **`npm ci` failed — no lockfile.** `package-lock.json` was gitignored and
+   never committed. Removed it from `.gitignore` and committed a generated
+   lockfile; `npm ci` requires a committed lockfile to run at all.
+
+2. **`better-sqlite3@11.x` fails to build on the host.** Its `binding.gyp`
+   requires `-std=c++20`, which the host's g++ does not recognize (it suggests
+   `-std=c++2a`), and its prebuilt binaries require `glibc >= 2.29` (host is
+   CentOS 7-based, glibc 2.17 — `prebuild-install warn ... GLIBC_2.29 not
+   found`). **Fix:** downgraded to `better-sqlite3@^10.1.0` (uses `-std=c++17`,
+   no API changes). Verified with the full test suite (435/435 → 437/437) and
+   a production build.
+
+3. **Root page redirected outside `/rezepte`.** `src/app/page.tsx` called
+   `redirect('/dashboard')`. Unlike `next/link`/`router.push`, `redirect()`
+   from `next/navigation` is **not** rewritten for `basePath`, so it landed on
+   `https://matt-maxx.de/dashboard` (404). **Fix:** `redirect(apiUrl('/dashboard'))`.
+
+4. **Several internal links still 404'd under `/rezepte`** ("Rezept
+   erstellen", "Aus Foto", "Zyklus", "Zutaten", recipe/ingredient "Bearbeiten",
+   "Zurück zum Dashboard/Übersicht", login/register cross-links). These were
+   plain `<a href="/...">` rather than `next/link`, so — same as item 3 — they
+   were not basePath-aware. This is the same class of issue as the Phase 1
+   fetch/link audit (item 3 there caught one instance in `RecipeList` but
+   missed these). **Fix:** converted all to `next/link` in the dashboard,
+   recipe detail, ingredients, cycle pages and the login/register forms.
+
+All four fixes are on branch `claude/vibrant-einstein-ijq62t`. App verified
+working end-to-end at `https://matt-maxx.de/rezepte` (dashboard, recipe
+create/edit, ingredients, login/register).
 
 ## Phase 4 — CI deploy (GitHub Action)
 
