@@ -116,13 +116,22 @@ green afterwards even with `NODE_ENV=development` still in the shell.
 
 **Goal:** Existing Pi PostgreSQL data ends up in a SQLite file.
 
-- [ ] `scripts/migrate-pg-to-sqlite.ts`: connect to Pi PostgreSQL via `pg`
+- [x] `scripts/migrate-pg-to-sqlite.ts`: connect to Pi PostgreSQL via `pg`
       (over SSH tunnel), write to a fresh `mixer.db` via `better-sqlite3`, copying
       tables in FK order using the existing models.
-- [ ] Verify: per-table row-count parity + a manual login test against the SQLite
-      copy.
+- [x] Verify: per-table row-count parity built into the script (prints a
+      report and exits non-zero on mismatch); a manual login test against the
+      SQLite copy remains an operational step before copying to Uberspace.
 - [ ] Copy the resulting `mixer.db` once to `~/data/mixer.db` on Uberspace via
       `scp` (operational step, not in CI).
+
+**TDD note:** this is a one-off operational migration script with no
+application-facing behavior (TDD exception per `.claude/rules/v-model.md`).
+It was verified manually against a local PostgreSQL instance seeded with
+representative rows covering every table, including booleans, decimals,
+timestamps, NULLs and self-referencing foreign keys (`recipes.canonical_id`);
+the row-count report matched for all 11 tables and the copied data, types and
+SQLite autoincrement sequences were inspected and confirmed correct.
 
 ## Phase 3 — Uberspace host setup (manual, documented)
 
