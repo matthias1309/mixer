@@ -13,7 +13,7 @@ function getDayOfCycle(
 
 function findPhaseForDay(dayOfCycle: number): CyclePhase {
   // Check overlapping phases by priority
-  const phasesByPriority = PHASE_DEFINITIONS.sort(
+  const phasesByPriority = [...PHASE_DEFINITIONS].sort(
     (a, b) => (PHASE_PRIORITY[b.name as keyof typeof PHASE_PRIORITY] || 0) -
               (PHASE_PRIORITY[a.name as keyof typeof PHASE_PRIORITY] || 0)
   );

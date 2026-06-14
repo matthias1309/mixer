@@ -1,7 +1,6 @@
-import { getDatabase, isPostgres } from '../init';
+import { getDatabase, getSqliteDb, isPostgres } from '../init';
 import { Recipe, RecipeListItem, CreateIngredientRequest, Ingredient } from '@/types';
 import { calculateScore, AggregatedNutrients } from '@/lib/scoring/phaseScore';
-import Database from 'better-sqlite3';
 import { Pool } from 'pg';
 
 export class RecipeModel {
@@ -14,7 +13,7 @@ export class RecipeModel {
     ingredients?: CreateIngredientRequest[],
     canonicalId?: number | null
   ): Recipe {
-    const db = getDatabase();
+    const db = getSqliteDb();
 
     const stmt = db.prepare(`
       INSERT INTO recipes (name, description, instructions, servings, creator_id, canonical_id, is_duplicate)
@@ -55,13 +54,13 @@ export class RecipeModel {
   }
 
   static findById(id: number): Recipe | null {
-    const db = getDatabase();
+    const db = getSqliteDb();
     const stmt = db.prepare('SELECT * FROM recipes WHERE id = ?');
     return (stmt.get(id) as Recipe) || null;
   }
 
   static getNutrients(recipeId: number): Record<string, number> {
-    const db = getDatabase();
+    const db = getSqliteDb();
     const stmt = db.prepare(`
       SELECT
         SUM(COALESCE(ingredients_master.kcal, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as kcal,
@@ -101,7 +100,7 @@ export class RecipeModel {
     sortBy: 'date' | 'name' | 'ingredients' = 'date',
     search?: string
   ): { recipes: RecipeListItem[]; total: number } {
-    const db = getDatabase();
+    const db = getSqliteDb();
 
     // Safe mapping of sort parameter
     const sortByMap: Record<string, string> = {
@@ -150,7 +149,7 @@ export class RecipeModel {
   }
 
   static findByNameAndIngredients(name: string, ingredientNames: string[]): Recipe | null {
-    const db = getDatabase();
+    const db = getSqliteDb();
 
     // Normalize for comparison
     const normalizedName = name.trim().toLowerCase();
@@ -187,7 +186,7 @@ export class RecipeModel {
     servings?: number,
     ingredients?: CreateIngredientRequest[]
   ): Recipe {
-    const db = getDatabase();
+    const db = getSqliteDb();
 
     const updates: string[] = [];
     const values: any[] = [];
@@ -242,13 +241,13 @@ export class RecipeModel {
   }
 
   static delete(id: number): void {
-    const db = getDatabase();
+    const db = getSqliteDb();
     const stmt = db.prepare('DELETE FROM recipes WHERE id = ?');
     stmt.run(id);
   }
 
   static getIngredients(recipeId: number): Ingredient[] {
-    const db = getDatabase();
+    const db = getSqliteDb();
     const stmt = db.prepare('SELECT * FROM ingredients WHERE recipe_id = ? ORDER BY name ASC');
     const rows = stmt.all(recipeId) as Ingredient[];
     return rows.map(row => ({
@@ -258,7 +257,7 @@ export class RecipeModel {
   }
 
   static getUniqueIngredients(): string[] {
-    const db = getDatabase();
+    const db = getSqliteDb();
     const stmt = db.prepare(`
       SELECT DISTINCT LOWER(TRIM(name)) as name
       FROM ingredients
@@ -272,7 +271,7 @@ export class RecipeModel {
   }
 
   static filterByIngredients(ingredientNames: string[], page: number = 1, pageSize: number = 10) {
-    const db = getDatabase();
+    const db = getSqliteDb();
 
     const normalizedIngredients = ingredientNames.map(i => i.trim().toLowerCase());
     const placeholders = normalizedIngredients.map(() => '?').join(',');
@@ -338,7 +337,7 @@ export class RecipeModel {
     search: string | undefined,
     phase: string = 'menstruation'
   ): { recipes: (RecipeListItem & { score: number | null })[]; total: number } {
-    const db = getDatabase();
+    const db = getSqliteDb();
 
     const sortByMap: Record<string, string> = {
       'date': 'recipes.created_at DESC',
@@ -434,7 +433,7 @@ export class RecipeModel {
     pageSize: number = 10,
     phase: string = 'menstruation'
   ) {
-    const db = getDatabase();
+    const db = getSqliteDb();
 
     const normalizedIngredients = ingredientNames.map(i => i.trim().toLowerCase());
     const placeholders = normalizedIngredients.map(() => '?').join(',');

@@ -56,7 +56,7 @@ it('should open a modal instead of calling window.confirm when Löschen is click
 
   // Assert — modal heading visible
   expect(screen.getByRole('heading', { name: /rezept löschen/i })).toBeInTheDocument();
-  expect(screen.getByText(/„Pasta al Limone"/)).toBeInTheDocument();
+  expect(screen.getByText(/„Pasta al Limone“/)).toBeInTheDocument();
 
   // Assert — no browser confirm
   expect(window.confirm).not.toHaveBeenCalled();

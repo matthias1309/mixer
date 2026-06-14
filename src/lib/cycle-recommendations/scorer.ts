@@ -58,7 +58,7 @@ function generateReasonText(nutrients: string[], phase: string): string {
     return 'Minimal phase-specific nutrients';
   }
 
-  const templates = REASON_TEMPLATES[phase as keyof typeof REASON_TEMPLATES]?.matched || [];
+  const templates: readonly string[] = REASON_TEMPLATES[phase as keyof typeof REASON_TEMPLATES]?.matched || [];
   if (templates.length === 0) {
     return `Contains ${nutrients.slice(0, 2).join(', ')}`;
   }

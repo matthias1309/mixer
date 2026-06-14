@@ -4,7 +4,7 @@ import { randomUUID } from 'crypto';
 import { getValidationError } from '@/config/upload';
 import { extractTextFromImage } from '@/lib/ocr/tesseract';
 import { parseIngredientsFromText } from '@/lib/ocr/parser';
-import { getDatabase } from '@/lib/db/init';
+import { getSqliteDb } from '@/lib/db/init';
 import { ocrCache } from '@/lib/ocr/cache';
 
 export async function POST(request: NextRequest) {
@@ -72,7 +72,7 @@ async function processOcrAsync(
     const rawText = await extractTextFromImage(imageBuffer);
 
     // Get ingredients from database
-    const db = getDatabase();
+    const db = getSqliteDb();
     const ingredients = db.prepare('SELECT * FROM ingredients').all() as any[];
 
     // Parse ingredients

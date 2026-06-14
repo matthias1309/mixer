@@ -10,7 +10,7 @@ export function isValidFile(file: File): boolean {
   if (file.size > UPLOAD_CONFIG.MAX_FILE_SIZE) {
     return false;
   }
-  if (!UPLOAD_CONFIG.ALLOWED_MIME_TYPES.includes(file.type)) {
+  if (!(UPLOAD_CONFIG.ALLOWED_MIME_TYPES as readonly string[]).includes(file.type)) {
     return false;
   }
   return true;
@@ -20,7 +20,7 @@ export function getValidationError(file: File): string | null {
   if (file.size > UPLOAD_CONFIG.MAX_FILE_SIZE) {
     return 'File must be smaller than 5MB';
   }
-  if (!UPLOAD_CONFIG.ALLOWED_MIME_TYPES.includes(file.type)) {
+  if (!(UPLOAD_CONFIG.ALLOWED_MIME_TYPES as readonly string[]).includes(file.type)) {
     return 'Only JPG and PNG files are supported';
   }
   return null;

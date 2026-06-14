@@ -1,4 +1,4 @@
-import { getDatabase } from '../init';
+import { getSqliteDb } from '../init';
 
 export interface IngredientMaster {
   id: number;
@@ -51,7 +51,7 @@ export interface CreateIngredientMasterRequest {
 
 export class IngredientMasterModel {
   static create(data: CreateIngredientMasterRequest): IngredientMaster {
-    const db = getDatabase();
+    const db = getSqliteDb();
     const stmt = db.prepare(`
       INSERT INTO ingredients_master (
         name, category, base_unit, base_size,
@@ -91,7 +91,7 @@ export class IngredientMasterModel {
     pageSize: number = 20,
     search?: string
   ): { ingredients: IngredientMaster[]; total: number } {
-    const db = getDatabase();
+    const db = getSqliteDb();
     let query = 'SELECT * FROM ingredients_master';
     const params: any[] = [];
 
@@ -123,7 +123,7 @@ export class IngredientMasterModel {
   }
 
   static findById(id: number): IngredientMaster | null {
-    const db = getDatabase();
+    const db = getSqliteDb();
     const stmt = db.prepare('SELECT * FROM ingredients_master WHERE id = ?');
     const result = stmt.get(id);
     return (result as IngredientMaster) || null;
@@ -133,7 +133,7 @@ export class IngredientMasterModel {
     id: number,
     data: Partial<CreateIngredientMasterRequest>
   ): IngredientMaster {
-    const db = getDatabase();
+    const db = getSqliteDb();
     const ingredient = this.findById(id);
     if (!ingredient) {
       throw new Error('Ingredient not found');
@@ -210,7 +210,7 @@ export class IngredientMasterModel {
   }
 
   static delete(id: number): void {
-    const db = getDatabase();
+    const db = getSqliteDb();
     const stmt = db.prepare('DELETE FROM ingredients_master WHERE id = ?');
     stmt.run(id);
   }

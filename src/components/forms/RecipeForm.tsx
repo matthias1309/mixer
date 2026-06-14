@@ -232,7 +232,7 @@ export function RecipeForm({ initialData, isEditing = false }: RecipeFormProps) 
                     setCreateModalOpen(true);
                   }}
                   addedIngredientIds={ingredients.flatMap((i) =>
-                    i.masterId !== null ? [i.masterId] : []
+                    i.masterId !== undefined ? [i.masterId] : []
                   )}
                 />
               </div>
