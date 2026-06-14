@@ -86,24 +86,31 @@ independent phases; each phase is its own PR / session so context stays small.
 - [x] No change to `src/lib/db/init.ts`; production simply sets
       `DATABASE_URL=file:<absolute path to mixer.db>`. `pg` dependency kept.
 - [x] Add `.nvmrc` with `22`.
-- [x] Tests green (435/435, incl. new `api-url.test.ts`); `next build` with
-      `BASE_PATH=/rezepte` **compiles successfully**. See blocker below re: full
-      static export.
+- [x] Tests green (435/435, incl. new `api-url.test.ts`); `npm run build` with
+      `BASE_PATH=/rezepte` **succeeds end-to-end** (22/22 static pages). See the
+      resolved build issue below.
 
 **TDD note:** the `apiUrl()` unit test (`src/__tests__/lib/api-url.test.ts`) was
 written and made to fail before implementing the helper.
 
-### ⚠ Discovered pre-existing build blocker (not Phase 1, but blocks Phase 4)
+### ✅ Resolved pre-existing build blocker (NODE_ENV)
 
-`next build` compiles cleanly but **fails during static export** of the error
-page: `Error: <Html> should not be imported outside of pages/_document` while
-prerendering `/404`. This reproduces on the **untouched baseline** (without any
-Phase 1 change and without `BASE_PATH`), so it is unrelated to the sub-path work.
-No `next/document` import exists anywhere in `src` or the emitted vendor chunk —
-this is the known misleading Next 15 message masking an error-page prerender
-failure. Adding `app/not-found.tsx` did **not** resolve it. This must be fixed
-(likely a Next-version / dependency issue, candidate for MAINT-001) **before
-Phase 4**, since the CI deploy builds on the host.
+While verifying the build, `next build` failed during static export with the
+misleading `Error: <Html> should not be imported outside of pages/_document`
+while prerendering `/404`. Confirmed **pre-existing** (reproduced on the untouched
+baseline at commit `fa00030`, without any Phase 1 change and without `BASE_PATH`),
+so unrelated to the sub-path work.
+
+**Root cause:** the environment had `NODE_ENV=development` set (Next warned
+"non-standard NODE_ENV value"). This is a known Next 15.1.6+ App Router bug
+(vercel/next.js discussion #77262): a non-standard `NODE_ENV` during `next build`
+makes Next mis-generate the legacy pages error pages, surfacing the spurious Html
+error. No `next/document` import exists anywhere in `src`.
+
+**Fix:** `package.json` build script now pins `NODE_ENV=production`
+(`"build": "NODE_ENV=production next build"`), so builds are correct regardless of
+ambient `NODE_ENV` — locally, in CI, and on the Uberspace host. Build verified
+green afterwards even with `NODE_ENV=development` still in the shell.
 
 ## Phase 2 — Data migration (one-time, run locally)
 
