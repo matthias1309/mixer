@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import Link from 'next/link';
 import { useAuth } from '../../hooks/useAuth';
 import { Pagination } from '../../components/Pagination';
 import { IngredientMaster } from '@/lib/db/models/ingredientMaster';
@@ -146,12 +147,12 @@ export default function IngredientsPage() {
                   {user && (
                     <td className="px-4 py-3 text-right">
                       <div className="flex justify-end gap-2">
-                        <a
+                        <Link
                           href={`/ingredients/${ingredient.id}/edit`}
                           className="text-blue-600 hover:underline text-sm"
                         >
                           Bearbeiten
-                        </a>
+                        </Link>
                         <button
                           onClick={() => handleDelete(ingredient.id)}
                           disabled={deleting === ingredient.id}
@@ -172,9 +173,9 @@ export default function IngredientsPage() {
       <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
 
       <div className="mt-6">
-        <a href="/dashboard" className="text-blue-600 hover:underline">
+        <Link href="/dashboard" className="text-blue-600 hover:underline">
           ← Zurück zur Übersicht
-        </a>
+        </Link>
       </div>
     </div>
   );

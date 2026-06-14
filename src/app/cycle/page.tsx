@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { ProtectedRoute } from '../../components/ProtectedRoute';
 import CycleForm from '../../components/cycle/CycleForm';
 import CycleInfo from '../../components/cycle/CycleInfo';
@@ -27,9 +28,9 @@ export default function CyclePage() {
         </div>
 
         <div className="mt-6">
-          <a href="/dashboard" className="text-blue-600 hover:underline">
+          <Link href="/dashboard" className="text-blue-600 hover:underline">
             ← Zurück zum Dashboard
-          </a>
+          </Link>
         </div>
       </div>
     </ProtectedRoute>

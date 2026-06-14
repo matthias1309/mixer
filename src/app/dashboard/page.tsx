@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { apiUrl } from '@lib/api-url';
 import { RecipeList } from '../../components/RecipeList';
 import { IngredientFilter } from '../../components/IngredientFilter';
@@ -42,30 +43,30 @@ export default function DashboardPage() {
 
         {user && (
           <div className="flex gap-2 flex-wrap items-center">
-            <a
+            <Link
               href="/recipes/new"
               className="bg-blue-600 text-white px-5 py-2 rounded hover:bg-blue-700 font-medium"
             >
               + Rezept erstellen
-            </a>
-            <a
+            </Link>
+            <Link
               href="/recipes/upload"
               className="border border-blue-600 text-blue-600 px-4 py-2 rounded hover:bg-blue-50"
             >
               📸 Aus Foto
-            </a>
-            <a
+            </Link>
+            <Link
               href="/cycle"
               className="border border-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-50"
             >
               📊 Zyklus
-            </a>
-            <a
+            </Link>
+            <Link
               href="/ingredients"
               className="border border-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-50"
             >
               🧂 Zutaten
-            </a>
+            </Link>
           </div>
         )}
       </div>
