@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useAuth } from '../../hooks/useAuth';
 
 function isValidEmail(email: string): boolean {
@@ -88,9 +89,9 @@ export function LoginForm() {
 
       <p className="text-sm text-gray-600 mt-4">
         Haben Sie noch kein Konto?{' '}
-        <a href="/register" className="text-blue-600 hover:underline">
+        <Link href="/register" className="text-blue-600 hover:underline">
           Hier registrieren
-        </a>
+        </Link>
       </p>
     </div>
   );

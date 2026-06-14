@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { apiUrl } from '@lib/api-url';
 import { useAuth } from '../../../hooks/useAuth';
 import { useFilter } from '../../../hooks/useFilter';
@@ -157,12 +158,12 @@ export default function RecipeDetailPage() {
           </div>
           {recipe.canEdit && (
             <div className="flex gap-2">
-              <a
+              <Link
                 href={`/recipes/${recipe.id}/edit`}
                 className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
               >
                 Bearbeiten
-              </a>
+              </Link>
               <button
                 onClick={() => setIsDeleteModalOpen(true)}
                 disabled={isDeleting}
@@ -275,9 +276,9 @@ export default function RecipeDetailPage() {
       </div>
 
       <div className="mt-6">
-        <a href="/dashboard" className="text-blue-600 hover:underline">
+        <Link href="/dashboard" className="text-blue-600 hover:underline">
           ← Zurück zum Dashboard
-        </a>
+        </Link>
       </div>
 
       {isDeleteModalOpen && (

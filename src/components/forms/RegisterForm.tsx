@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useAuth } from '../../hooks/useAuth';
 import { validateEmail, validatePassword } from '../../lib/validation';
 
@@ -111,9 +112,9 @@ export function RegisterForm() {
 
       <p className="text-sm text-gray-600 mt-4">
         Haben Sie bereits ein Konto?{' '}
-        <a href="/login" className="text-blue-600 hover:underline">
+        <Link href="/login" className="text-blue-600 hover:underline">
           Hier anmelden
-        </a>
+        </Link>
       </p>
     </div>
   );
