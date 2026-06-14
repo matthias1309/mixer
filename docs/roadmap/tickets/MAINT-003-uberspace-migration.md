@@ -110,15 +110,17 @@ prefixing) before implementing it.
 - [ ] `git clone` app to `~/mixer`, `npm ci`, `npm run build`
 - [ ] Place migrated DB at `~/data/mixer.db`
 - [ ] Secrets in `~/mixer/.env.production` (NOT in repo): `JWT_SECRET`,
-      `NEXTAUTH_SECRET`, `DATABASE_URL=file:/home/<user>/data/mixer.db`,
-      `NEXTAUTH_URL=https://matt-maxx.de/rezepte`, `BASE_PATH=/rezepte`, `PORT`.
+      `NEXTAUTH_SECRET`, `DATABASE_URL=file:/home/mattmaxx/data/mixer.db`,
+      `NEXTAUTH_URL=https://matt-maxx.de/rezepte`, `BASE_PATH=/rezepte`,
+      `PORT=8723`.
 - [ ] supervisord service `~/etc/services.d/mixer.ini` (template committed under
       `deploy/mixer.ini`), then `supervisorctl reread && update && start mixer`.
-- [ ] `uberspace web backend matt-maxx.de/rezepte --http --port <PORT>`.
+- [ ] `uberspace web backend matt-maxx.de/rezepte --http --port 8723`.
 
-**Open inputs needed from owner:** Uberspace username, assigned port, and whether
-`matt-maxx.de` is already pointed at Uberspace. Until known, use placeholders in
-the repo and real values as GitHub secrets / host env.
+**Resolved inputs:** Uberspace user = `mattmaxx`; app port = `8723` (confirm it is
+free on first setup with `ss -tlpn` and adjust if taken); domain `matt-maxx.de` is
+already pointed at Uberspace. Secret *values* still go into GitHub secrets / host
+env only — never the repo.
 
 ## Phase 4 — CI deploy (GitHub Action)
 
@@ -156,8 +158,9 @@ the repo and real values as GitHub secrets / host env.
 
 ## Dependencies
 
-- Owner to provide Uberspace username/port and confirm domain DNS.
-- SSH key pair for CI deploy.
+- Uberspace user `mattmaxx`, port `8723`, domain `matt-maxx.de` (all confirmed).
+- SSH key pair for CI deploy (public key → `~/.ssh/authorized_keys` on Uberspace;
+  private key → GitHub secret `UBERSPACE_SSH_KEY`).
 
 ## Out of Scope
 
