@@ -1,9 +1,11 @@
+import { apiUrl } from '@lib/api-url';
+
 export async function apiCall<T>(
   endpoint: string,
   options?: RequestInit
 ): Promise<{ data?: T; error?: string; status: number }> {
   try {
-    const response = await fetch(`/api${endpoint}`, {
+    const response = await fetch(apiUrl(`/api${endpoint}`), {
       ...options,
       headers: {
         'Content-Type': 'application/json',

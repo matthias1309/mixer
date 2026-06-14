@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'next/navigation';
+import { apiUrl } from '@lib/api-url';
 import { ProtectedRoute } from '../../../../components/ProtectedRoute';
 import { IngredientMasterForm } from '../../../../components/forms/IngredientMasterForm';
 import { IngredientMaster } from '@/lib/db/models/ingredientMaster';
@@ -15,7 +16,7 @@ export default function EditIngredientPage() {
 
   const fetchIngredient = useCallback(async function fetchIngredient() {
     try {
-      const response = await fetch(`/api/ingredients-master/${id}`, {
+      const response = await fetch(apiUrl(`/api/ingredients-master/${id}`), {
         credentials: 'include',
       });
 

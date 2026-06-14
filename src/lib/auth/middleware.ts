@@ -3,6 +3,10 @@ import { verifyTokenDetailed } from '@lib/auth/jwt';
 import { verifyToken, refreshToken } from '@lib/auth/tokenRefresh';
 import { HTTP_STATUS } from '@lib/constants';
 
+// Scope the auth cookie to the app's base path so it is not shared with other
+// apps hosted on the same domain (e.g. matt-maxx.de/rezepte). Falls back to "/".
+const COOKIE_PATH = process.env.BASE_PATH || '/';
+
 export function authMiddleware(req: NextRequest): NextResponse {
   const tokenCookie = req.cookies.get('sessionToken');
 
@@ -55,7 +59,7 @@ export function setTokenCookie<T>(response: NextResponse<T>, token: string): Nex
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'strict',
     maxAge: 60 * 60, // 1 hour
-    path: '/',
+    path: COOKIE_PATH,
   });
 
   return response;
@@ -67,7 +71,7 @@ export function clearTokenCookie<T>(response: NextResponse<T>): NextResponse<T> 
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'strict',
     maxAge: 0,
-    path: '/',
+    path: COOKIE_PATH,
   });
 
   return response;

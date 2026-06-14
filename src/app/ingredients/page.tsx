@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { Pagination } from '../../components/Pagination';
 import { IngredientMaster } from '@/lib/db/models/ingredientMaster';
+import { apiUrl } from '@lib/api-url';
 
 const PAGE_SIZE = 20;
 
@@ -24,7 +25,7 @@ export default function IngredientsPage() {
       setError('');
 
       try {
-        const url = new URL('/api/ingredients-master', window.location.origin);
+        const url = new URL(apiUrl('/api/ingredients-master'), window.location.origin);
         url.searchParams.set('page', page.toString());
         url.searchParams.set('pageSize', PAGE_SIZE.toString());
         if (search) {
@@ -67,7 +68,7 @@ export default function IngredientsPage() {
     setDeleting(id);
 
     try {
-      const response = await fetch(`/api/ingredients-master/${id}`, {
+      const response = await fetch(apiUrl(`/api/ingredients-master/${id}`), {
         method: 'DELETE',
         credentials: 'include',
       });
