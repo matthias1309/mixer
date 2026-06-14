@@ -26,6 +26,11 @@ export function getDatabase(): DbClient {
   return getDb();
 }
 
+// For call sites that only ever run against SQLite (no PostgreSQL branch).
+export function getSqliteDb(): Database.Database {
+  return getDb() as Database.Database;
+}
+
 export function isPostgres(): boolean {
   return !!pgPool;
 }

@@ -14,14 +14,14 @@ export class UserModel {
         [email, passwordHash]
       );
       const id = result.rows[0].id;
-      return this.findById(id)!;
+      return (await this.findById(id))!;
     } else {
       const sqlite = db as Database.Database;
       const stmt = sqlite.prepare(
         'INSERT INTO users (email, password_hash) VALUES (?, ?)'
       );
       const info = stmt.run(email, passwordHash) as { lastInsertRowid: number };
-      return this.findById(Number(info.lastInsertRowid))!;
+      return (await this.findById(Number(info.lastInsertRowid)))!;
     }
   }
 

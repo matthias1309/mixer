@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getDatabase } from '@/lib/db/init';
+import { getSqliteDb } from '@/lib/db/init';
 
 export async function GET(request: NextRequest) {
   try {
-    const db = getDatabase();
+    const db = getSqliteDb();
 
     const ingredients = db.prepare(
       'SELECT * FROM ingredients ORDER BY category, name'

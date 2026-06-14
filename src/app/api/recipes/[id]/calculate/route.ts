@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { authMiddlewareWithRefresh } from '@/lib/auth/middleware';
-import { getDatabase } from '@/lib/db/init';
+import { getSqliteDb } from '@/lib/db/init';
 import { calculateRecipeNutrients } from '@/lib/nutrition/calculator';
 import { NUTRIENT_KEYS } from '@/lib/nutrition/types';
 import { HTTP_STATUS } from '@/lib/constants';
@@ -36,7 +36,7 @@ export async function POST(request: NextRequest, props: { params: Params }) {
       );
     }
 
-    const db = getDatabase();
+    const db = getSqliteDb();
 
     // Fetch recipe and verify ownership
     const recipe = db
