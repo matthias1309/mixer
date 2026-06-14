@@ -18,7 +18,8 @@
     "db:start": "docker compose -f docker-compose.local.yml up -d",
     "db:stop": "docker compose -f docker-compose.local.yml down",
     "db:setup": "bash scripts/setup-local.sh",
-    "db:seed": "bash scripts/seed-local.sh"
+    "db:seed": "bash scripts/seed-local.sh",
+    "db:migrate-pg-to-sqlite": "ts-node --compiler-options '{\"module\":\"commonjs\"}' scripts/migrate-pg-to-sqlite.ts"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
