@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { apiUrl } from '@lib/api-url';
 import OcrLoading from './OcrLoading';
 import OcrReview from './OcrReview';
 
@@ -24,7 +25,7 @@ export default function PhotoUploadForm({ onRecipeCreated }: PhotoUploadFormProp
       const formData = new FormData();
       formData.append('file', file);
 
-      const response = await fetch('/api/recipes/ocr', {
+      const response = await fetch(apiUrl('/api/recipes/ocr'), {
         method: 'POST',
         body: formData,
         credentials: 'include',
@@ -53,7 +54,7 @@ export default function PhotoUploadForm({ onRecipeCreated }: PhotoUploadFormProp
 
     while (attempts < maxAttempts) {
       try {
-        const response = await fetch(`/api/recipes/ocr/${id}`, {
+        const response = await fetch(apiUrl(`/api/recipes/ocr/${id}`), {
           credentials: 'include',
         });
         const data = await response.json();

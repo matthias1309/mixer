@@ -1,5 +1,6 @@
 'use client';
 
+import { apiUrl } from '@lib/api-url';
 import { RecipeList } from '../../components/RecipeList';
 import { IngredientFilter } from '../../components/IngredientFilter';
 import PhaseFilter from '../../components/recipe/PhaseFilter';
@@ -16,7 +17,7 @@ export default function DashboardPage() {
 
     const fetchCurrentPhase = async () => {
       try {
-        const response = await fetch('/api/users/cycle', {
+        const response = await fetch(apiUrl('/api/users/cycle'), {
           credentials: 'include',
         });
         if (response.ok) {

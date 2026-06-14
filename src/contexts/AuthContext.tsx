@@ -2,6 +2,7 @@
 
 import React, { createContext, useState, useEffect, ReactNode } from 'react';
 import { apiCall } from '../lib/api';
+import { apiUrl } from '@lib/api-url';
 
 export interface User {
   id: number;
@@ -31,7 +32,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   async function checkAuth() {
     try {
-      const response = await fetch('/api/auth/me', {
+      const response = await fetch(apiUrl('/api/auth/me'), {
         method: 'GET',
         credentials: 'include',
       });

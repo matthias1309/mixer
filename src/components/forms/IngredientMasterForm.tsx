@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { IngredientMaster } from '@/lib/db/models/ingredientMaster';
 import { SUPPORTED_UNITS } from '@/lib/units/constants';
+import { apiUrl } from '@lib/api-url';
 
 const UNIT_OPTIONS = Object.keys(SUPPORTED_UNITS) as (keyof typeof SUPPORTED_UNITS)[];
 
@@ -60,9 +61,9 @@ export function IngredientMasterForm({
     }
 
     try {
-      const url = isEditing
-        ? `/api/ingredients-master/${initialData?.id}`
-        : '/api/ingredients-master';
+      const url = apiUrl(
+        isEditing ? `/api/ingredients-master/${initialData?.id}` : '/api/ingredients-master'
+      );
       const method = isEditing ? 'PUT' : 'POST';
 
       const body: any = {

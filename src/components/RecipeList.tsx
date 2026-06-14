@@ -1,9 +1,11 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import Link from 'next/link';
 import { RecipeCard, RecipeCardProps } from './RecipeCard';
 import { useFilter } from '../hooks/useFilter';
 import { useFetch } from '../hooks/useFetch';
+import { apiUrl } from '@lib/api-url';
 
 interface RecipesResponse {
   recipes: RecipeCardProps[];
@@ -33,7 +35,7 @@ export function RecipeList({ phase, minScore = 0 }: RecipeListProps) {
     if (phase) {
       params.set('phase', phase);
     }
-    return `/api/recipes?${params}`;
+    return apiUrl(`/api/recipes?${params}`);
   }, [page, selectedIngredients, phase]);
 
   const url = buildUrl();
@@ -87,9 +89,9 @@ export function RecipeList({ phase, minScore = 0 }: RecipeListProps) {
     return (
       <div className="bg-gray-100 p-8 rounded text-center">
         <p className="text-gray-600 mb-4">Keine Rezepte gefunden</p>
-        <a href="/recipes/new" className="text-blue-600 hover:underline">
+        <Link href="/recipes/new" className="text-blue-600 hover:underline">
           Erstellen Sie Ihr erstes Rezept
-        </a>
+        </Link>
       </div>
     );
   }

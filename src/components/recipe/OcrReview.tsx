@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { ParsedIngredient } from '@/lib/ocr/types';
+import { apiUrl } from '@lib/api-url';
 
 interface OcrReviewProps {
   uploadId: string;
@@ -18,7 +19,7 @@ export default function OcrReview({ uploadId, onRecipeCreated }: OcrReviewProps)
   useEffect(() => {
     const loadOcrResult = async () => {
       try {
-        const response = await fetch(`/api/recipes/ocr/${uploadId}`);
+        const response = await fetch(apiUrl(`/api/recipes/ocr/${uploadId}`));
         const data = await response.json();
 
         if (!response.ok) {
@@ -46,7 +47,7 @@ export default function OcrReview({ uploadId, onRecipeCreated }: OcrReviewProps)
     setError(null);
 
     try {
-      const response = await fetch('/api/recipes', {
+      const response = await fetch(apiUrl('/api/recipes'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { apiUrl } from '@lib/api-url';
 
 interface CycleFormProps {
   onSave?: (data: any) => void;
@@ -18,7 +19,7 @@ export default function CycleForm({ onSave }: CycleFormProps) {
     setError(null);
 
     try {
-      const response = await fetch('/api/users/cycle', {
+      const response = await fetch(apiUrl('/api/users/cycle'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',

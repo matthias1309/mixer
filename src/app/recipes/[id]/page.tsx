@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { apiUrl } from '@lib/api-url';
 import { useAuth } from '../../../hooks/useAuth';
 import { useFilter } from '../../../hooks/useFilter';
 import { ServingsControl } from '../../../components/recipe/ServingsControl';
@@ -49,7 +50,7 @@ export default function RecipeDetailPage() {
       setError('');
 
       try {
-        const response = await fetch(`/api/recipes/${id}`, {
+        const response = await fetch(apiUrl(`/api/recipes/${id}`), {
           credentials: 'include',
         });
 
@@ -78,7 +79,7 @@ export default function RecipeDetailPage() {
       setIsScaling(true);
       setScalingError('');
       try {
-        const response = await fetch(`/api/recipes/${id}/scale`, {
+        const response = await fetch(apiUrl(`/api/recipes/${id}/scale`), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include',
@@ -116,7 +117,7 @@ export default function RecipeDetailPage() {
     setIsDeleteModalOpen(false);
 
     try {
-      const response = await fetch(`/api/recipes/${id}`, {
+      const response = await fetch(apiUrl(`/api/recipes/${id}`), {
         method: 'DELETE',
         credentials: 'include',
       });

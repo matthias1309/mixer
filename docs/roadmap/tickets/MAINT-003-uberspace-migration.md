@@ -69,25 +69,41 @@ independent phases; each phase is its own PR / session so context stays small.
 
 **Goal:** App runs correctly under a configurable base path; SQLite in prod.
 
-- [ ] `next.config.js`: introduce env-driven `basePath` + `assetPrefix`
-      (`BASE_PATH` empty in dev, `/rezepte` in prod). Update
-      `NEXT_PUBLIC_API_BASE_URL`.
-- [ ] Add a central `apiUrl()` / base-path helper in `src/lib/` and route all
-      client-side `fetch('/api/...')` calls through it. (Note: BUG-004 already
-      consolidated some fetch logic — extend that helper rather than inventing a
-      new pattern.)
-- [ ] Audit every hardcoded absolute path in client code (`fetch`, redirects,
-      image `src`, `router.push` edge cases).
-- [ ] Auth: set `NEXTAUTH_URL=https://matt-maxx.de/rezepte`; verify JWT httpOnly
-      cookie `path` (restrict to `/rezepte` or keep `/` — decide and document).
-- [ ] No change to `src/lib/db/init.ts`; production simply sets
-      `DATABASE_URL=file:<absolute path to mixer.db>`. Keep the `pg` dependency
-      (still used by tests — YAGNI, do not remove).
-- [ ] Add `.nvmrc` with `22` to align local dev with the host.
-- [ ] Tests green; build succeeds with `BASE_PATH=/rezepte`.
+- [x] `next.config.js`: introduce env-driven `basePath` + `assetPrefix`
+      (`BASE_PATH` empty in dev, `/rezepte` in prod). Expose
+      `NEXT_PUBLIC_BASE_PATH` to the client.
+- [x] Add a central `apiUrl()` base-path helper in `src/lib/api-url.ts` and route
+      all client-side `fetch('/api/...')` calls through it (including the
+      `apiCall` wrapper in `src/lib/api.ts` and the `useFetch` call sites).
+- [x] Audit every hardcoded absolute path in client code: all `fetch` /
+      `new URL` / `useFetch` API paths now go through `apiUrl()`; the raw
+      `<a href="/recipes/new">` in `RecipeList` was converted to `next/link`
+      (which is base-path aware). `router.push` is handled automatically by Next.
+- [x] Auth: JWT httpOnly cookie `path` is now scoped to `process.env.BASE_PATH`
+      (falls back to `/`) in `src/lib/auth/middleware.ts`, so the cookie is not
+      shared with other apps on `matt-maxx.de`. `NEXTAUTH_URL` is an env value set
+      on the host (Phase 3), no code change needed.
+- [x] No change to `src/lib/db/init.ts`; production simply sets
+      `DATABASE_URL=file:<absolute path to mixer.db>`. `pg` dependency kept.
+- [x] Add `.nvmrc` with `22`.
+- [x] Tests green (435/435, incl. new `api-url.test.ts`); `next build` with
+      `BASE_PATH=/rezepte` **compiles successfully**. See blocker below re: full
+      static export.
 
-**TDD note:** add/adjust a unit test for the `apiUrl()` helper (base-path
-prefixing) before implementing it.
+**TDD note:** the `apiUrl()` unit test (`src/__tests__/lib/api-url.test.ts`) was
+written and made to fail before implementing the helper.
+
+### ⚠ Discovered pre-existing build blocker (not Phase 1, but blocks Phase 4)
+
+`next build` compiles cleanly but **fails during static export** of the error
+page: `Error: <Html> should not be imported outside of pages/_document` while
+prerendering `/404`. This reproduces on the **untouched baseline** (without any
+Phase 1 change and without `BASE_PATH`), so it is unrelated to the sub-path work.
+No `next/document` import exists anywhere in `src` or the emitted vendor chunk —
+this is the known misleading Next 15 message masking an error-page prerender
+failure. Adding `app/not-found.tsx` did **not** resolve it. This must be fixed
+(likely a Next-version / dependency issue, candidate for MAINT-001) **before
+Phase 4**, since the CI deploy builds on the host.
 
 ## Phase 2 — Data migration (one-time, run locally)
 

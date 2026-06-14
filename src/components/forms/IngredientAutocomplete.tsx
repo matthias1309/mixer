@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { searchIngredients } from '@/lib/ingredients/search';
+import { apiUrl } from '@lib/api-url';
 
 interface IngredientSuggestion {
   id: number;
@@ -38,7 +39,7 @@ export function IngredientAutocomplete({
       setIsLoading(true);
       try {
         const response = await fetch(
-          `/api/ingredients-master?search=${encodeURIComponent(query)}&pageSize=10`
+          apiUrl(`/api/ingredients-master?search=${encodeURIComponent(query)}&pageSize=10`)
         );
         if (!response.ok) throw new Error('Failed to fetch ingredients');
 

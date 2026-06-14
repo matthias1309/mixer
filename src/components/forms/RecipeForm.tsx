@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { apiUrl } from '@lib/api-url';
 import { validateRecipeName } from '../../lib/validation';
 import { IngredientAutocomplete } from './IngredientAutocomplete';
 import { CreateIngredientModal } from '../modals/CreateIngredientModal';
@@ -78,7 +79,7 @@ export function RecipeForm({ initialData, isEditing = false }: RecipeFormProps) 
     }
 
     try {
-      const url = isEditing ? `/api/recipes/${initialData?.id}` : '/api/recipes';
+      const url = apiUrl(isEditing ? `/api/recipes/${initialData?.id}` : '/api/recipes');
       const method = isEditing ? 'PUT' : 'POST';
 
       const response = await fetch(url, {
@@ -121,7 +122,7 @@ export function RecipeForm({ initialData, isEditing = false }: RecipeFormProps) 
   }
 
   async function handleCreateNewIngredient(ingredientName: string) {
-    const response = await fetch('/api/ingredients-master', {
+    const response = await fetch(apiUrl('/api/ingredients-master'), {
       method: 'POST',
       credentials: 'include',
       headers: { 'Content-Type': 'application/json' },

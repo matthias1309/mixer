@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { CycleInfoResponse } from '@/lib/cycle/types';
+import { apiUrl } from '@lib/api-url';
 import PhaseIndicator from './PhaseIndicator';
 
 export default function CycleInfo() {
@@ -11,7 +12,7 @@ export default function CycleInfo() {
   useEffect(() => {
     const loadCycle = async () => {
       try {
-        const response = await fetch('/api/users/cycle', {
+        const response = await fetch(apiUrl('/api/users/cycle'), {
           credentials: 'include',
         });
         if (response.ok) {

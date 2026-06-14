@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'next/navigation';
+import { apiUrl } from '@lib/api-url';
 import { ProtectedRoute } from '../../../../components/ProtectedRoute';
 import { RecipeForm } from '../../../../components/forms/RecipeForm';
 
@@ -24,7 +25,7 @@ export default function EditRecipePage() {
 
   const fetchRecipe = useCallback(async function fetchRecipe() {
     try {
-      const response = await fetch(`/api/recipes/${id}`, {
+      const response = await fetch(apiUrl(`/api/recipes/${id}`), {
         credentials: 'include',
       });
 

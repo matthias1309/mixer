@@ -3,6 +3,7 @@
 import { useFilter } from '../hooks/useFilter';
 import { useFetch } from '../hooks/useFetch';
 import { useEffect, useState } from 'react';
+import { apiUrl } from '@lib/api-url';
 
 interface IngredientsResponse {
   ingredients: string[];
@@ -15,7 +16,7 @@ export function IngredientFilter() {
     isLoading,
     error,
     fetch: fetchIngredients,
-  } = useFetch<IngredientsResponse>('/api/recipes/ingredients');
+  } = useFetch<IngredientsResponse>(apiUrl('/api/recipes/ingredients'));
   const ingredients = data?.ingredients || [];
   const [search, setSearch] = useState('');
   const visibleIngredients = ingredients.filter((name) =>
