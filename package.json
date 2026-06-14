@@ -23,7 +23,7 @@
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
-    "better-sqlite3": "^11.7.0",
+    "better-sqlite3": "^10.1.0",
     "jsonwebtoken": "^9.0.2",
     "next": "^15.0.0",
     "pg": "^8.20.0",
