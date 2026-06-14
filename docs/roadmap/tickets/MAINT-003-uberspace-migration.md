@@ -191,13 +191,36 @@ create/edit, ingredients, login/register).
 
 **Goal:** Merge to `main` → automatic deploy (same pattern as Picnic app).
 
-- [ ] `.github/workflows/deploy.yml`: trigger `push` on `main`.
-- [ ] Job: (optional) lint + tests on Node 22, then SSH to Uberspace
-      (`appleboy/ssh-action` or equivalent) and run:
-      `cd ~/mixer && git fetch && git reset --hard origin/main && npm ci && npm run build && supervisorctl restart mixer`.
+- [x] `.github/workflows/deploy.yml`: trigger `push` on `main`.
+- [x] Job: lint + type-check + tests on Node 22, then SSH to Uberspace
+      (`appleboy/ssh-action`) and run:
+      `cd ~/mixer && git fetch origin main && git reset --hard origin/main && npm ci && npm run build && supervisorctl restart mixer`.
 - [ ] GitHub secrets: `UBERSPACE_SSH_KEY`, `UBERSPACE_HOST`, `UBERSPACE_USER`.
-      Add the public key to `~/.ssh/authorized_keys` on Uberspace.
-- [ ] Optional post-deploy smoke test against `https://matt-maxx.de/rezepte`.
+      Add the public key to `~/.ssh/authorized_keys` on Uberspace. (Operational
+      step — must be configured by a repo admin in the GitHub repo settings;
+      not something Claude Code can do.)
+- [x] Post-deploy smoke test against `https://matt-maxx.de/rezepte`.
+
+**Setup steps (operational, not in CI):**
+
+1. Generate a dedicated SSH key pair for CI:
+   `ssh-keygen -t ed25519 -f uberspace_deploy_key -N ""`.
+2. Append the public key to `~/.ssh/authorized_keys` on the Uberspace host
+   (`mattmaxx@mattmaxx.uberspace.de`).
+3. In the GitHub repo settings (`Settings → Secrets and variables → Actions`),
+   add:
+   - `UBERSPACE_SSH_KEY` — the private key contents.
+   - `UBERSPACE_HOST` — `mattmaxx.uberspace.de`.
+   - `UBERSPACE_USER` — `mattmaxx`.
+4. Ensure `~/mixer` on the host is a clean checkout of `main` with a working
+   `git remote` (so `git fetch origin main` succeeds) — already true after
+   Phase 3 setup.
+
+**TDD note:** this is a CI/infrastructure configuration file (GitHub Actions
+workflow), not application code with testable runtime behavior — TDD per
+`.claude/rules/v-model.md` does not apply (same exception class as Phase 2/3).
+The `test` job in the workflow itself runs the project's existing lint,
+type-check and unit test suites before any deploy step.
 
 ## Phase 5 — Cleanup & documentation
 
