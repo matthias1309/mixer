@@ -42,6 +42,18 @@ jobs:
             # OOM-killed (exit 137). `npm install` is incremental and only
             # touches what package-lock.json actually changed.
             npm install
+            # A previous OOM-killed `npm ci` can leave better-sqlite3 in
+            # node_modules without its compiled native binding (the
+            # postinstall build never finished). `npm install` does not
+            # detect or repair this, since it considers the package already
+            # present — the app then fails at runtime with "Could not locate
+            # the bindings file". Verify the binding exists and rebuild only
+            # this package if it's missing, which is far less memory-hungry
+            # than rebuilding all native deps via `npm ci`.
+            if ! find node_modules/better-sqlite3/build -name 'better_sqlite3.node' 2>/dev/null | grep -q .; then
+              echo "better-sqlite3 native binding missing - rebuilding"
+              npm rebuild better-sqlite3 --build-from-source
+            fi
             # Load build-time env (BASE_PATH, NEXT_PUBLIC_*) explicitly. The
             # client bundle bakes in NEXT_PUBLIC_BASE_PATH at build time, but
             # `next build` does not reliably auto-load .env.production in a
@@ -56,20 +68,27 @@ jobs:
             npm run build
             supervisorctl restart mixer
             # `next start` takes a few seconds to listen after a restart. Wait
-            # until the app actually serves JSON under the base path on the
-            # local port before declaring the deploy successful. This checks the
-            # app directly (bypassing the Uberspace web frontend), so a failure
-            # here points at the build/app, not at public routing.
+            # until the app actually serves a successful JSON response under
+            # the base path on the local port before declaring the deploy
+            # successful. This checks the app directly (bypassing the
+            # Uberspace web frontend), so a failure here points at the
+            # build/app, not at public routing. Checking the status code (not
+            # just Content-Type) matters: a 500 error response from this API
+            # is also JSON and would otherwise be reported as "ready".
             for i in $(seq 1 30); do
-              ct=$(curl -sS -o /dev/null -w '%{content_type}' \
-                "http://localhost:${PORT:-8723}${BASE_PATH}/api/recipes/ingredients" || true)
-              echo "local readiness attempt $i: '$ct'"
-              case "$ct" in
-                application/json*) echo "app is serving JSON under ${BASE_PATH}"; exit 0 ;;
-              esac
+              result=$(curl -sS -o /dev/null -w '%{http_code} %{content_type}' \
+                "http://localhost:${PORT:-8723}${BASE_PATH}/api/recipes/ingredients" || echo "000 ")
+              code="${result%% *}"
+              ct="${result#* }"
+              echo "local readiness attempt $i: status=$code content-type='$ct'"
+              if [ "$code" = "200" ]; then
+                case "$ct" in
+                  application/json*) echo "app is serving JSON under ${BASE_PATH}"; exit 0 ;;
+                esac
+              fi
               sleep 2
             done
-            echo "app did not become ready (no JSON from ${BASE_PATH}/api/...)" >&2
+            echo "app did not become ready (no 200 JSON response from ${BASE_PATH}/api/...)" >&2
             exit 1
 
   smoke-test:
@@ -80,13 +99,17 @@ jobs:
         run: |
           url="https://matt-maxx.de/rezepte/api/recipes/ingredients"
           for i in $(seq 1 24); do
-            content_type=$(curl --silent --show-error \
-              --output /dev/null --write-out '%{content_type}' "$url" || true)
-            echo "attempt $i: Content-Type=$content_type"
-            case "$content_type" in
-              application/json*) echo "OK: API routing under /rezepte works"; exit 0 ;;
-            esac
+            result=$(curl --silent --show-error \
+              --output /dev/null --write-out '%{http_code} %{content_type}' "$url" || echo "000 ")
+            code="${result%% *}"
+            content_type="${result#* }"
+            echo "attempt $i: status=$code Content-Type=$content_type"
+            if [ "$code" = "200" ]; then
+              case "$content_type" in
+                application/json*) echo "OK: API routing under /rezepte works"; exit 0 ;;
+              esac
+            fi
             sleep 5
           done
-          echo "FAIL: API never returned JSON — base-path routing is broken" >&2
+          echo "FAIL: API never returned a successful JSON response — base-path routing or the app itself is broken" >&2
           exit 1
