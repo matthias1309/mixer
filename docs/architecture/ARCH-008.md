@@ -64,7 +64,7 @@ ingredients case moves to the new file).
 
 - Building a frontend that consumes this endpoint (no UI calls it yet)
 - Removing the unused `nutrition_ingredients` table / migration 002
-  (separate cleanup, not part of this bug fix)
+  (separate cleanup, not part of this bug fix — tracked as MAINT-004)
 
 ## 6. Related Decisions
 
