@@ -116,6 +116,11 @@
 - [ ] [BUG-007](tickets/BUG-007-pagination-logic-not-extracted.md) - Pagination Logic Not Extracted (2 pts)
 - [ ] [BUG-008](tickets/BUG-008-incomplete-documentation.md) - Incomplete Documentation (ADRs & Reviews) (3 pts)
 
+### 🐛 Runtime Defects
+
+**BLOCKER - Endpoint returns 500:**
+- [ ] [BUG-009](tickets/BUG-009-nutrition-ingredients-route-wrong-table.md) - `/api/nutrition/ingredients` queries non-existent `category` column (2 pts)
+
 ---
 
 ## 📅 Recommended Implementation Order
