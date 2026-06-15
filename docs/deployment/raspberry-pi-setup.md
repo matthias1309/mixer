@@ -1,5 +1,13 @@
 # Raspberry Pi Setup Guide
 
+> **⚠️ DEPRECATED (MAINT-003):** Production has moved from the self-hosted
+> Raspberry Pi to Uberspace (`https://matt-maxx.de/rezepte`), with an
+> automated GitHub Actions deploy and a SQLite production database. This
+> guide and the related Pi files (`docker-compose.production.yml`,
+> `docker-compose.yml`, `Caddyfile`, `scripts/deploy-pi.sh`) are kept for
+> reference but are no longer used for deployments. See
+> `docs/deployment/uberspace-setup.md` for the current setup.
+
 ## See Implementation Plan
 
 Complete setup instructions are documented in:

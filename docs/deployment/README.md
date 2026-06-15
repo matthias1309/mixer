@@ -1,5 +1,9 @@
 # Deployment Guide for Raspberry Pi
 
+> **⚠️ DEPRECATED (MAINT-003):** Production has moved to Uberspace. See
+> `docs/deployment/uberspace-setup.md` for the current setup. This guide is
+> kept for reference only.
+
 ## Table of Contents
 
 1. [Prerequisites](#prerequisites)

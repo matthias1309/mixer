@@ -1,5 +1,9 @@
 # Raspberry Pi Deployment Troubleshooting
 
+> **⚠️ DEPRECATED (MAINT-003):** Production has moved to Uberspace. See
+> `docs/deployment/uberspace-setup.md` for the current setup and
+> troubleshooting. This guide is kept for reference only.
+
 ## See Implementation Plan
 
 Complete troubleshooting documentation is available in:

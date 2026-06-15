@@ -20,15 +20,15 @@ Claude Code reads it automatically at the start of every session.
 | Layer        | Technology                                    |
 |--------------|-----------------------------------------------|
 | Language     | TypeScript 5.x (strict mode)                  |
-| Runtime      | Node.js 20 LTS                                |
-| Framework    | Next.js 14 (App Router)                       |
-| Database     | SQLite (local dev) / PostgreSQL (production)  |
+| Runtime      | Node.js 22 LTS                                |
+| Framework    | Next.js 15 (App Router)                       |
+| Database     | SQLite (local dev & production)               |
 | ORM          | better-sqlite3 / pg (raw SQL, no ORM)         |
 | Auth         | JWT-based (httpOnly cookies)                  |
 | Testing      | Jest + React Testing Library + Cypress        |
 | Linting      | ESLint + Prettier                             |
-| CI/CD        | Manual deploy via scripts to Raspberry Pi     |
-| Container    | Docker + Docker Compose                       |
+| CI/CD        | GitHub Actions — auto-deploy to Uberspace on merge to `main` |
+| Container    | Docker + Docker Compose (local dev only)      |
 
 ---
 
@@ -78,11 +78,16 @@ npx tsc --noEmit
 # Start with PostgreSQL (Docker)
 docker compose -f docker-compose.local.yml up -d
 
-# Deploy to Raspberry Pi
-bash scripts/deploy-pi.sh --db-password "<pw>" --jwt-secret "<secret>"
+# One-off: migrate Pi PostgreSQL data to a SQLite file
+npm run db:migrate-pg-to-sqlite
 ```
 
 Always run tests and linting before considering a task complete.
+
+Production deploys are automatic: pushing to `main` triggers
+`.github/workflows/deploy.yml`, which runs lint/type-check/tests, then
+deploys to Uberspace (`https://matt-maxx.de/rezepte`) and runs a smoke test.
+See `docs/deployment/uberspace-setup.md`.
 
 ---
 
@@ -120,7 +125,8 @@ mixer/
 │   ├── decisions/                  # ADR-XXX (Architecture Decision Records)
 │   ├── code-reviews/               # Per-ticket review reports
 │   ├── roadmap/                    # kanban.md + tickets
-│   └── deployment/                 # Raspberry Pi setup guides
+│   └── deployment/                 # Uberspace setup guide (current);
+│                                    # Raspberry Pi guides (deprecated)
 ├── src/
 │   ├── app/                        # Next.js App Router pages + API routes
 │   ├── components/                 # Reusable React components
@@ -131,7 +137,7 @@ mixer/
 │   └── e2e/                        # Cypress end-to-end tests
 ├── scripts/                        # Deploy and setup scripts
 ├── docker-compose.local.yml        # Local dev with PostgreSQL
-├── docker-compose.yml              # Production RPi setup
+├── docker-compose.yml              # Deprecated: Raspberry Pi setup
 └── Dockerfile
 ```
 
@@ -162,7 +168,10 @@ Use `/traceability` to check coverage gaps across all artifacts.
 - **Never force-push to `main`.** See `.claude/rules/git-workflow.md`.
 - **Prefer small, focused commits** over large, sweeping changes.
 - **Write tests for new functionality.** Minimum 80% coverage. TDD: tests first.
-- **Dual-database support:** SQLite (dev) and PostgreSQL (prod). Use `ILIKE` and explicit type casts for PostgreSQL. See `.claude/rules/learnings.md`.
+- **Dual-database support:** SQLite (dev & prod). The `pg` driver and
+  PostgreSQL code paths are kept for the one-off migration tooling and local
+  Docker setup — use `ILIKE` and explicit type casts when touching that code.
+  See `.claude/rules/learnings.md`.
 - **Database migrations** must be reviewed before running in production.
 - **Keep this file up to date** when the stack or conventions change.
 
@@ -176,6 +185,14 @@ Use `/traceability` to check coverage gaps across all artifacts.
 - Next.js App Router: all routes under `src/app/api/`
 - Unit conversion system: `src/lib/converters/` — see ADR-006
 - Ingredient master list: shared across users, user ingredients reference it via `masterId`
+- The app runs under a configurable sub-path (`BASE_PATH=/rezepte` in
+  production). All client-side `fetch('/api/...')` calls and internal links
+  must use the `apiUrl()` helper (`src/lib/api-url.ts`) or `next/link` /
+  `router.push` — plain `<a href="/...">` and `redirect()` are NOT base-path
+  aware. See MAINT-003.
+- Production runs on SQLite (`DATABASE_URL=file:...`); no DB-layer code
+  change is needed to switch engines — it is configuration only
+  (`src/lib/db/init.ts`).
 
 ---
 
