@@ -491,6 +491,27 @@ export class RecipeModelAsync {
     }
   }
 
+  static async setImage(id: number, imagePath: string | null): Promise<Recipe> {
+    const db = getDb();
+    const updatedAt = new Date().toISOString();
+
+    if (isPostgres()) {
+      const pool = db as Pool;
+      await pool.query('UPDATE recipes SET image_path = $1, updated_at = $2 WHERE id = $3', [
+        imagePath,
+        updatedAt,
+        id,
+      ]);
+    } else {
+      const sqlite = db as Database.Database;
+      sqlite
+        .prepare('UPDATE recipes SET image_path = ?, updated_at = ? WHERE id = ?')
+        .run(imagePath, updatedAt, id);
+    }
+
+    return (await this.findById(id))!;
+  }
+
   static async delete(id: number): Promise<void> {
     const db = getDb();
 
@@ -567,6 +588,7 @@ export class RecipeModelAsync {
           recipes.id,
           recipes.name,
           recipes.description,
+          recipes.image_path as "imagePath",
           users.email as "creatorName",
           COUNT(DISTINCT ingredients.id) as "ingredientCount",
           recipes.created_at as "createdAt",
@@ -587,7 +609,7 @@ export class RecipeModelAsync {
         LEFT JOIN ingredients_master ON LOWER(TRIM(ingredients_master.name)) = LOWER(TRIM(ingredients.name))
         WHERE recipes.is_duplicate = false
           AND (recipes.name ILIKE $1 OR $1 IS NULL)
-        GROUP BY recipes.id, recipes.name, recipes.description, recipes.created_at, users.email
+        GROUP BY recipes.id, recipes.name, recipes.description, recipes.image_path, recipes.created_at, users.email
         ORDER BY ${orderBy}
         LIMIT $2 OFFSET $3
       `, [searchParam, pageSize, offset]);
@@ -615,6 +637,7 @@ export class RecipeModelAsync {
           id: row.id,
           name: row.name,
           description: row.description,
+          imagePath: row.imagePath || null,
           creatorName: row.creatorName,
           ingredientCount: parseInt(row.ingredientCount, 10),
           createdAt: row.createdAt,
@@ -650,6 +673,7 @@ export class RecipeModelAsync {
           recipes.id,
           recipes.name,
           recipes.description,
+          recipes.image_path as imagePath,
           users.email as creatorName,
           COUNT(DISTINCT ingredients.id) as ingredientCount,
           recipes.created_at as createdAt,
@@ -700,6 +724,7 @@ export class RecipeModelAsync {
           id: row.id,
           name: row.name,
           description: row.description,
+          imagePath: row.imagePath || null,
           creatorName: row.creatorName,
           ingredientCount: row.ingredientCount,
           createdAt: row.createdAt,

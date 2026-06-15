@@ -26,6 +26,8 @@ export interface Recipe {
   creator_id: number;
   canonical_id: number | null;
   is_duplicate: boolean;
+  // File name of the recipe photo on disk (UPLOAD_CONFIG.UPLOAD_DIR), or null.
+  image_path: string | null;
   created_at: string;
   updated_at: string;
   // Include nutrients in recipe
@@ -43,6 +45,7 @@ export interface RecipeListItem {
   id: number;
   name: string;
   description: string | null;
+  imagePath: string | null;
   creatorName: string;
   ingredientCount: number;
   createdAt: string;

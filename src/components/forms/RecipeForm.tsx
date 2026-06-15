@@ -25,9 +25,13 @@ export interface RecipeFormProps {
     instructions: string | null;
     servings: number;
     ingredients: Ingredient[];
+    imagePath?: string | null;
   };
   isEditing?: boolean;
 }
+
+const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png'];
+const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB, mirrors UPLOAD_CONFIG
 
 export function RecipeForm({ initialData, isEditing = false }: RecipeFormProps) {
   const [name, setName] = useState(initialData?.name || '');
@@ -35,6 +39,10 @@ export function RecipeForm({ initialData, isEditing = false }: RecipeFormProps) 
   const [instructions, setInstructions] = useState(initialData?.instructions || '');
   const [servings, setServings] = useState(initialData?.servings || 1);
   const [ingredients, setIngredients] = useState<Ingredient[]>(initialData?.ingredients || []);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(
+    initialData?.imagePath ? apiUrl(`/api/recipes/${initialData.id}/image`) : null
+  );
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [createModalOpen, setCreateModalOpen] = useState(false);
@@ -101,13 +109,53 @@ export function RecipeForm({ initialData, isEditing = false }: RecipeFormProps) 
         throw new Error(data.error || 'Rezept konnte nicht gespeichert werden');
       }
 
+      const recipeId = data.id || initialData?.id;
+
+      // Upload the photo separately once the recipe id is known.
+      if (imageFile && recipeId) {
+        const imageData = new FormData();
+        imageData.append('file', imageFile);
+
+        const imageResponse = await fetch(apiUrl(`/api/recipes/${recipeId}/image`), {
+          method: 'POST',
+          credentials: 'include',
+          body: imageData,
+        });
+
+        if (!imageResponse.ok) {
+          const imageError = await imageResponse.json();
+          throw new Error(imageError.error || 'Foto konnte nicht hochgeladen werden');
+        }
+      }
+
       // Redirect to recipe detail
-      router.push(`/recipes/${data.id || initialData?.id}`);
+      router.push(`/recipes/${recipeId}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Rezept konnte nicht gespeichert werden');
     } finally {
       setIsLoading(false);
     }
+  }
+
+  function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) {
+      return;
+    }
+
+    if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+      setError('Nur JPG- und PNG-Bilder werden unterstützt');
+      return;
+    }
+
+    if (file.size > MAX_IMAGE_SIZE) {
+      setError('Das Bild darf maximal 5 MB groß sein');
+      return;
+    }
+
+    setError('');
+    setImageFile(file);
+    setImagePreview(URL.createObjectURL(file));
   }
 
   function addIngredient() {
@@ -188,6 +236,27 @@ export function RecipeForm({ initialData, isEditing = false }: RecipeFormProps) 
             disabled={isLoading}
           />
           <p className="text-xs text-gray-500 mt-1">{description.length}/500</p>
+        </div>
+
+        {/* Photo */}
+        <div>
+          <label className="block text-sm font-medium mb-1">Foto</label>
+          {imagePreview && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={imagePreview}
+              alt="Rezeptfoto Vorschau"
+              className="mb-2 w-full max-h-64 object-cover rounded"
+            />
+          )}
+          <input
+            type="file"
+            accept="image/jpeg,image/png"
+            onChange={handleImageChange}
+            className="w-full text-sm"
+            disabled={isLoading}
+          />
+          <p className="text-xs text-gray-500 mt-1">JPG oder PNG, maximal 5 MB</p>
         </div>
 
         {/* Instructions */}

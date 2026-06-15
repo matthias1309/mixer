@@ -1,11 +1,13 @@
 'use client';
 
 import Link from 'next/link';
+import { apiUrl } from '@lib/api-url';
 
 export interface RecipeCardProps {
   id: number;
   name: string;
   description: string | null;
+  imagePath?: string | null;
   creatorName: string;
   ingredientCount: number;
   createdAt: string;
@@ -33,8 +35,17 @@ export function RecipeCard(props: RecipeCardProps) {
         )}
         <h3 className="text-xl font-bold text-gray-800">{props.name}</h3>
         <p className="text-gray-600 text-sm">von {props.creatorName}</p>
-        {props.description && (
-          <p className="text-gray-700 mt-2 line-clamp-2">{props.description}</p>
+        {props.imagePath ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={apiUrl(`/api/recipes/${props.id}/image`)}
+            alt={props.name}
+            className="mt-2 w-full h-40 object-cover rounded"
+          />
+        ) : (
+          props.description && (
+            <p className="text-gray-700 mt-2 line-clamp-2">{props.description}</p>
+          )
         )}
         <div className="mt-3 flex justify-between text-sm text-gray-500">
           <span>{props.ingredientCount} Zutaten</span>
