@@ -34,21 +34,29 @@ export async function saveRecipeImage(recipeId: number, file: File): Promise<str
 
 /**
  * Resolve the absolute path of a stored recipe photo from its file name.
+ * Only the base name is used, so a corrupted/forged value cannot escape the
+ * upload directory via path traversal.
  */
 export function getRecipeImagePath(fileName: string): string {
-  return path.join(uploadDir(), fileName);
+  return path.join(uploadDir(), path.basename(fileName));
 }
 
 /**
- * Delete a stored recipe photo if it exists. Safe to call with a stale name.
+ * Delete a stored recipe photo if it exists. Safe to call with a stale name;
+ * cleanup failures are logged and swallowed so they never fail a request whose
+ * primary work (upload + DB update) already succeeded.
  */
 export function deleteRecipeImage(fileName: string | null | undefined): void {
   if (!fileName) {
     return;
   }
   const filePath = getRecipeImagePath(fileName);
-  if (fs.existsSync(filePath)) {
-    fs.unlinkSync(filePath);
+  try {
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
+  } catch (error) {
+    console.error(`Failed to delete old recipe image ${fileName}:`, error);
   }
 }
 

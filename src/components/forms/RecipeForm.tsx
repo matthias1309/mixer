@@ -49,6 +49,15 @@ export function RecipeForm({ initialData, isEditing = false }: RecipeFormProps) 
   const [createModalQuery, setCreateModalQuery] = useState('');
   const router = useRouter();
 
+  // Release object URLs created for the photo preview to avoid a memory leak.
+  useEffect(() => {
+    return () => {
+      if (imagePreview && imagePreview.startsWith('blob:')) {
+        URL.revokeObjectURL(imagePreview);
+      }
+    };
+  }, [imagePreview]);
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError('');

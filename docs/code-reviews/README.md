@@ -51,7 +51,13 @@ Every ticket goes through a code review before being merged into `main`. This di
 
 ### Phase 3: Recipe Management
 
-*(Future)*
+- [REQ-009: Recipe Photo](REQ-009-recipe-photo.md) - ✅ APPROVED
+  - Optional recipe photo: upload on create/edit, shown on dashboard cards
+  - Dedicated owner-only `POST` / public `GET` `/api/recipes/[id]/image`;
+    images on disk, file name in `recipes.image_path`
+  - 3 confirmed review findings fixed (cleanup-failure 500, object-URL
+    leak, path-traversal hardening); 8 new tests
+  - Status: Open in PR #25
 
 ### Phase 4: Filtering
 
@@ -87,8 +93,8 @@ All reviews follow this structure:
 
 ## Metrics (updated as we go)
 
-- Total reviews: 5
-- Approved: 5
+- Total reviews: 6
+- Approved: 6
 - Requested changes: 0
 - Average review time: ~1 hour per ticket
 
