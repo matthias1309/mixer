@@ -1,5 +1,10 @@
 # HTTPS Setup für Raspberry Pi
 
+> **⚠️ DEPRECATED (MAINT-003):** Production läuft jetzt auf Uberspace; TLS
+> wird dort automatisch vom Uberspace-Webfrontend bereitgestellt (kein Caddy
+> nötig). Siehe `docs/deployment/uberspace-setup.md`. Dieses Dokument bleibt
+> nur als Referenz erhalten.
+
 ## Automatische HTTPS mit Caddy
 
 Die App läuft hinter Caddy als Reverse Proxy mit automatischem HTTPS für lokale Domains.

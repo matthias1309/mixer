@@ -3,7 +3,7 @@
 **Type**: Maintenance / Infrastructure
 **Effort**: 13 story points
 **Priority**: P1 (Must Have)
-**Status**: Planned
+**Status**: Done
 **Phase**: Deployment
 **Order**: TBD
 
@@ -224,25 +224,33 @@ type-check and unit test suites before any deploy step.
 
 ## Phase 5 — Cleanup & documentation
 
-- [ ] Mark the Pi stack as deprecated (keep files for now): note in
-      `docs/deployment/raspberry-pi-setup.md`.
-- [ ] Update `CLAUDE.md`: tech-stack table (CI/CD → GitHub Actions to Uberspace;
-      prod DB → SQLite; Node 22), Architecture Notes, Common Commands.
-- [ ] Write `docs/deployment/MAINT-003-VERIFICATION-REPORT.md` +
+- [x] Mark the Pi stack as deprecated (keep files for now): deprecation
+      notices added to `docs/deployment/raspberry-pi-setup.md`,
+      `docs/deployment/raspberry-pi-troubleshooting.md`,
+      `docs/deployment/HTTPS-SETUP.md` and `docs/deployment/README.md`.
+- [x] Update `CLAUDE.md`: tech-stack table (CI/CD → GitHub Actions to Uberspace;
+      prod DB → SQLite; Node 22; Next.js 15), Architecture Notes (base-path /
+      `apiUrl()` constraint, SQLite-in-prod), Common Commands (removed
+      `deploy-pi.sh`, added `db:migrate-pg-to-sqlite`).
+- [x] Write `docs/deployment/MAINT-003-VERIFICATION-REPORT.md` +
       `docs/deployment/ACCEPTANCE-TESTS-MAINT-003.md` (mirror MAINT-002 format).
 
 ---
 
 ## Acceptance Criteria
 
-- [ ] App reachable at `https://matt-maxx.de/rezepte` over HTTPS.
-- [ ] All app functionality works under the `/rezepte` sub-path (no broken API
+- [x] App reachable at `https://matt-maxx.de/rezepte` over HTTPS.
+- [x] All app functionality works under the `/rezepte` sub-path (no broken API
       calls, assets, or auth).
-- [ ] Production runs on SQLite; pre-existing Pi data is present and correct.
-- [ ] Merge to `main` triggers a successful automated deploy with no manual steps.
-- [ ] `better-sqlite3` builds and runs on the host's Node 22.
-- [ ] No secrets committed to the repository.
-- [ ] `CLAUDE.md` and deployment docs reflect the new setup.
+- [x] Production runs on SQLite; pre-existing Pi data is present and correct.
+- [x] Merge to `main` triggers a successful automated deploy with no manual steps.
+- [x] `better-sqlite3` builds and runs on the host's Node 22.
+- [x] No secrets committed to the repository.
+- [x] `CLAUDE.md` and deployment docs reflect the new setup.
+
+See `docs/deployment/MAINT-003-VERIFICATION-REPORT.md` and
+`docs/deployment/ACCEPTANCE-TESTS-MAINT-003.md` for evidence and the manual
+acceptance walkthrough.
 
 ## Dependencies
 
@@ -264,8 +272,9 @@ type-check and unit test suites before any deploy step.
 | `.nvmrc` | new (`22`) |
 | `scripts/migrate-pg-to-sqlite.ts` | new (one-off) |
 | `deploy/mixer.ini` | new (supervisord template) |
-| `.env.production.example` | new |
 | `.github/workflows/deploy.yml` | new |
 | `docs/deployment/uberspace-setup.md` | new |
 | `docs/deployment/MAINT-003-VERIFICATION-REPORT.md` | new |
+| `docs/deployment/ACCEPTANCE-TESTS-MAINT-003.md` | new |
 | `CLAUDE.md` | stack update |
+| `docs/deployment/raspberry-pi-*.md`, `HTTPS-SETUP.md`, `README.md` | deprecation notices |
