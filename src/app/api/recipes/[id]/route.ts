@@ -54,6 +54,7 @@ async function handleGET(request: NextRequest, props: { params: Params }) {
         description: recipe.description,
         instructions: recipe.instructions,
         servings: recipe.servings,
+        imagePath: recipe.image_path,
         creatorId: recipe.creator_id,
         creatorName,
         ingredients,

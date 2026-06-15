@@ -127,6 +127,7 @@ export class RecipeModel {
         recipes.id,
         recipes.name,
         recipes.description,
+        recipes.image_path as imagePath,
         users.email as creatorName,
         COUNT(ingredients.id) as ingredientCount,
         recipes.created_at as createdAt
@@ -298,6 +299,7 @@ export class RecipeModel {
         recipes.id,
         recipes.name,
         recipes.description,
+        recipes.image_path as imagePath,
         users.email as creatorName,
         COUNT(ingredients.id) as ingredientCount,
         recipes.created_at as createdAt
@@ -364,6 +366,7 @@ export class RecipeModel {
         recipes.id,
         recipes.name,
         recipes.description,
+        recipes.image_path as imagePath,
         users.email as creatorName,
         COUNT(DISTINCT ingredients.id) as ingredientCount,
         recipes.created_at as createdAt,
@@ -414,6 +417,7 @@ export class RecipeModel {
         id: row.id,
         name: row.name,
         description: row.description,
+        imagePath: row.imagePath || null,
         creatorName: row.creatorName,
         ingredientCount: row.ingredientCount,
         createdAt: row.createdAt,
@@ -460,6 +464,7 @@ export class RecipeModel {
         recipes.id,
         recipes.name,
         recipes.description,
+        recipes.image_path as imagePath,
         users.email as creatorName,
         COUNT(DISTINCT ingredients.id) as ingredientCount,
         recipes.created_at as createdAt,
@@ -521,6 +526,7 @@ export class RecipeModel {
         id: row.id,
         name: row.name,
         description: row.description,
+        imagePath: row.imagePath || null,
         creatorName: row.creatorName,
         ingredientCount: row.ingredientCount,
         createdAt: row.createdAt,
@@ -565,6 +571,7 @@ export class RecipeModel {
           recipes.id,
           recipes.name,
           recipes.description,
+          recipes.image_path as "imagePath",
           users.email as "creatorName",
           COUNT(DISTINCT ingredients.id) as "ingredientCount",
           recipes.created_at as "createdAt",
@@ -591,7 +598,7 @@ export class RecipeModel {
             GROUP BY recipe_id
             HAVING COUNT(DISTINCT LOWER(TRIM(name))) = $2
           )
-        GROUP BY recipes.id, recipes.name, recipes.description, recipes.created_at, users.email
+        GROUP BY recipes.id, recipes.name, recipes.description, recipes.image_path, recipes.created_at, users.email
         ORDER BY recipes.created_at DESC
         LIMIT $3 OFFSET $4
       `, [normalizedIngredients, normalizedIngredients.length, pageSize, offset]);
@@ -619,6 +626,7 @@ export class RecipeModel {
           id: row.id,
           name: row.name,
           description: row.description,
+          imagePath: row.imagePath || null,
           creatorName: row.creatorName,
           ingredientCount: parseInt(row.ingredientCount, 10),
           createdAt: row.createdAt,

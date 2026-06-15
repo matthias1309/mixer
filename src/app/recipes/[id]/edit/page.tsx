@@ -12,6 +12,7 @@ interface RecipeData {
   description: string | null;
   instructions: string | null;
   servings: number;
+  imagePath: string | null;
   ingredients: Array<{ name: string; quantity: number; unit: string }>;
   canEdit: boolean;
 }
