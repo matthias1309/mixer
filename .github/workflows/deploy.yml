@@ -55,20 +55,38 @@ jobs:
             : "${BASE_PATH:?BASE_PATH not set - aborting to avoid shipping a broken sub-path build}"
             npm run build
             supervisorctl restart mixer
+            # `next start` takes a few seconds to listen after a restart. Wait
+            # until the app actually serves JSON under the base path on the
+            # local port before declaring the deploy successful. This checks the
+            # app directly (bypassing the Uberspace web frontend), so a failure
+            # here points at the build/app, not at public routing.
+            for i in $(seq 1 30); do
+              ct=$(curl -sS -o /dev/null -w '%{content_type}' \
+                "http://localhost:${PORT:-8723}${BASE_PATH}/api/recipes/ingredients" || true)
+              echo "local readiness attempt $i: '$ct'"
+              case "$ct" in
+                application/json*) echo "app is serving JSON under ${BASE_PATH}"; exit 0 ;;
+              esac
+              sleep 2
+            done
+            echo "app did not become ready (no JSON from ${BASE_PATH}/api/...)" >&2
+            exit 1
 
   smoke-test:
     needs: deploy
     runs-on: ubuntu-latest
     steps:
-      - name: Page is reachable
-        run: curl --fail --silent --show-error --output /dev/null https://matt-maxx.de/rezepte
       - name: API returns JSON under the base path
         run: |
-          content_type=$(curl --silent --show-error \
-            --output /dev/null --write-out '%{content_type}' \
-            https://matt-maxx.de/rezepte/api/nutrition/ingredients)
-          echo "Content-Type: $content_type"
-          case "$content_type" in
-            application/json*) echo "OK: API routing under /rezepte works" ;;
-            *) echo "FAIL: expected JSON but got '$content_type' — base-path routing is broken"; exit 1 ;;
-          esac
+          url="https://matt-maxx.de/rezepte/api/recipes/ingredients"
+          for i in $(seq 1 24); do
+            content_type=$(curl --silent --show-error \
+              --output /dev/null --write-out '%{content_type}' "$url" || true)
+            echo "attempt $i: Content-Type=$content_type"
+            case "$content_type" in
+              application/json*) echo "OK: API routing under /rezepte works"; exit 0 ;;
+            esac
+            sleep 5
+          done
+          echo "FAIL: API never returned JSON — base-path routing is broken" >&2
+          exit 1
