@@ -6,7 +6,7 @@ export async function GET(request: NextRequest) {
     const db = getSqliteDb();
 
     const ingredients = db.prepare(
-      'SELECT * FROM ingredients ORDER BY category, name'
+      'SELECT * FROM ingredients_master ORDER BY category, name'
     ).all();
 
     return NextResponse.json({

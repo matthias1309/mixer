@@ -3,9 +3,10 @@
 **Type**: Bug
 **Effort**: 2 story points
 **Priority**: P1 (Blocker — endpoint returns 500)
-**Status**: Planned
+**Status**: Done
 **Phase**: Maintenance
 **Order**: TBD
+**Traceability**: REQ-008, ARCH-008, TEST-008
 
 ---
 
@@ -64,13 +65,13 @@ nutrition/master ingredient list).
 
 ## Acceptance Criteria
 
-- [ ] `GET /api/nutrition/ingredients` returns HTTP 200 with a JSON list
-- [ ] The query targets the correct domain table (verified against the
+- [x] `GET /api/nutrition/ingredients` returns HTTP 200 with a JSON list
+- [x] The query targets the correct domain table (verified against the
       client code that calls this endpoint)
-- [ ] `ORDER BY` only references columns that exist on that table
-- [ ] A test reproduces the original failure and passes after the fix
+- [x] `ORDER BY` only references columns that exist on that table
+- [x] A test reproduces the original failure and passes after the fix
       (TDD: write the failing test first per `.claude/rules/v-model.md`)
-- [ ] `npm run lint`, `npm run type-check`, and `npm test` all pass
+- [x] `npm run lint`, `npm run type-check`, and `npm test` all pass
 
 ## Related Files
 
@@ -79,9 +80,17 @@ nutrition/master ingredient list).
 - `src/lib/db/migrations/002_create_nutrition_tables.sql` (`nutrition_ingredients`)
 - `src/lib/db/migrations/005_create_ingredients_master.sql` (`ingredients_master`)
 
+## Resolution
+
+The endpoint now queries `ingredients_master` (the table already used for
+all other nutrient lookups in the app), keeping `ORDER BY category, name`
+unchanged since both columns exist there. The unused `nutrition_ingredients`
+table (migration 002) was confirmed to be dead code and left untouched —
+see ARCH-008 for the table comparison.
+
 ## Definition of Done
 
-- [ ] Endpoint returns 200 with correct data
-- [ ] Regression test added and green
-- [ ] Lint, type-check, and full test suite pass
+- [x] Endpoint returns 200 with correct data
+- [x] Regression test added and green
+- [x] Lint, type-check, and full test suite pass
 - [ ] Code review approved

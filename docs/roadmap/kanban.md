@@ -119,7 +119,7 @@
 ### 🐛 Runtime Defects
 
 **BLOCKER - Endpoint returns 500:**
-- [ ] [BUG-009](tickets/BUG-009-nutrition-ingredients-route-wrong-table.md) - `/api/nutrition/ingredients` queries non-existent `category` column (2 pts)
+- [x] [BUG-009](tickets/done/BUG-009-nutrition-ingredients-route-wrong-table.md) - `/api/nutrition/ingredients` queries non-existent `category` column (2 pts) - ✅ 2026-06-15
 
 ---
 
