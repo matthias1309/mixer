@@ -119,7 +119,12 @@
 ### 🐛 Runtime Defects
 
 **BLOCKER - Endpoint returns 500:**
-- [ ] [BUG-009](tickets/BUG-009-nutrition-ingredients-route-wrong-table.md) - `/api/nutrition/ingredients` queries non-existent `category` column (2 pts)
+- [x] [BUG-009](tickets/done/BUG-009-nutrition-ingredients-route-wrong-table.md) - `/api/nutrition/ingredients` queries non-existent `category` column (2 pts) - ✅ 2026-06-15
+
+### 🧹 Tech Debt Follow-ups
+
+**NICE TO HAVE:**
+- [ ] [MAINT-004](tickets/MAINT-004-remove-unused-nutrition-ingredients-table.md) - Remove Unused `nutrition_ingredients` Table (Migration 002) (2 pts)
 
 ---
 
