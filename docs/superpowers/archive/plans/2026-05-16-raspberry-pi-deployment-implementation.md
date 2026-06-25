@@ -1,5 +1,10 @@
 # Raspberry Pi Deployment Implementation Plan
 
+> **⚠️ OBSOLETE.** The Raspberry Pi + Docker + PostgreSQL deployment described
+> here was retired in MAINT-003 (production moved to Uberspace + SQLite) and the
+> Docker/Pi tooling was removed in ADR-008. Kept for historical reference only.
+> Current deployment: `docs/deployment/uberspace-setup.md`.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Enable the Recipe Manager application to run in production on a Raspberry Pi with PostgreSQL, with a fully automated deployment script.
