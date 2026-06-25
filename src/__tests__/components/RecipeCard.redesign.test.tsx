@@ -45,4 +45,39 @@ describe('RecipeCard Component — REWE redesign', () => {
 
     expect(screen.getByTestId('score-badge')).toHaveTextContent('85');
   });
+
+  // TC-016-10 — AC-016-10
+  // Given a recipe card with totalTimeMinutes and difficulty
+  // When it renders
+  // Then the meta row shows the time and the effort label
+  it('renders time and effort in the meta row when present', () => {
+    render(<RecipeCard {...mockRecipe} totalTimeMinutes={35} difficulty="easy" />);
+
+    const meta = screen.getByTestId('recipe-card-meta');
+    expect(meta).toHaveTextContent('35 min');
+    expect(meta).toHaveTextContent('Geringer Aufwand');
+  });
+
+  // TC-016-10 — AC-016-10
+  // Given a recipe card without totalTimeMinutes or difficulty
+  // When it renders
+  // Then neither value is shown
+  it('omits time and effort when absent', () => {
+    render(<RecipeCard {...mockRecipe} />);
+
+    const meta = screen.getByTestId('recipe-card-meta');
+    expect(meta).not.toHaveTextContent('min');
+    expect(meta).not.toHaveTextContent('Aufwand');
+  });
+
+  // TC-016-11 — AC-016-11
+  // Given a recipe card with tags
+  // When it renders
+  // Then the tags are shown as chips in the tag slot
+  it('renders tag chips in the tag slot', () => {
+    render(<RecipeCard {...mockRecipe} tags={['Vegan', 'Low Carb']} />);
+
+    const chips = screen.getAllByTestId('tag-chip');
+    expect(chips.map((c) => c.textContent)).toEqual(['Vegan', 'Low Carb']);
+  });
 });

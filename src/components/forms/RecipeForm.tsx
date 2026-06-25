@@ -7,6 +7,7 @@ import { validateRecipeName } from '../../lib/validation';
 import { IngredientAutocomplete } from './IngredientAutocomplete';
 import { CreateIngredientModal } from '../modals/CreateIngredientModal';
 import { SUPPORTED_UNITS } from '../../lib/units/constants';
+import { DIFFICULTY_LEVELS, DIFFICULTY_LABELS, MEAL_TYPES, TAG_GROUPS } from '../../lib/constants';
 
 const UNIT_OPTIONS = Object.keys(SUPPORTED_UNITS) as (keyof typeof SUPPORTED_UNITS)[];
 
@@ -26,6 +27,10 @@ export interface RecipeFormProps {
     servings: number;
     ingredients: Ingredient[];
     imagePath?: string | null;
+    difficulty?: string | null;
+    totalTimeMinutes?: number | null;
+    mealType?: string | null;
+    tags?: string[];
   };
   isEditing?: boolean;
 }
@@ -39,6 +44,12 @@ export function RecipeForm({ initialData, isEditing = false }: RecipeFormProps) 
   const [instructions, setInstructions] = useState(initialData?.instructions || '');
   const [servings, setServings] = useState(initialData?.servings || 1);
   const [ingredients, setIngredients] = useState<Ingredient[]>(initialData?.ingredients || []);
+  const [difficulty, setDifficulty] = useState(initialData?.difficulty || '');
+  const [totalTimeMinutes, setTotalTimeMinutes] = useState<number | ''>(
+    initialData?.totalTimeMinutes ?? ''
+  );
+  const [mealType, setMealType] = useState(initialData?.mealType || '');
+  const [tags, setTags] = useState<string[]>(initialData?.tags || []);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(
     initialData?.imagePath ? apiUrl(`/api/recipes/${initialData.id}/image`) : null
@@ -109,6 +120,12 @@ export function RecipeForm({ initialData, isEditing = false }: RecipeFormProps) 
           instructions: instructions || null,
           servings,
           ingredients,
+          // null (not undefined/omitted) so the "–" option can actually
+          // clear a previously-set value instead of leaving it untouched.
+          difficulty: difficulty || null,
+          totalTimeMinutes: totalTimeMinutes === '' ? null : totalTimeMinutes,
+          mealType: mealType || null,
+          tags,
         }),
       });
 
@@ -209,6 +226,12 @@ export function RecipeForm({ initialData, isEditing = false }: RecipeFormProps) 
     setIngredients(updated);
   }
 
+  function toggleTag(tag: string) {
+    setTags((current) =>
+      current.includes(tag) ? current.filter((t) => t !== tag) : [...current, tag]
+    );
+  }
+
   return (
     <form onSubmit={handleSubmit} className="max-w-2xl bg-white p-6 rounded-lg shadow">
       <h1 className="text-2xl font-bold mb-6">
@@ -220,8 +243,11 @@ export function RecipeForm({ initialData, isEditing = false }: RecipeFormProps) 
       <div className="space-y-4">
         {/* Name */}
         <div>
-          <label className="block text-sm font-medium mb-1">Rezeptname *</label>
+          <label htmlFor="recipe-name" className="block text-sm font-medium mb-1">
+            Rezeptname *
+          </label>
           <input
+            id="recipe-name"
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
@@ -293,6 +319,93 @@ export function RecipeForm({ initialData, isEditing = false }: RecipeFormProps) 
             className="w-full border rounded px-3 py-2 focus:outline-blue-500"
             disabled={isLoading}
           />
+        </div>
+
+        {/* Effort / time / meal type (REQ-016) */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div>
+            <label htmlFor="recipe-difficulty" className="block text-sm font-medium mb-1">
+              Aufwand
+            </label>
+            <select
+              id="recipe-difficulty"
+              value={difficulty}
+              onChange={(e) => setDifficulty(e.target.value)}
+              className="w-full border rounded px-3 py-2 bg-white"
+              disabled={isLoading}
+            >
+              <option value="">–</option>
+              {DIFFICULTY_LEVELS.map((level) => (
+                <option key={level} value={level}>
+                  {DIFFICULTY_LABELS[level]}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label htmlFor="recipe-total-time" className="block text-sm font-medium mb-1">
+              Gesamtzeit (Minuten)
+            </label>
+            <input
+              id="recipe-total-time"
+              type="number"
+              min={1}
+              value={totalTimeMinutes}
+              onChange={(e) =>
+                setTotalTimeMinutes(e.target.value === '' ? '' : parseInt(e.target.value, 10))
+              }
+              className="w-full border rounded px-3 py-2 focus:outline-blue-500"
+              disabled={isLoading}
+            />
+          </div>
+
+          <div>
+            <label htmlFor="recipe-meal-type" className="block text-sm font-medium mb-1">
+              Gang
+            </label>
+            <select
+              id="recipe-meal-type"
+              value={mealType}
+              onChange={(e) => setMealType(e.target.value)}
+              className="w-full border rounded px-3 py-2 bg-white"
+              disabled={isLoading}
+            >
+              <option value="">–</option>
+              {MEAL_TYPES.map((type) => (
+                <option key={type} value={type}>
+                  {type}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        {/* Tags (REQ-016) */}
+        <div>
+          <label className="block text-sm font-medium mb-2">Tags</label>
+          <div className="space-y-2">
+            {Object.entries(TAG_GROUPS).map(([group, groupTags]) => (
+              <div key={group} className="flex flex-wrap gap-3">
+                {groupTags.map((tag) => (
+                  <label
+                    key={tag}
+                    htmlFor={`recipe-tag-${tag}`}
+                    className="flex items-center gap-1 text-sm"
+                  >
+                    <input
+                      id={`recipe-tag-${tag}`}
+                      type="checkbox"
+                      checked={tags.includes(tag)}
+                      onChange={() => toggleTag(tag)}
+                      disabled={isLoading}
+                    />
+                    {tag}
+                  </label>
+                ))}
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* Ingredients */}

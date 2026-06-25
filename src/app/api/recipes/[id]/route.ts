@@ -6,6 +6,7 @@ import { authMiddlewareWithRefresh, setTokenCookie } from '@/lib/auth/middleware
 import { UpdateRecipeRequest } from '@/types';
 import { VALIDATION, HTTP_STATUS } from '@/lib/constants';
 import { withDatabase } from '@/lib/api/withDatabase';
+import { validateRecipeMetadataFields } from '@/lib/validation';
 
 type Params = Promise<{ id: string }>;
 
@@ -16,10 +17,7 @@ async function handleGET(request: NextRequest, props: { params: Params }) {
     const recipeId = parseInt(params.id, 10);
 
     if (!Number.isFinite(recipeId) || recipeId <= 0) {
-      return NextResponse.json(
-        { error: 'Invalid recipe ID' },
-        { status: HTTP_STATUS.BAD_REQUEST }
-      );
+      return NextResponse.json({ error: 'Invalid recipe ID' }, { status: HTTP_STATUS.BAD_REQUEST });
     }
 
     // Try to refresh token if authenticated
@@ -27,10 +25,7 @@ async function handleGET(request: NextRequest, props: { params: Params }) {
 
     const recipe = await RecipeModelAsync.findById(recipeId);
     if (!recipe) {
-      return NextResponse.json(
-        { error: 'Recipe not found' },
-        { status: HTTP_STATUS.NOT_FOUND }
-      );
+      return NextResponse.json({ error: 'Recipe not found' }, { status: HTTP_STATUS.NOT_FOUND });
     }
 
     // Get creator info
@@ -42,6 +37,9 @@ async function handleGET(request: NextRequest, props: { params: Params }) {
 
     // Get nutrients
     const nutrients = await RecipeModelAsync.getNutrients(recipeId);
+
+    // Get tags
+    const tags = await RecipeModelAsync.getTags(recipeId);
 
     // Check permissions
     const canEdit = auth ? parseInt(auth.userId, 10) === recipe.creator_id : false;
@@ -65,6 +63,10 @@ async function handleGET(request: NextRequest, props: { params: Params }) {
         updatedAt: recipe.updated_at,
         canEdit,
         canDelete,
+        difficulty: recipe.difficulty,
+        totalTimeMinutes: recipe.total_time_minutes,
+        mealType: recipe.meal_type,
+        tags,
       },
       { status: HTTP_STATUS.OK }
     );
@@ -91,10 +93,7 @@ export async function PUT(request: NextRequest, props: { params: Params }) {
     const recipeId = parseInt(params.id, 10);
 
     if (!Number.isFinite(recipeId) || recipeId <= 0) {
-      return NextResponse.json(
-        { error: 'Invalid recipe ID' },
-        { status: HTTP_STATUS.BAD_REQUEST }
-      );
+      return NextResponse.json({ error: 'Invalid recipe ID' }, { status: HTTP_STATUS.BAD_REQUEST });
     }
 
     // Require authentication
@@ -108,10 +107,7 @@ export async function PUT(request: NextRequest, props: { params: Params }) {
 
     const recipe = await RecipeModelAsync.findById(recipeId);
     if (!recipe) {
-      return NextResponse.json(
-        { error: 'Recipe not found' },
-        { status: HTTP_STATUS.NOT_FOUND }
-      );
+      return NextResponse.json({ error: 'Recipe not found' }, { status: HTTP_STATUS.NOT_FOUND });
     }
 
     // Check ownership
@@ -142,17 +138,29 @@ export async function PUT(request: NextRequest, props: { params: Params }) {
     }
 
     // Validate description if provided
-    if (body.description !== undefined && body.description !== null && body.description.length > VALIDATION.RECIPE_DESCRIPTION_MAX_LENGTH) {
+    if (
+      body.description !== undefined &&
+      body.description !== null &&
+      body.description.length > VALIDATION.RECIPE_DESCRIPTION_MAX_LENGTH
+    ) {
       return NextResponse.json(
-        { error: `Description must be at most ${VALIDATION.RECIPE_DESCRIPTION_MAX_LENGTH} characters` },
+        {
+          error: `Description must be at most ${VALIDATION.RECIPE_DESCRIPTION_MAX_LENGTH} characters`,
+        },
         { status: HTTP_STATUS.BAD_REQUEST }
       );
     }
 
     // Validate instructions if provided
-    if (body.instructions !== undefined && body.instructions !== null && body.instructions.length > VALIDATION.RECIPE_INSTRUCTIONS_MAX_LENGTH) {
+    if (
+      body.instructions !== undefined &&
+      body.instructions !== null &&
+      body.instructions.length > VALIDATION.RECIPE_INSTRUCTIONS_MAX_LENGTH
+    ) {
       return NextResponse.json(
-        { error: `Instructions must be at most ${VALIDATION.RECIPE_INSTRUCTIONS_MAX_LENGTH} characters` },
+        {
+          error: `Instructions must be at most ${VALIDATION.RECIPE_INSTRUCTIONS_MAX_LENGTH} characters`,
+        },
         { status: HTTP_STATUS.BAD_REQUEST }
       );
     }
@@ -186,7 +194,9 @@ export async function PUT(request: NextRequest, props: { params: Params }) {
 
         if (ing.name.length > VALIDATION.INGREDIENT_NAME_MAX_LENGTH) {
           return NextResponse.json(
-            { error: `Ingredient name must be at most ${VALIDATION.INGREDIENT_NAME_MAX_LENGTH} characters` },
+            {
+              error: `Ingredient name must be at most ${VALIDATION.INGREDIENT_NAME_MAX_LENGTH} characters`,
+            },
             { status: HTTP_STATUS.BAD_REQUEST }
           );
         }
@@ -200,6 +210,12 @@ export async function PUT(request: NextRequest, props: { params: Params }) {
       }
     }
 
+    // Validate metadata if provided (REQ-016)
+    const metadataError = validateRecipeMetadataFields(body);
+    if (metadataError) {
+      return NextResponse.json({ error: metadataError }, { status: HTTP_STATUS.BAD_REQUEST });
+    }
+
     // Update recipe
     const updated = await RecipeModelAsync.update(
       recipeId,
@@ -207,7 +223,13 @@ export async function PUT(request: NextRequest, props: { params: Params }) {
       body.description?.trim(),
       body.instructions?.trim(),
       body.servings,
-      body.ingredients
+      body.ingredients,
+      {
+        difficulty: body.difficulty,
+        totalTimeMinutes: body.totalTimeMinutes,
+        mealType: body.mealType,
+        tags: body.tags,
+      }
     );
 
     const ingredients = await RecipeModelAsync.getIngredients(recipeId);
@@ -228,6 +250,10 @@ export async function PUT(request: NextRequest, props: { params: Params }) {
         isDuplicate: Boolean(updated.is_duplicate),
         createdAt: updated.created_at,
         updatedAt: updated.updated_at,
+        difficulty: updated.difficulty,
+        totalTimeMinutes: updated.total_time_minutes,
+        mealType: updated.meal_type,
+        tags: await RecipeModelAsync.getTags(recipeId),
       },
       { status: HTTP_STATUS.OK }
     );
@@ -252,10 +278,7 @@ export async function DELETE(request: NextRequest, props: { params: Params }) {
     const recipeId = parseInt(params.id, 10);
 
     if (!Number.isFinite(recipeId) || recipeId <= 0) {
-      return NextResponse.json(
-        { error: 'Invalid recipe ID' },
-        { status: HTTP_STATUS.BAD_REQUEST }
-      );
+      return NextResponse.json({ error: 'Invalid recipe ID' }, { status: HTTP_STATUS.BAD_REQUEST });
     }
 
     // Require authentication
@@ -269,10 +292,7 @@ export async function DELETE(request: NextRequest, props: { params: Params }) {
 
     const recipe = await RecipeModelAsync.findById(recipeId);
     if (!recipe) {
-      return NextResponse.json(
-        { error: 'Recipe not found' },
-        { status: HTTP_STATUS.NOT_FOUND }
-      );
+      return NextResponse.json({ error: 'Recipe not found' }, { status: HTTP_STATUS.NOT_FOUND });
     }
 
     // Check ownership
