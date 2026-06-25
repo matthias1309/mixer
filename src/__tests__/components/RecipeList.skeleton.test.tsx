@@ -2,7 +2,12 @@ import { render, screen } from '@testing-library/react';
 import { RecipeList } from '@/components/RecipeList';
 
 jest.mock('@/hooks/useFilter', () => ({
-  useFilter: () => ({ selectedIngredients: [] }),
+  useFilter: () => ({
+    selectedIngredients: [],
+    selectedTags: [],
+    difficulty: null,
+    maxTime: null,
+  }),
 }));
 
 jest.mock('@/hooks/useFetch', () => ({

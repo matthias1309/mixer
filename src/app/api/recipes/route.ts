@@ -14,6 +14,7 @@ import {
 } from '@/lib/constants';
 import { withDatabase } from '@/lib/api/withDatabase';
 import { validateRecipeMetadataFields } from '@/lib/validation';
+import { RecipeQueryFilters } from '@/lib/db/build-recipe-query';
 
 // GET /api/recipes - List recipes with pagination, search, and sorting
 async function handleGET(request: NextRequest) {
@@ -33,6 +34,17 @@ async function handleGET(request: NextRequest) {
         ? rawPhase
         : DEFAULT_PHASE;
 
+    // REQ-017 — unknown values are dropped by buildRecipeQuery (AC-017-04),
+    // so no validation is needed here.
+    const rawTags = searchParams.get('tags');
+    const rawMaxTime = searchParams.get('maxTime');
+    const filters: RecipeQueryFilters = {
+      difficulty: searchParams.get('difficulty') || undefined,
+      mealType: searchParams.get('mealType') || undefined,
+      maxTime: rawMaxTime ? parseInt(rawMaxTime, 10) : undefined,
+      tags: rawTags ? rawTags.split(',').map((tag) => tag.trim()) : undefined,
+    };
+
     // Try to refresh token if authenticated
     const auth = await authMiddlewareWithRefresh(request);
 
@@ -45,10 +57,18 @@ async function handleGET(request: NextRequest) {
         ingredientList,
         page,
         pageSize,
-        phase
+        phase,
+        { ...filters, sort }
       );
     } else {
-      result = await RecipeModelAsync.listAllWithScoreAsync(page, pageSize, sort, search, phase);
+      result = await RecipeModelAsync.listAllWithScoreAsync(
+        page,
+        pageSize,
+        sort,
+        search,
+        phase,
+        filters
+      );
     }
 
     const totalPages = Math.ceil(result.total / pageSize);

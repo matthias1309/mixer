@@ -9,6 +9,12 @@ jest.mock('@/hooks/useFilter', () => ({
   useFilter: () => ({
     selectedIngredients: [],
     toggleIngredient: jest.fn(),
+    selectedTags: [],
+    toggleTag: jest.fn(),
+    difficulty: null,
+    setDifficulty: jest.fn(),
+    maxTime: null,
+    setMaxTime: jest.fn(),
     clearFilters: jest.fn(),
   }),
 }));

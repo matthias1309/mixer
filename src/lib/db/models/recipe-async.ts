@@ -9,6 +9,7 @@ import {
 
 import { calculateScore, AggregatedNutrients } from '@/lib/scoring/phaseScore';
 import { replaceRecipeTags, getRecipeTags, getTagsForRecipeIds } from './recipeTags';
+import { buildRecipeQuery, RecipeQueryFilters } from '@/lib/db/build-recipe-query';
 
 export type RecipeListItemWithScore = RecipeListItem & { score?: number | null };
 
@@ -338,29 +339,35 @@ export class RecipeModelAsync {
   static async listAllWithScoreAsync(
     page: number = 1,
     pageSize: number = 10,
-    sortBy: 'date' | 'name' | 'ingredients' = 'date',
+    sortBy: string = 'date',
     search: string | undefined,
     phase: string = 'menstruation',
-    selectedIngredients?: string[]
+    filters: RecipeQueryFilters = {}
   ): Promise<{ recipes: RecipeListItemWithScore[]; total: number }> {
     const db = getDb();
     const offset = (page - 1) * pageSize;
     const searchParam = search ? `%${search}%` : null;
+
+    const {
+      predicates,
+      params: filterParams,
+      orderBy,
+    } = buildRecipeQuery({
+      ...filters,
+      sort: sortBy,
+    });
+    const extraWhere = predicates.map((predicate) => `AND ${predicate}`).join('\n        ');
 
     const countStmt = db.prepare(`
       SELECT COUNT(DISTINCT recipes.id) as total
       FROM recipes
       WHERE recipes.is_duplicate = 0
         AND (recipes.name LIKE ? OR ? IS NULL)
+        ${extraWhere}
     `);
-    const countResult = countStmt.get(searchParam, searchParam) as { total: number };
-
-    const sortByMap: Record<string, string> = {
-      date: 'recipes.created_at DESC',
-      name: 'recipes.name ASC',
-      ingredients: 'COUNT(DISTINCT ingredients.id) ASC',
+    const countResult = countStmt.get(searchParam, searchParam, ...filterParams) as {
+      total: number;
     };
-    const orderBy = sortByMap[sortBy] || sortByMap['date'];
 
     const stmt = db.prepare(`
       SELECT
@@ -391,12 +398,13 @@ export class RecipeModelAsync {
       LEFT JOIN ingredients_master ON LOWER(TRIM(ingredients_master.name)) = LOWER(TRIM(ingredients.name))
       WHERE recipes.is_duplicate = 0
         AND (recipes.name LIKE ? OR ? IS NULL)
+        ${extraWhere}
       GROUP BY recipes.id
       ORDER BY ${orderBy}
       LIMIT ? OFFSET ?
     `);
 
-    const rows = stmt.all(searchParam, searchParam, pageSize, offset) as any[];
+    const rows = stmt.all(searchParam, searchParam, ...filterParams, pageSize, offset) as any[];
 
     // Fetched separately (not via LEFT JOIN) so the per-ingredient nutrient
     // SUMs above aren't multiplied out by a second one-to-many join.

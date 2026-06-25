@@ -20,13 +20,14 @@ interface RecipeListProps {
   phase?: string | null;
   minScore?: number;
   search?: string;
+  sort?: string;
 }
 
-export function RecipeList({ phase, minScore = 0, search }: RecipeListProps) {
+export function RecipeList({ phase, minScore = 0, search, sort }: RecipeListProps) {
   const [recipes, setRecipes] = useState<RecipeCardProps[]>([]);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const { selectedIngredients } = useFilter();
+  const { selectedIngredients, selectedTags, difficulty, maxTime } = useFilter();
 
   const buildUrl = useCallback(() => {
     const params = new URLSearchParams();
@@ -40,8 +41,20 @@ export function RecipeList({ phase, minScore = 0, search }: RecipeListProps) {
     if (search) {
       params.set('search', search);
     }
+    if (sort) {
+      params.set('sort', sort);
+    }
+    if (difficulty) {
+      params.set('difficulty', difficulty);
+    }
+    if (maxTime) {
+      params.set('maxTime', maxTime.toString());
+    }
+    if (selectedTags.length > 0) {
+      params.set('tags', selectedTags.join(','));
+    }
     return apiUrl(`/api/recipes?${params}`);
-  }, [page, selectedIngredients, phase, search]);
+  }, [page, selectedIngredients, phase, search, sort, difficulty, maxTime, selectedTags]);
 
   const url = buildUrl();
 
