@@ -121,7 +121,7 @@ export function Navigation() {
   const closeMobileMenu = () => setIsMobileMenuOpen(false);
 
   return (
-    <nav className="bg-blue-600 text-white p-4 relative">
+    <nav className="bg-brand text-white p-4 relative">
       <div className="max-w-6xl mx-auto flex justify-between items-center">
         <Link href="/" className="text-2xl font-bold">
           🍳 Recipe Manager
@@ -196,7 +196,7 @@ export function Navigation() {
             onClick={() => setIsMobileMenuOpen((open) => !open)}
             aria-label="Menü öffnen"
             aria-expanded={isMobileMenuOpen}
-            className="p-1.5 rounded hover:bg-blue-500"
+            className="p-1.5 rounded hover:bg-brand/80"
           >
             <HamburgerIcon />
           </button>
@@ -215,19 +215,19 @@ export function Navigation() {
           />
           {/* Menu panel */}
           <div
-            className="absolute top-full left-0 w-full bg-blue-700 z-20 py-2 shadow-lg"
+            className="absolute top-full left-0 w-full bg-brand z-20 py-2 shadow-lg"
             data-testid="mobile-menu"
           >
             <Link
               href="/dashboard"
-              className="block px-6 py-3 hover:bg-blue-600"
+              className="block px-6 py-3 hover:bg-brand/80"
               onClick={closeMobileMenu}
             >
               Rezepte
             </Link>
             <Link
               href="/ingredients"
-              className="block px-6 py-3 hover:bg-blue-600"
+              className="block px-6 py-3 hover:bg-brand/80"
               onClick={closeMobileMenu}
             >
               Zutaten
@@ -236,7 +236,7 @@ export function Navigation() {
               <>
                 <Link
                   href="/cycle"
-                  className="block px-6 py-3 hover:bg-blue-600"
+                  className="block px-6 py-3 hover:bg-brand/80"
                   onClick={closeMobileMenu}
                 >
                   Zyklus
@@ -247,7 +247,7 @@ export function Navigation() {
                     logout();
                     closeMobileMenu();
                   }}
-                  className="block w-full text-left px-6 py-3 hover:bg-blue-600"
+                  className="block w-full text-left px-6 py-3 hover:bg-brand/80"
                 >
                   Abmelden
                 </button>
@@ -256,14 +256,14 @@ export function Navigation() {
               <>
                 <Link
                   href="/login"
-                  className="block px-6 py-3 hover:bg-blue-600"
+                  className="block px-6 py-3 hover:bg-brand/80"
                   onClick={closeMobileMenu}
                 >
                   Anmelden
                 </Link>
                 <Link
                   href="/register"
-                  className="block px-6 py-3 hover:bg-blue-600"
+                  className="block px-6 py-3 hover:bg-brand/80"
                   onClick={closeMobileMenu}
                 >
                   Registrieren

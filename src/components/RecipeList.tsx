@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { RecipeCard, RecipeCardProps } from './RecipeCard';
+import { Pagination } from './Pagination';
 import { useFilter } from '../hooks/useFilter';
 import { useFetch } from '../hooks/useFetch';
 import { apiUrl } from '@lib/api-url';
@@ -18,9 +19,10 @@ interface RecipesResponse {
 interface RecipeListProps {
   phase?: string | null;
   minScore?: number;
+  search?: string;
 }
 
-export function RecipeList({ phase, minScore = 0 }: RecipeListProps) {
+export function RecipeList({ phase, minScore = 0, search }: RecipeListProps) {
   const [recipes, setRecipes] = useState<RecipeCardProps[]>([]);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -35,8 +37,11 @@ export function RecipeList({ phase, minScore = 0 }: RecipeListProps) {
     if (phase) {
       params.set('phase', phase);
     }
+    if (search) {
+      params.set('search', search);
+    }
     return apiUrl(`/api/recipes?${params}`);
-  }, [page, selectedIngredients, phase]);
+  }, [page, selectedIngredients, phase, search]);
 
   const url = buildUrl();
 
@@ -89,7 +94,7 @@ export function RecipeList({ phase, minScore = 0 }: RecipeListProps) {
     return (
       <div className="bg-gray-100 p-8 rounded text-center">
         <p className="text-gray-600 mb-4">Keine Rezepte gefunden</p>
-        <Link href="/recipes/new" className="text-blue-600 hover:underline">
+        <Link href="/recipes/new" className="text-brand hover:underline">
           Erstellen Sie Ihr erstes Rezept
         </Link>
       </div>
@@ -99,7 +104,7 @@ export function RecipeList({ phase, minScore = 0 }: RecipeListProps) {
   return (
     <div>
       <div className="mb-6">
-        <p className="text-gray-600">
+        <p className="text-gray-600" data-testid="results-counter">
           {recipes.length} Rezepte gefunden
           {selectedIngredients.length > 0 && ` mit ${selectedIngredients.join(', ')}`}
         </p>
@@ -111,28 +116,7 @@ export function RecipeList({ phase, minScore = 0 }: RecipeListProps) {
         ))}
       </div>
 
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex justify-center gap-2">
-          <button
-            onClick={() => setPage(Math.max(1, page - 1))}
-            disabled={page === 1}
-            className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50"
-          >
-            Vorherige
-          </button>
-          <span className="px-4 py-2 text-gray-600">
-            Seite {page} von {totalPages}
-          </span>
-          <button
-            onClick={() => setPage(Math.min(totalPages, page + 1))}
-            disabled={page === totalPages}
-            className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50"
-          >
-            Nächste
-          </button>
-        </div>
-      )}
+      <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
     </div>
   );
 }
