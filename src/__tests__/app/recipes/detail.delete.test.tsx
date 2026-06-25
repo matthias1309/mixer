@@ -89,11 +89,20 @@ it('should close the modal and not delete when Abbrechen is clicked', async () =
 // When the user clicks "Löschen" inside the modal
 // Then a DELETE request is sent and the user is redirected
 it('should send DELETE request and redirect when confirmed in modal', async () => {
-  // Arrange
-  global.fetch = jest
-    .fn()
-    .mockResolvedValueOnce({ ok: true, json: async () => mockRecipe } as unknown as Response)
-    .mockResolvedValueOnce({ ok: true, json: async () => ({}) } as unknown as Response);
+  // Arrange — keyed by method/URL rather than call order, since the page also
+  // fires a GET for the caller's rating (REQ-018) alongside the recipe GET.
+  global.fetch = jest.fn().mockImplementation((url: unknown, opts?: { method?: string }) => {
+    if (opts?.method === 'DELETE') {
+      return Promise.resolve({ ok: true, json: async () => ({}) } as unknown as Response);
+    }
+    if (typeof url === 'string' && url.includes('/rating')) {
+      return Promise.resolve({
+        ok: true,
+        json: async () => ({ stars: null }),
+      } as unknown as Response);
+    }
+    return Promise.resolve({ ok: true, json: async () => mockRecipe } as unknown as Response);
+  });
 
   render(<RecipeDetailPage />);
   await waitFor(() => screen.getByText('Pasta al Limone'));

@@ -9,6 +9,7 @@ export interface RecipeQueryFilters {
   maxTime?: number | null;
   mealType?: string | null;
   tags?: string[];
+  minRating?: number | null;
   sort?: string;
 }
 
@@ -20,12 +21,13 @@ export interface BuiltRecipeQuery {
 
 const DEFAULT_ORDER_BY = 'recipes.created_at DESC';
 
-// `rating` falls back to the default ordering until REQ-018 provides
-// aggregated star ratings to sort by.
+// REQ-018: requires the caller's query to join RATING_AGGREGATE_JOIN
+// (src/lib/db/models/rating.ts) so the `rr` alias resolves. Unrated recipes
+// sort last regardless of direction.
 const ORDER_BY_MAP: Record<string, string> = {
   date: DEFAULT_ORDER_BY,
   newest: DEFAULT_ORDER_BY,
-  rating: DEFAULT_ORDER_BY,
+  rating: 'rr.avg_rating IS NULL, rr.avg_rating DESC',
   name: 'recipes.name ASC',
   ingredients: 'COUNT(DISTINCT ingredients.id) ASC',
   time: 'recipes.total_time_minutes IS NULL, recipes.total_time_minutes ASC',
@@ -59,6 +61,13 @@ export function buildRecipeQuery(filters: RecipeQueryFilters = {}): BuiltRecipeQ
       );
       params.push(...knownTags, knownTags.length);
     }
+  }
+
+  // REQ-018: recipes with no ratings are excluded outright (rr.avg_rating IS
+  // NULL fails the comparison), not just sorted last (AC-018-09).
+  if (filters.minRating !== null && filters.minRating !== undefined && filters.minRating > 0) {
+    predicates.push('rr.avg_rating >= ?');
+    params.push(filters.minRating);
   }
 
   const orderBy = (filters.sort && ORDER_BY_MAP[filters.sort]) || DEFAULT_ORDER_BY;

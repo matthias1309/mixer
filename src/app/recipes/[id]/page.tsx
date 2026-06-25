@@ -7,6 +7,7 @@ import { apiUrl } from '@lib/api-url';
 import { useAuth } from '../../../hooks/useAuth';
 import { useFilter } from '../../../hooks/useFilter';
 import { ServingsControl } from '../../../components/recipe/ServingsControl';
+import { StarRating } from '../../../components/recipe/StarRating';
 
 interface RecipeDetail {
   id: number;
@@ -22,6 +23,8 @@ interface RecipeDetail {
   canDelete: boolean;
   createdAt: string;
   updatedAt: string;
+  ratingAverage: number | null;
+  ratingCount: number;
 }
 
 export default function RecipeDetailPage() {
@@ -38,6 +41,7 @@ export default function RecipeDetailPage() {
   const [scaledNutrients, setScaledNutrients] = useState<Record<string, number> | null>(null);
   const [isNutrientsOpen, setIsNutrientsOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [myRating, setMyRating] = useState<number | null>(null);
   const params = useParams();
   const router = useRouter();
   const { user } = useAuth();
@@ -113,6 +117,46 @@ export default function RecipeDetailPage() {
     fetchRecipe();
   }, [fetchRecipe]);
 
+  useEffect(() => {
+    if (!user) {
+      setMyRating(null);
+      return;
+    }
+
+    async function fetchMyRating() {
+      try {
+        const response = await fetch(apiUrl(`/api/recipes/${id}/rating`), {
+          credentials: 'include',
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setMyRating(data.stars);
+        }
+      } catch {
+        // Rating is a non-critical enhancement; leave myRating unset on failure.
+      }
+    }
+    fetchMyRating();
+  }, [id, user]);
+
+  async function handleRate(stars: number) {
+    try {
+      const response = await fetch(apiUrl(`/api/recipes/${id}/rating`), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ stars }),
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setMyRating(data.stars);
+        fetchRecipe();
+      }
+    } catch {
+      // Rating submission failure is surfaced by the unchanged star display.
+    }
+  }
+
   async function handleDeleteConfirm() {
     setIsDeleting(true);
     setIsDeleteModalOpen(false);
@@ -155,6 +199,12 @@ export default function RecipeDetailPage() {
           <div>
             <h1 className="text-3xl font-bold">{recipe.name}</h1>
             <p className="text-gray-600">von {recipe.creatorName}</p>
+            <p className="text-sm text-gray-600 mt-1">
+              {recipe.ratingCount > 0
+                ? `${recipe.ratingAverage} ★ (${recipe.ratingCount})`
+                : 'noch keine Bewertung'}
+            </p>
+            {user && <StarRating rating={myRating} onRate={handleRate} />}
           </div>
           {recipe.canEdit && (
             <div className="flex gap-2">

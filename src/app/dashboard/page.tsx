@@ -9,6 +9,7 @@ import { FilterPanel } from '../../components/FilterPanel';
 import { TagGroupFilter } from '../../components/recipe/TagGroupFilter';
 import { DifficultyFilter } from '../../components/recipe/DifficultyFilter';
 import { MaxTimeFilter } from '../../components/recipe/MaxTimeFilter';
+import { MinRatingFilter } from '../../components/recipe/MinRatingFilter';
 import { SortDropdown } from '../../components/SortDropdown';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../hooks/useAuth';
@@ -17,7 +18,8 @@ import { TAG_GROUPS } from '../../lib/constants';
 
 export default function DashboardPage() {
   const { user } = useAuth();
-  const { selectedIngredients, selectedTags, difficulty, maxTime, clearFilters } = useFilter();
+  const { selectedIngredients, selectedTags, difficulty, maxTime, minRating, clearFilters } =
+    useFilter();
   const [selectedPhase, setSelectedPhase] = useState<string | null>(null);
   const [minScore, setMinScore] = useState(0);
   const [search, setSearch] = useState('');
@@ -99,7 +101,8 @@ export default function DashboardPage() {
               selectedIngredients.length > 0 ||
               selectedTags.length > 0 ||
               difficulty !== null ||
-              maxTime !== null
+              maxTime !== null ||
+              minRating !== null
             }
             onReset={clearFilters}
             groups={[
@@ -156,6 +159,11 @@ export default function DashboardPage() {
                 id: 'max-time',
                 title: 'Zubereitungszeit',
                 content: <MaxTimeFilter />,
+              },
+              {
+                id: 'min-rating',
+                title: 'Bewertung',
+                content: <MinRatingFilter />,
               },
             ]}
           />

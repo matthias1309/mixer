@@ -7,6 +7,8 @@ import { UpdateRecipeRequest } from '@/types';
 import { VALIDATION, HTTP_STATUS } from '@/lib/constants';
 import { withDatabase } from '@/lib/api/withDatabase';
 import { validateRecipeMetadataFields } from '@/lib/validation';
+import { getDb } from '@/lib/db/init';
+import { getRatingAggregate } from '@/lib/db/models/rating';
 
 type Params = Promise<{ id: string }>;
 
@@ -41,6 +43,9 @@ async function handleGET(request: NextRequest, props: { params: Params }) {
     // Get tags
     const tags = await RecipeModelAsync.getTags(recipeId);
 
+    // Get rating aggregate (REQ-018)
+    const { ratingAverage, ratingCount } = getRatingAggregate(getDb(), recipeId);
+
     // Check permissions
     const canEdit = auth ? parseInt(auth.userId, 10) === recipe.creator_id : false;
     const canDelete = auth ? parseInt(auth.userId, 10) === recipe.creator_id : false;
@@ -67,6 +72,8 @@ async function handleGET(request: NextRequest, props: { params: Params }) {
         totalTimeMinutes: recipe.total_time_minutes,
         mealType: recipe.meal_type,
         tags,
+        ratingAverage,
+        ratingCount,
       },
       { status: HTTP_STATUS.OK }
     );

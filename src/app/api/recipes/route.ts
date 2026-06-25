@@ -38,11 +38,13 @@ async function handleGET(request: NextRequest) {
     // so no validation is needed here.
     const rawTags = searchParams.get('tags');
     const rawMaxTime = searchParams.get('maxTime');
+    const rawMinRating = searchParams.get('minRating');
     const filters: RecipeQueryFilters = {
       difficulty: searchParams.get('difficulty') || undefined,
       mealType: searchParams.get('mealType') || undefined,
       maxTime: rawMaxTime ? parseInt(rawMaxTime, 10) : undefined,
       tags: rawTags ? rawTags.split(',').map((tag) => tag.trim()) : undefined,
+      minRating: rawMinRating ? parseInt(rawMinRating, 10) : undefined,
     };
 
     // Try to refresh token if authenticated

@@ -14,6 +14,9 @@ export interface FilterContextType {
   setDifficulty: (difficulty: string | null) => void;
   maxTime: number | null;
   setMaxTime: (maxTime: number | null) => void;
+  // REQ-018: minimum-rating filter, feeds the `minRating` query param.
+  minRating: number | null;
+  setMinRating: (minRating: number | null) => void;
   clearFilters: () => void;
 }
 
@@ -24,6 +27,7 @@ export function FilterProvider({ children }: { children: ReactNode }) {
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [difficulty, setDifficulty] = useState<string | null>(null);
   const [maxTime, setMaxTime] = useState<number | null>(null);
+  const [minRating, setMinRating] = useState<number | null>(null);
 
   function toggleIngredient(ingredient: string) {
     setSelectedIngredients((prev) =>
@@ -42,6 +46,7 @@ export function FilterProvider({ children }: { children: ReactNode }) {
     setSelectedTags([]);
     setDifficulty(null);
     setMaxTime(null);
+    setMinRating(null);
   }
 
   return (
@@ -55,6 +60,8 @@ export function FilterProvider({ children }: { children: ReactNode }) {
         setDifficulty,
         maxTime,
         setMaxTime,
+        minRating,
+        setMinRating,
         clearFilters,
       }}
     >
