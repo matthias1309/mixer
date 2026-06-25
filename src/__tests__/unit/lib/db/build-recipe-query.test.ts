@@ -135,15 +135,34 @@ describe('buildRecipeQuery', () => {
     );
   });
 
-  // TC-017-05 — AC-017-05
-  // Given sort=rating and no rating data available yet (REQ-018 not implemented)
+  // TC-018-08 — AC-018-10 (supersedes the TEST-017 graceful-degradation case:
+  // REQ-018 now provides real rating data to order by)
+  // Given sort=rating
   // When the query is built
-  // Then it falls back to the default ordering instead of erroring
-  it('falls back to default for sort=rating when no rating data', () => {
-    const fallback = buildRecipeQuery({});
-    const rating = buildRecipeQuery({ sort: 'rating' });
+  // Then results are ordered by the joined average rating descending, nulls last
+  it('orders by average rating descending for sort=rating', () => {
+    const result = buildRecipeQuery({ sort: 'rating' });
 
-    expect(rating.orderBy).toBe(fallback.orderBy);
+    expect(result.orderBy).toBe('rr.avg_rating IS NULL, rr.avg_rating DESC');
+  });
+
+  // TC-018-07 — AC-018-09
+  // Given a minRating filter
+  // When the query is built
+  // Then a parameterised predicate on the joined average is emitted
+  it('emits a parameterised predicate for minRating', () => {
+    const result = buildRecipeQuery({ minRating: 4 });
+
+    expect(result.predicates).toEqual(['rr.avg_rating >= ?']);
+    expect(result.params).toEqual([4]);
+  });
+
+  // AC-018-09
+  it('ignores a non-positive minRating', () => {
+    const result = buildRecipeQuery({ minRating: 0 });
+
+    expect(result.predicates).toEqual([]);
+    expect(result.params).toEqual([]);
   });
 
   it('orders by newest by default', () => {

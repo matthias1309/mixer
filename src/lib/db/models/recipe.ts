@@ -9,6 +9,7 @@ import {
 import { calculateScore, AggregatedNutrients } from '@/lib/scoring/phaseScore';
 import { replaceRecipeTags, getRecipeTags, getTagsForRecipeIds } from './recipeTags';
 import { buildRecipeQuery, RecipeQueryFilters } from '@/lib/db/build-recipe-query';
+import { RATING_AGGREGATE_JOIN } from './rating';
 
 export class RecipeModel {
   static create(
@@ -485,6 +486,7 @@ export class RecipeModel {
     const countStmt = db.prepare(`
       SELECT COUNT(DISTINCT recipes.id) as total
       FROM recipes
+      ${RATING_AGGREGATE_JOIN}
       WHERE recipes.is_duplicate = 0
         AND recipes.id IN (
           SELECT recipe_id
@@ -516,6 +518,8 @@ export class RecipeModel {
         users.email as creatorName,
         COUNT(DISTINCT ingredients.id) as ingredientCount,
         recipes.created_at as createdAt,
+        rr.avg_rating as ratingAverage,
+        COALESCE(rr.rating_count, 0) as ratingCount,
         SUM(COALESCE(ingredients_master.iron, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as total_iron,
         SUM(COALESCE(ingredients_master.magnesium, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as total_magnesium,
         SUM(COALESCE(ingredients_master.protein, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as total_protein,
@@ -531,6 +535,7 @@ export class RecipeModel {
       JOIN users ON recipes.creator_id = users.id
       LEFT JOIN ingredients ON recipes.id = ingredients.recipe_id
       LEFT JOIN ingredients_master ON LOWER(TRIM(ingredients_master.name)) = LOWER(TRIM(ingredients.name))
+      ${RATING_AGGREGATE_JOIN}
       WHERE recipes.is_duplicate = 0
         AND recipes.id IN (
           SELECT recipe_id
@@ -592,6 +597,8 @@ export class RecipeModel {
         totalTimeMinutes: row.totalTimeMinutes || null,
         mealType: row.mealType || null,
         tags: tagsByRecipeId.get(row.id) || [],
+        ratingAverage: row.ratingAverage ?? null,
+        ratingCount: row.ratingCount ?? 0,
       };
     });
 

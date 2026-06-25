@@ -66,6 +66,9 @@ export interface RecipeListItem {
   totalTimeMinutes?: number | null;
   mealType?: string | null;
   tags?: string[];
+  // REQ-018: average rounded to one decimal, null when ratingCount is 0.
+  ratingAverage?: number | null;
+  ratingCount?: number;
 }
 
 export interface CreateRecipeRequest {

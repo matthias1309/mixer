@@ -27,7 +27,7 @@ export function RecipeList({ phase, minScore = 0, search, sort }: RecipeListProp
   const [recipes, setRecipes] = useState<RecipeCardProps[]>([]);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const { selectedIngredients, selectedTags, difficulty, maxTime } = useFilter();
+  const { selectedIngredients, selectedTags, difficulty, maxTime, minRating } = useFilter();
 
   const buildUrl = useCallback(() => {
     const params = new URLSearchParams();
@@ -53,8 +53,21 @@ export function RecipeList({ phase, minScore = 0, search, sort }: RecipeListProp
     if (selectedTags.length > 0) {
       params.set('tags', selectedTags.join(','));
     }
+    if (minRating) {
+      params.set('minRating', minRating.toString());
+    }
     return apiUrl(`/api/recipes?${params}`);
-  }, [page, selectedIngredients, phase, search, sort, difficulty, maxTime, selectedTags]);
+  }, [
+    page,
+    selectedIngredients,
+    phase,
+    search,
+    sort,
+    difficulty,
+    maxTime,
+    selectedTags,
+    minRating,
+  ]);
 
   const url = buildUrl();
 

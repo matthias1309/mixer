@@ -16,6 +16,8 @@ export interface RecipeCardProps {
   tags?: string[];
   totalTimeMinutes?: number | null;
   difficulty?: string | null;
+  ratingAverage?: number | null;
+  ratingCount?: number;
 }
 
 function getScoreBadgeColor(score: number): string {
@@ -53,6 +55,12 @@ export function RecipeCard(props: RecipeCardProps) {
           {props.description && (
             <p className="text-gray-700 mt-2 line-clamp-2">{props.description}</p>
           )}
+
+          <p className="text-sm text-gray-600 mt-1">
+            {props.ratingCount && props.ratingCount > 0
+              ? `${props.ratingAverage} ★ (${props.ratingCount})`
+              : 'noch keine Bewertung'}
+          </p>
 
           {props.tags && props.tags.length > 0 && (
             <div className="mt-2 flex flex-wrap gap-1">
