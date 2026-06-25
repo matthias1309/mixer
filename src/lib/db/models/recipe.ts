@@ -8,6 +8,7 @@ import {
 } from '@/types';
 import { calculateScore, AggregatedNutrients } from '@/lib/scoring/phaseScore';
 import { replaceRecipeTags, getRecipeTags, getTagsForRecipeIds } from './recipeTags';
+import { buildRecipeQuery, RecipeQueryFilters } from '@/lib/db/build-recipe-query';
 
 export class RecipeModel {
   static create(
@@ -468,7 +469,8 @@ export class RecipeModel {
     ingredientNames: string[],
     page: number = 1,
     pageSize: number = 10,
-    phase: string = 'menstruation'
+    phase: string = 'menstruation',
+    filters: RecipeQueryFilters = {}
   ) {
     const db = getSqliteDb();
 
@@ -476,6 +478,9 @@ export class RecipeModel {
     const placeholders = normalizedIngredients.map(() => '?').join(',');
 
     const offset = (page - 1) * pageSize;
+
+    const { predicates, params: filterParams, orderBy } = buildRecipeQuery(filters);
+    const extraWhere = predicates.map((predicate) => `AND ${predicate}`).join('\n        ');
 
     const countStmt = db.prepare(`
       SELECT COUNT(DISTINCT recipes.id) as total
@@ -488,9 +493,14 @@ export class RecipeModel {
           GROUP BY recipe_id
           HAVING COUNT(DISTINCT LOWER(TRIM(name))) = ?
         )
+        ${extraWhere}
     `);
 
-    const countResult = countStmt.get(...normalizedIngredients, normalizedIngredients.length) as {
+    const countResult = countStmt.get(
+      ...normalizedIngredients,
+      normalizedIngredients.length,
+      ...filterParams
+    ) as {
       total: number;
     };
 
@@ -529,14 +539,16 @@ export class RecipeModel {
           GROUP BY recipe_id
           HAVING COUNT(DISTINCT LOWER(TRIM(name))) = ?
         )
+        ${extraWhere}
       GROUP BY recipes.id
-      ORDER BY recipes.created_at DESC
+      ORDER BY ${orderBy}
       LIMIT ? OFFSET ?
     `);
 
     const rows = stmt.all(
       ...normalizedIngredients,
       normalizedIngredients.length,
+      ...filterParams,
       pageSize,
       offset
     ) as any[];
@@ -593,9 +605,10 @@ export class RecipeModel {
     ingredientNames: string[],
     page: number = 1,
     pageSize: number = 10,
-    phase: string = 'menstruation'
+    phase: string = 'menstruation',
+    filters: RecipeQueryFilters = {}
   ): Promise<{ recipes: RecipeListItem[]; total: number }> {
     // SQLite: delegate to the synchronous implementation.
-    return this.filterByIngredientsWithScore(ingredientNames, page, pageSize, phase);
+    return this.filterByIngredientsWithScore(ingredientNames, page, pageSize, phase, filters);
   }
 }

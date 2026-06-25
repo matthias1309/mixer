@@ -6,16 +6,22 @@ import { RecipeList } from '../../components/RecipeList';
 import { IngredientFilter } from '../../components/IngredientFilter';
 import PhaseFilter from '../../components/recipe/PhaseFilter';
 import { FilterPanel } from '../../components/FilterPanel';
+import { TagGroupFilter } from '../../components/recipe/TagGroupFilter';
+import { DifficultyFilter } from '../../components/recipe/DifficultyFilter';
+import { MaxTimeFilter } from '../../components/recipe/MaxTimeFilter';
+import { SortDropdown } from '../../components/SortDropdown';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { useFilter } from '../../hooks/useFilter';
+import { TAG_GROUPS } from '../../lib/constants';
 
 export default function DashboardPage() {
   const { user } = useAuth();
-  const { selectedIngredients, clearFilters } = useFilter();
+  const { selectedIngredients, selectedTags, difficulty, maxTime, clearFilters } = useFilter();
   const [selectedPhase, setSelectedPhase] = useState<string | null>(null);
   const [minScore, setMinScore] = useState(0);
   const [search, setSearch] = useState('');
+  const [sort, setSort] = useState('newest');
 
   useEffect(() => {
     if (!user) return;
@@ -89,7 +95,12 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         <div className="lg:col-span-1">
           <FilterPanel
-            hasActiveFilters={selectedIngredients.length > 0}
+            hasActiveFilters={
+              selectedIngredients.length > 0 ||
+              selectedTags.length > 0 ||
+              difficulty !== null ||
+              maxTime !== null
+            }
             onReset={clearFilters}
             groups={[
               {
@@ -111,12 +122,50 @@ export default function DashboardPage() {
                 title: 'Zutaten',
                 content: <IngredientFilter />,
               },
+              {
+                id: 'ernaehrung',
+                title: 'Ernährung',
+                content: <TagGroupFilter tags={TAG_GROUPS.ernaehrung} />,
+              },
+              {
+                id: 'hauptzutat',
+                title: 'Hauptzutat',
+                content: <TagGroupFilter tags={TAG_GROUPS.hauptzutat} />,
+              },
+              {
+                id: 'ernaehrungsform',
+                title: 'Ernährungsform',
+                content: <TagGroupFilter tags={TAG_GROUPS.ernaehrungsform} />,
+              },
+              {
+                id: 'backen',
+                title: 'Backen',
+                content: <TagGroupFilter tags={TAG_GROUPS.backen} />,
+              },
+              {
+                id: 'anlaesse',
+                title: 'Anlässe',
+                content: <TagGroupFilter tags={TAG_GROUPS.anlaesse} />,
+              },
+              {
+                id: 'aufwand',
+                title: 'Aufwand',
+                content: <DifficultyFilter />,
+              },
+              {
+                id: 'max-time',
+                title: 'Zubereitungszeit',
+                content: <MaxTimeFilter />,
+              },
             ]}
           />
         </div>
 
         <div className="lg:col-span-3">
-          <RecipeList phase={selectedPhase} minScore={minScore} search={search} />
+          <div className="flex justify-end mb-4">
+            <SortDropdown value={sort} onChange={setSort} />
+          </div>
+          <RecipeList phase={selectedPhase} minScore={minScore} search={search} sort={sort} />
         </div>
       </div>
     </div>
