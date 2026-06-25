@@ -63,6 +63,14 @@ Every ticket goes through a code review before being merged into `main`. This di
 
 *(Future)*
 
+### Phase 5: REWE-Style Redesign
+
+- [REQ-015: REWE-Style Layout & Recipe Card Redesign](REQ-015-rewe-layout-recipe-card.md) - ✅ APPROVED
+  - Design tokens (`brand`/`accent`/`surface`/`ink`), image-first `RecipeCard`,
+    `RecipeImage` gradient fallback, collapsible `FilterPanel`, numbered `Pagination`
+  - Presentation-only, no DB/API change; 3 non-blocking findings documented
+  - Status: Open in PR #33
+
 ---
 
 ## Review Template

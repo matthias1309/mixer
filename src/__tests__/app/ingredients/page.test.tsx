@@ -10,7 +10,6 @@ jest.mock('../../../hooks/useAuth', () => ({
 
 // TC-004-04: page renders for unauthenticated users (useAuth returns user: null throughout)
 describe('IngredientsPage - Pagination', () => {
-
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -45,12 +44,13 @@ describe('IngredientsPage - Pagination', () => {
       expect(screen.queryByText('Zutaten werden geladen...')).not.toBeInTheDocument();
     });
 
-    // Should show pagination info
-    const paginationText = await screen.findByText(/Seite 1 von 3/i);
-    expect(paginationText).toBeInTheDocument();
+    // Should show numbered page links with page 1 active
+    const activePage = await screen.findByRole('button', { name: '1' });
+    expect(activePage).toHaveAttribute('aria-current', 'page');
+    expect(screen.getByRole('button', { name: '3' })).toBeInTheDocument();
 
     // Should show next button
-    expect(screen.getByRole('button', { name: /nächste/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /nächste seite/i })).toBeInTheDocument();
   });
 
   it('should navigate to next page when next button is clicked', async () => {
@@ -105,12 +105,12 @@ describe('IngredientsPage - Pagination', () => {
       }),
     });
 
-    const nextButton = screen.getByRole('button', { name: /nächste/i });
+    const nextButton = screen.getByRole('button', { name: /nächste seite/i });
     fireEvent.click(nextButton);
 
     // Should show page 2 and ingredients from page 2
     await waitFor(() => {
-      expect(screen.getByText(/Seite 2 von 3/i)).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: '2' })).toHaveAttribute('aria-current', 'page');
       expect(screen.getByText('Ingredient 21')).toBeInTheDocument();
     });
   });
@@ -126,7 +126,15 @@ describe('IngredientsPage - CRUD controls hidden for guests', () => {
       ok: true,
       json: async () => ({
         ingredients: [
-          { id: 1, name: 'Mehl', category: 'Getreide', kcal: 350, protein: 10, fat: 1, carbohydrates: 72 },
+          {
+            id: 1,
+            name: 'Mehl',
+            category: 'Getreide',
+            kcal: 350,
+            protein: 10,
+            fat: 1,
+            carbohydrates: 72,
+          },
         ],
         total: 1,
         page: 1,

@@ -7,25 +7,40 @@ interface PaginationProps {
 export function Pagination({ currentPage, totalPages, onPageChange }: PaginationProps) {
   if (totalPages <= 1) return null;
 
+  const pages = Array.from({ length: totalPages }, (_, index) => index + 1);
+
   return (
-    <div className="mt-6 flex items-center justify-center gap-4">
+    <nav aria-label="Seiten" className="mt-6 flex items-center justify-center gap-1">
       <button
         onClick={() => onPageChange(Math.max(1, currentPage - 1))}
         disabled={currentPage === 1}
-        className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+        aria-label="Vorherige Seite"
+        className="px-3 py-2 text-ink rounded hover:bg-surface disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        ← Vorherige
+        ←
       </button>
-      <span className="text-gray-600">
-        Seite {currentPage} von {totalPages}
-      </span>
+
+      {pages.map((page) => (
+        <button
+          key={page}
+          onClick={() => onPageChange(page)}
+          aria-current={page === currentPage ? 'page' : undefined}
+          className={`px-3 py-2 rounded font-medium ${
+            page === currentPage ? 'bg-brand text-white' : 'text-ink hover:bg-surface'
+          }`}
+        >
+          {page}
+        </button>
+      ))}
+
       <button
         onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
         disabled={currentPage === totalPages}
-        className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+        aria-label="Nächste Seite"
+        className="px-3 py-2 text-ink rounded hover:bg-surface disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        Nächste →
+        →
       </button>
-    </div>
+    </nav>
   );
 }

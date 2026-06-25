@@ -14,7 +14,7 @@ describe('RecipeCard Component', () => {
   it('should render recipe card with all information', () => {
     render(<RecipeCard {...mockRecipe} />);
 
-    expect(screen.getByText('Test Recipe')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Test Recipe' })).toBeInTheDocument();
     expect(screen.getByText('von Test User')).toBeInTheDocument();
     expect(screen.getByText('A test recipe')).toBeInTheDocument();
     expect(screen.getByText('5 Zutaten')).toBeInTheDocument();

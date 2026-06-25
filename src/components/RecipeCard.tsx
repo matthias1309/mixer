@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { apiUrl } from '@lib/api-url';
+import { RecipeImage } from './RecipeImage';
 
 export interface RecipeCardProps {
   id: number;
@@ -12,44 +12,66 @@ export interface RecipeCardProps {
   ingredientCount: number;
   createdAt: string;
   score?: number | null;
+  tags?: string[];
+}
+
+function getScoreBadgeColor(score: number): string {
+  if (score >= 70) return 'bg-green-500';
+  if (score >= 40) return 'bg-yellow-500';
+  return 'bg-red-500';
 }
 
 export function RecipeCard(props: RecipeCardProps) {
-  const getScoreBadgeColor = (score: number) => {
-    if (score >= 70) return 'bg-green-500';
-    if (score >= 40) return 'bg-yellow-500';
-    return 'bg-red-500';
-  };
+  const hasScore = props.score !== undefined && props.score !== null;
 
   return (
     <Link href={`/recipes/${props.id}`}>
-      <div className="bg-white p-4 rounded-lg shadow hover:shadow-lg cursor-pointer transition relative">
-        {props.score !== undefined && props.score !== null && (
-          <div
-            className={`absolute top-2 right-2 ${getScoreBadgeColor(
-              props.score
-            )} text-white text-xs font-bold px-2 py-1 rounded`}
-          >
-            {Math.round(props.score)}
-          </div>
-        )}
-        <h3 className="text-xl font-bold text-gray-800">{props.name}</h3>
-        <p className="text-gray-600 text-sm">von {props.creatorName}</p>
-        {props.imagePath ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={apiUrl(`/api/recipes/${props.id}/image`)}
-            alt={props.name}
-            className="mt-2 w-full h-40 object-cover rounded"
-          />
-        ) : (
-          props.description && (
+      <div className="bg-white rounded-lg shadow hover:shadow-lg cursor-pointer transition overflow-hidden">
+        <div data-testid="recipe-card-image" className="relative">
+          <RecipeImage id={props.id} name={props.name} imagePath={props.imagePath} />
+          {hasScore && (
+            <div
+              data-testid="score-badge"
+              className={`absolute top-2 right-2 ${getScoreBadgeColor(
+                props.score as number
+              )} text-white text-xs font-bold px-2 py-1 rounded`}
+            >
+              {Math.round(props.score as number)}
+            </div>
+          )}
+        </div>
+
+        <div className="p-4">
+          <h3 data-testid="recipe-card-title" className="text-xl font-bold text-ink">
+            {props.name}
+          </h3>
+          <p className="text-gray-600 text-sm">von {props.creatorName}</p>
+
+          {props.description && (
             <p className="text-gray-700 mt-2 line-clamp-2">{props.description}</p>
-          )
-        )}
-        <div className="mt-3 flex justify-between text-sm text-gray-500">
-          <span>{props.ingredientCount} Zutaten</span>
-          <span>{new Date(props.createdAt).toLocaleDateString()}</span>
+          )}
+
+          {props.tags && props.tags.length > 0 && (
+            <div className="mt-2 flex flex-wrap gap-1">
+              {props.tags.map((tag) => (
+                <span
+                  key={tag}
+                  data-testid="tag-chip"
+                  className="bg-surface text-ink text-xs px-2 py-0.5 rounded-full border border-accent/30"
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
+          )}
+
+          <div
+            data-testid="recipe-card-meta"
+            className="mt-3 flex justify-between text-sm text-gray-500"
+          >
+            <span>{props.ingredientCount} Zutaten</span>
+            <span>{new Date(props.createdAt).toLocaleDateString()}</span>
+          </div>
         </div>
       </div>
     </Link>
