@@ -1,6 +1,7 @@
 import { calculateScore, AggregatedNutrients } from '@/lib/scoring/phaseScore';
 
 describe('Phase Score Calculation', () => {
+  // TC-011-01
   test('should return a score between 0 and 100', () => {
     const nutrients: AggregatedNutrients = {
       iron: 5,
@@ -13,6 +14,7 @@ describe('Phase Score Calculation', () => {
     expect(score).toBeLessThanOrEqual(100);
   });
 
+  // TC-011-02
   test('should return 0 for unknown phase', () => {
     const nutrients: AggregatedNutrients = {
       iron: 5,
@@ -22,12 +24,14 @@ describe('Phase Score Calculation', () => {
     expect(score).toBe(0);
   });
 
+  // TC-011-03
   test('should return 0 for empty nutrients', () => {
     const score = calculateScore({}, 'menstruation');
     expect(score).toBe(0);
   });
 
   describe('Phase-specific weighting', () => {
+    // TC-011-04
     test('menstruation phase should prioritize iron', () => {
       const highIron: AggregatedNutrients = {
         iron: 8,
@@ -73,6 +77,7 @@ describe('Phase Score Calculation', () => {
       expect(scoreProtein).toBeGreaterThan(scoreIron);
     });
 
+    // TC-011-05
     test('luteal phase should prioritize magnesium', () => {
       const highMagnesium: AggregatedNutrients = {
         magnesium: 150,
@@ -113,6 +118,7 @@ describe('Phase Score Calculation', () => {
   });
 
   describe('Score variation across phases', () => {
+    // TC-011-04 (cross-phase variant)
     test('iron-heavy nutrients should score differently for menstruation vs ovulation', () => {
       const ironHeavy: AggregatedNutrients = {
         iron: 10,
@@ -144,6 +150,7 @@ describe('Phase Score Calculation', () => {
   });
 
   describe('Reference value normalization', () => {
+    // TC-011-06
     test('should cap normalized nutrients at 1.0', () => {
       const veryHighNutrients: AggregatedNutrients = {
         iron: 100, // Far exceeds reference value of 3

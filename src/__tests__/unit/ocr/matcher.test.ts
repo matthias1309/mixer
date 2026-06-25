@@ -51,18 +51,21 @@ describe('Ingredient Matcher', () => {
     },
   ];
 
+  // TC-014-03
   it('finds exact match', () => {
     const result = findBestMatch('Apfel', mockIngredients);
     expect(result.ingredient?.id).toBe(1);
     expect(result.confidence).toBe(1.0);
   });
 
+  // TC-014-04
   it('finds fuzzy match', () => {
     const result = findBestMatch('apfel', mockIngredients); // lowercase
     expect(result.ingredient?.id).toBe(1);
     expect(result.confidence).toBeGreaterThan(0.8);
   });
 
+  // TC-014-05
   it('returns null for no match', () => {
     const result = findBestMatch('xyz123', mockIngredients);
     expect(result.ingredient).toBeNull();

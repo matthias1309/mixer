@@ -58,6 +58,7 @@ describe('Ingredients Master API', () => {
   });
 
   describe('POST /api/ingredients-master - Create ingredient', () => {
+    // TC-012-01
     test('should create ingredient with valid data and return 201', async () => {
       const request = new NextRequest('http://localhost:3000/api/ingredients-master', {
         method: 'POST',
@@ -114,6 +115,7 @@ describe('Ingredients Master API', () => {
       expect(response.status).toBe(409);
     });
 
+    // TC-004-07
     test('should return 401 when not authenticated', async () => {
       const request = new NextRequest('http://localhost:3000/api/ingredients-master', {
         method: 'POST',
@@ -262,6 +264,7 @@ describe('Ingredients Master API', () => {
     });
   });
 
+  // TC-012-02
   describe('GET /api/ingredients-master/:id - Get ingredient detail', () => {
     test('should return ingredient detail with 200', async () => {
       // Create ingredient
@@ -297,6 +300,7 @@ describe('Ingredients Master API', () => {
     });
   });
 
+  // TC-012-02
   describe('PUT /api/ingredients-master/:id - Update ingredient', () => {
     test('should update ingredient with valid data and return 200', async () => {
       // Create ingredient
@@ -363,6 +367,7 @@ describe('Ingredients Master API', () => {
     });
   });
 
+  // TC-012-02
   describe('DELETE /api/ingredients-master/:id - Delete ingredient', () => {
     test('should delete ingredient and return 204', async () => {
       // Create ingredient

@@ -36,6 +36,7 @@ describe('Nutrient Calculator', () => {
     calculated_base_amount: 364, // 2 pieces * 182g
   };
 
+  // TC-012-05
   it('calculates total nutrients for single ingredient', () => {
     const result = calculateRecipeNutrients(
       [{ ...mockRecipeIngredient, calculated_base_amount: 200 }],
@@ -62,6 +63,7 @@ describe('Nutrient Calculator', () => {
     expect(result.per_portion.kcal).toBeCloseTo(47.32, 1);
   });
 
+  // TC-012-08
   it('includes salt in calculated totals', () => {
     const ingredientWithSalt = {
       ...mockApple,
@@ -77,6 +79,7 @@ describe('Nutrient Calculator', () => {
     expect(result.per_portion.salt).toBe(3);
   });
 
+  // TC-012-06
   it('handles multiple ingredients', () => {
     const mockYogurt: Ingredient = {
       ...mockApple,

@@ -52,6 +52,7 @@ describe('Cycle API Endpoints', () => {
   });
 
   describe('POST /api/users/cycle', () => {
+    // TC-010-05
     test('should save cycle data and return 200', async () => {
       const request = new NextRequest('http://localhost:3000/api/users/cycle', {
         method: 'POST',
@@ -73,6 +74,7 @@ describe('Cycle API Endpoints', () => {
       expect(data.data).toBeDefined();
     });
 
+    // TC-010-06
     test('should require authentication', async () => {
       const request = new NextRequest('http://localhost:3000/api/users/cycle', {
         method: 'POST',
@@ -89,6 +91,7 @@ describe('Cycle API Endpoints', () => {
       expect(response.status).toBe(401);
     });
 
+    // TC-010-07
     test('should validate cycle_length_days (21-35)', async () => {
       const request = new NextRequest('http://localhost:3000/api/users/cycle', {
         method: 'POST',
@@ -108,6 +111,7 @@ describe('Cycle API Endpoints', () => {
   });
 
   describe('GET /api/users/cycle', () => {
+    // TC-010-08
     test('should return current phase after saving cycle', async () => {
       // Save cycle data first
       const postRequest = new NextRequest('http://localhost:3000/api/users/cycle', {
@@ -152,6 +156,7 @@ describe('Cycle API Endpoints', () => {
       expect(response.status).toBe(401);
     });
 
+    // TC-010-09
     test('should return success:false if no cycle data', async () => {
       const request = new NextRequest('http://localhost:3000/api/users/cycle', {
         method: 'GET',

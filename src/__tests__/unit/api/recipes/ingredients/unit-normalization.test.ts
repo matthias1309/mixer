@@ -62,6 +62,7 @@ describe('POST /api/recipes/[id]/ingredients - Unit Normalization', () => {
     });
   }
 
+  // TC-013-09
   describe('Volume unit normalization', () => {
     it('creates ingredient with ml unit - normalized_unit is ml, normalized_quantity equals quantity', async () => {
       const request = makeRequest(
@@ -98,6 +99,7 @@ describe('POST /api/recipes/[id]/ingredients - Unit Normalization', () => {
     });
   });
 
+  // TC-013-09
   describe('Weight unit normalization', () => {
     it('creates ingredient with g unit - normalized_unit is g (already base)', async () => {
       const request = makeRequest(recipeId, { name: 'flour', quantity: 500, unit: 'g' }, userToken);

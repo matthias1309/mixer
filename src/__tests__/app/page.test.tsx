@@ -19,6 +19,7 @@ describe('HomePage', () => {
     }
   });
 
+  // TC-004-08
   it('should redirect to /dashboard when no base path is configured', () => {
     delete process.env.NEXT_PUBLIC_BASE_PATH;
 
@@ -27,6 +28,7 @@ describe('HomePage', () => {
     expect(mockRedirect).toHaveBeenCalledWith('/dashboard');
   });
 
+  // TC-004-08
   it('should redirect to the base-path-prefixed dashboard when a base path is configured', () => {
     process.env.NEXT_PUBLIC_BASE_PATH = '/rezepte';
 

@@ -27,11 +27,13 @@ describe('Nutrition Conversions', () => {
   };
 
   describe('convertToBaseAmount', () => {
+    // TC-012-09
     it('converts grams directly', () => {
       const result = convertToBaseAmount(200, 'g', mockApple);
       expect(result).toBe(200);
     });
 
+    // TC-012-09
     it('converts pieces to grams (182g per piece)', () => {
       const result = convertToBaseAmount(2, 'Stück', mockApple);
       expect(result).toBe(364);
@@ -47,6 +49,7 @@ describe('Nutrition Conversions', () => {
       expect(result).toBe(1.5);
     });
 
+    // TC-012-09
     it('throws error for unknown unit', () => {
       expect(() => convertToBaseAmount(1, 'xyz', mockApple)).toThrow();
     });
@@ -58,6 +61,7 @@ describe('Nutrition Conversions', () => {
   });
 
   describe('calculatePerPortion', () => {
+    // TC-012-07
     it('divides total by portions correctly', () => {
       const result = calculatePerPortion(500, 4);
       expect(result).toBe(125);
@@ -68,15 +72,18 @@ describe('Nutrition Conversions', () => {
       expect(result).toBeCloseTo(33.33, 2);
     });
 
+    // TC-012-07
     it('normalizes to 2 decimal places', () => {
       const result = calculatePerPortion(10, 3);
       expect(result).toBeCloseTo(3.33, 2);
     });
 
+    // TC-012-07
     it('throws error for zero portions', () => {
       expect(() => calculatePerPortion(100, 0)).toThrow();
     });
 
+    // TC-012-07
     it('throws error for negative portions', () => {
       expect(() => calculatePerPortion(100, -1)).toThrow();
     });

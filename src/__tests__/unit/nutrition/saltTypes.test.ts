@@ -1,6 +1,7 @@
 import { NUTRIENT_KEYS } from '@/lib/nutrition/types';
 import { NUTRIENT_NAMES, NUTRIENT_UNITS } from '@/lib/nutrition/constants';
 
+// TC-012-08: salt type definitions
 describe('Salt nutrient in types and constants', () => {
   it('includes salt in NUTRIENT_KEYS', () => {
     expect(NUTRIENT_KEYS).toContain('salt');

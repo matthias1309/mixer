@@ -37,6 +37,7 @@ beforeEach(() => {
   } as unknown as Response);
 });
 
+// TC-004-02: recipe detail renders for unauthenticated user (useAuth returns user: null, canEdit/canDelete: false)
 // TC-005-01
 // Given a user opens a recipe detail page
 // When the page finishes loading

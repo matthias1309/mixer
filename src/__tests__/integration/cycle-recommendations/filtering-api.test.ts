@@ -76,6 +76,7 @@ describe('GET /api/recipes with phase-based filtering', () => {
     delete process.env.JWT_SECRET;
   });
 
+  // TC-011-07
   test('should return recipes with score field when phase parameter provided', async () => {
     const request = new NextRequest('http://localhost:3000/api/recipes?phase=menstruation');
     const response = await GET_RECIPES(request);
@@ -87,6 +88,7 @@ describe('GET /api/recipes with phase-based filtering', () => {
     expect(data.recipes[0]).toHaveProperty('score');
   });
 
+  // TC-011-08
   test('should calculate different scores for different phases', async () => {
     const menstruationRequest = new NextRequest(
       'http://localhost:3000/api/recipes?phase=menstruation'
@@ -108,6 +110,7 @@ describe('GET /api/recipes with phase-based filtering', () => {
     expect(spinachMenstruation.score).toBeGreaterThan(spinachOvulation.score);
   });
 
+  // TC-011-09
   test('should work with authenticated user', async () => {
     const request = new NextRequest('http://localhost:3000/api/recipes?phase=menstruation', {
       headers: {
@@ -121,6 +124,7 @@ describe('GET /api/recipes with phase-based filtering', () => {
     expect(data.recipes).toBeDefined();
   });
 
+  // TC-011-09 (pagination variant)
   test('should support pagination with phase', async () => {
     const request = new NextRequest(
       'http://localhost:3000/api/recipes?phase=menstruation&page=1&pageSize=10'
