@@ -23,12 +23,11 @@ Claude Code reads it automatically at the start of every session.
 | Runtime      | Node.js 22 LTS                                |
 | Framework    | Next.js 15 (App Router)                       |
 | Database     | SQLite (local dev & production)               |
-| ORM          | better-sqlite3 / pg (raw SQL, no ORM)         |
+| ORM          | better-sqlite3 (raw SQL, no ORM)              |
 | Auth         | JWT-based (httpOnly cookies)                  |
 | Testing      | Jest + React Testing Library + Cypress        |
 | Linting      | ESLint + Prettier                             |
 | CI/CD        | GitHub Actions — auto-deploy to Uberspace on merge to `main` |
-| Container    | Docker + Docker Compose (local dev only)      |
 
 ---
 
@@ -75,11 +74,8 @@ npm run lint:fix
 # Type-check
 npx tsc --noEmit
 
-# Start with PostgreSQL (Docker)
-docker compose -f docker-compose.local.yml up -d
-
-# One-off: migrate Pi PostgreSQL data to a SQLite file
-npm run db:migrate-pg-to-sqlite
+# Seed local development data (requires the dev server running)
+npm run db:seed
 ```
 
 Always run tests and linting before considering a task complete.
@@ -135,10 +131,7 @@ mixer/
 │   └── __tests__/                  # Unit and integration tests
 ├── tests/
 │   └── e2e/                        # Cypress end-to-end tests
-├── scripts/                        # Deploy and setup scripts
-├── docker-compose.local.yml        # Local dev with PostgreSQL
-├── docker-compose.yml              # Deprecated: Raspberry Pi setup
-└── Dockerfile
+└── scripts/                        # Setup and seed scripts
 ```
 
 ---
@@ -168,10 +161,10 @@ Use `/traceability` to check coverage gaps across all artifacts.
 - **Never force-push to `main`.** See `.claude/rules/git-workflow.md`.
 - **Prefer small, focused commits** over large, sweeping changes.
 - **Write tests for new functionality.** Minimum 80% coverage. TDD: tests first.
-- **Dual-database support:** SQLite (dev & prod). The `pg` driver and
-  PostgreSQL code paths are kept for the one-off migration tooling and local
-  Docker setup — use `ILIKE` and explicit type casts when touching that code.
-  See `.claude/rules/learnings.md`.
+- **SQLite-only:** the app runs on SQLite in dev and production. The former
+  PostgreSQL/`pg` dual-database support, Docker, and the Pi→SQLite migration
+  tooling were removed (see ADR-008). All DB access uses `better-sqlite3` with
+  raw SQL.
 - **Database migrations** must be reviewed before running in production.
 - **Keep this file up to date** when the stack or conventions change.
 
@@ -179,7 +172,7 @@ Use `/traceability` to check coverage gaps across all artifacts.
 
 ## Architecture Notes
 
-- All database access uses raw SQL (better-sqlite3 / pg) — no ORM layer
+- All database access uses raw SQL (better-sqlite3) — no ORM layer
 - Business logic lives in `src/lib/` — API routes are thin
 - Authentication uses JWT stored in httpOnly cookies (15-min access token + refresh rotation)
 - Next.js App Router: all routes under `src/app/api/`
@@ -190,8 +183,8 @@ Use `/traceability` to check coverage gaps across all artifacts.
   must use the `apiUrl()` helper (`src/lib/api-url.ts`) or `next/link` /
   `router.push` — plain `<a href="/...">` and `redirect()` are NOT base-path
   aware. See MAINT-003.
-- Production runs on SQLite (`DATABASE_URL=file:...`); no DB-layer code
-  change is needed to switch engines — it is configuration only
+- Production runs on SQLite (`DATABASE_URL=file:...`). `DATABASE_URL` selects
+  the SQLite file location; a default under `.data/` is used when it is unset
   (`src/lib/db/init.ts`).
 
 ---

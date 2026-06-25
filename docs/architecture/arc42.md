@@ -87,8 +87,8 @@ Recipe Manager is a multi-user web application that helps users manage their rec
 
 ### 2.1 Technical Constraints
 
-- **Deployment Platform**: Uberspace shared hosting (supervisord + Node.js). Local Docker Compose is available for PostgreSQL-based dev only. *(Originally: Raspberry Pi with Docker — retired in MAINT-003.)*
-- **Database**: SQLite (local dev & production). PostgreSQL remains supported for the local Docker setup and the one-off Pi→SQLite migration tooling.
+- **Deployment Platform**: Uberspace shared hosting (supervisord + Node.js). *(Originally: Raspberry Pi with Docker — retired in MAINT-003; Docker removed entirely in ADR-008.)*
+- **Database**: SQLite only, in both local dev and production (`better-sqlite3`). *(PostgreSQL/`pg` dual-database support was removed in ADR-008.)*
 - **Frontend Framework**: Next.js with React
 - **Backend Runtime**: Node.js
 - **Language**: English for all code and documentation
@@ -191,13 +191,13 @@ network — retired in MAINT-003.)*
 - TypeScript
 
 **Database**:
-- SQLite for local development (zero setup) and production
-- PostgreSQL kept for the local Docker setup and the one-off Pi→SQLite migration
+- SQLite for local development (zero setup) and production (`better-sqlite3`)
+- PostgreSQL/`pg` dual-database support removed in ADR-008
 
 **Deployment**:
 - Uberspace shared hosting, supervisord-managed Node.js process
 - GitHub Actions auto-deploy on merge to `main`
-- Docker Compose available for PostgreSQL-based local dev *(legacy Pi orchestration retired in MAINT-003)*
+- *(Legacy Pi + Docker orchestration retired in MAINT-003; Docker removed in ADR-008)*
 
 ### 4.2 Architecture Pattern
 
@@ -212,7 +212,7 @@ A single Next.js application that handles both frontend and backend. This is cho
 ### 4.3 Key Design Decisions
 
 1. **JWT Authentication**: Stateless, suitable for distributed systems and simple to implement
-2. **SQLite in dev & production**: zero-setup, file-based; the schema is engine-agnostic so PostgreSQL stays usable for local Docker and migration tooling (ADR-002)
+2. **SQLite in dev & production**: zero-setup, file-based; PostgreSQL/`pg` dual-database support was removed in ADR-008 (supersedes ADR-002)
 3. **Lean Documentation**: Grow documentation with features (Arc42/Req42), not upfront
 4. **TDD Approach**: Write tests first to ensure quality and maintainability
 5. **Code Review Focus**: Clean code principles (DRY, KISS, YAGNI) guide all reviews
@@ -611,24 +611,12 @@ User              Browser              Server                        Database
    Browser          Browser
 ```
 
-### 7.3 Docker Deployment Commands
+### 7.3 Docker Deployment Commands *(historical — removed in ADR-008)*
 
-```bash
-# Build
-docker build -t recipe-manager:latest .
-
-# Run with docker-compose
-docker-compose up -d
-
-# View logs
-docker-compose logs -f app
-
-# Stop
-docker-compose down
-```
-
-> The Docker commands above target local PostgreSQL dev (`docker-compose.local.yml`)
-> and the legacy Pi orchestration. They are **not** the current production path.
+> Docker was removed entirely in ADR-008. The app runs directly as a Node.js
+> process (locally via `npm run dev`, in production via supervisord on
+> Uberspace — see §7.4). The Docker/Compose commands that previously lived here
+> no longer apply.
 
 ### 7.4 Production on Uberspace *(current)*
 
@@ -934,9 +922,8 @@ smoke test GET /rezepte → expect HTTP 200
 ```
 
 **Environment Configuration**:
-- `.env.local`: local development (SQLite by default)
+- `.env.local`: local development (SQLite; `DATABASE_URL` optional)
 - Production env (`DATABASE_URL`, `JWT_SECRET`, `BASE_PATH`) set on the Uberspace host
-- Local PostgreSQL dev via `docker-compose.local.yml`
 
 **Health / Smoke Check**:
 - Post-deploy smoke test asserts HTTP 200 on the production sub-path
@@ -944,8 +931,7 @@ smoke test GET /rezepte → expect HTTP 200
 **Related Files**:
 - `.github/workflows/deploy.yml` (CI/CD + auto-deploy)
 - `docs/deployment/uberspace-setup.md` (host setup, supervisord template)
-- `docker-compose.local.yml` (local PostgreSQL development)
-- `Dockerfile`, `docker-compose.yml` *(legacy Pi setup — retired in MAINT-003)*
+- *(Docker/Compose files and the Pi deploy script were removed in ADR-008)*
 - `.env.local.example` (environment template)
 
 ### 8.10 Data Validation Strategy
@@ -995,12 +981,11 @@ All architecture decisions are documented as Architecture Decision Records (ADRs
 - **Files**: `src/lib/auth/tokenRefresh.ts`, `src/lib/auth/jwt.ts`, `src/app/api/auth/*`
 
 #### ADR-002: SQLite and PostgreSQL Dual-Database Support
-**Status**: Accepted  
+**Status**: Superseded by ADR-008 (SQLite-only)  
 **Key Points**:
 - SQLite for local development (zero configuration) and production (Uberspace)
-- PostgreSQL kept for local Docker dev and the one-off Pi→SQLite migration tooling
-- Database selection via `DATABASE_URL` environment variable
-- *(Originally PostgreSQL was the production engine on Raspberry Pi; production moved to SQLite in MAINT-003.)*
+- `DATABASE_URL` selects the SQLite file location (defaults under `.data/`)
+- *(Originally PostgreSQL was the production engine on Raspberry Pi; production moved to SQLite in MAINT-003, and PostgreSQL/`pg` support was removed in ADR-008 — this ADR-002 is superseded.)*
 - Models use raw SQL with prepared statements (no ORM)
 - Schema migrations in `src/lib/db/migrations/`
 - Tested for SQL dialect compatibility
