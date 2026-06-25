@@ -8,6 +8,7 @@ describe('RecipeScaler', () => {
   });
 
   describe('scaleIngredient', () => {
+    // TC-013-05
     it('scales ingredient quantity by factor', () => {
       const ingredient = {
         id: 1, recipe_id: 1, name: 'Mehl', quantity: 500, unit: 'g',
@@ -17,6 +18,7 @@ describe('RecipeScaler', () => {
       expect(scaled.unit).toBe('g');
     });
 
+    // TC-013-06
     it('promotes TL to EL when scaled quantity reaches threshold', () => {
       const ingredient = {
         id: 1, recipe_id: 1, name: 'Wasser', quantity: 3, unit: 'TL',
@@ -27,6 +29,7 @@ describe('RecipeScaler', () => {
       expect(scaled.quantity).toBeCloseTo(2, 0);
     });
 
+    // TC-013-07
     it('preserves Stück unit and rounds to integer', () => {
       const ingredient = {
         id: 1, recipe_id: 1, name: 'Eier', quantity: 2, unit: 'Stück',
@@ -36,6 +39,7 @@ describe('RecipeScaler', () => {
       expect(scaled.unit).toBe('Stück');
     });
 
+    // TC-013-07
     it('preserves Prise unit', () => {
       const ingredient = {
         id: 1, recipe_id: 1, name: 'Salz', quantity: 1, unit: 'Prise',
@@ -45,6 +49,7 @@ describe('RecipeScaler', () => {
       expect(scaled.unit).toBe('Prise');
     });
 
+    // TC-013-07
     it('rounds large weight quantities to nearest 5g', () => {
       const ingredient = {
         id: 1, recipe_id: 1, name: 'Butter', quantity: 25, unit: 'g',
@@ -81,6 +86,7 @@ describe('RecipeScaler', () => {
     });
   });
 
+  // TC-013-06
   describe('promoteUnit', () => {
     it('promotes TL to EL when quantity >= 3', () => {
       const result = scaler.promoteUnit(3, 'TL');

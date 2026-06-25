@@ -52,6 +52,7 @@ describe('Ingredient Parser', () => {
 
   const mockIngredients = [mockApple, mockMilk];
 
+  // TC-014-01
   it('parses simple ingredient line', () => {
     const text = '2 Äpfel';
     const results = parseIngredientsFromText(text, mockIngredients);
@@ -62,6 +63,7 @@ describe('Ingredient Parser', () => {
     expect(results[0].name).toBe('Apfel');
   });
 
+  // TC-014-01
   it('parses ingredient with unit', () => {
     const text = '200 ml Milch';
     const results = parseIngredientsFromText(text, mockIngredients);
@@ -71,6 +73,7 @@ describe('Ingredient Parser', () => {
     expect(results[0].unit).toBe('ml');
   });
 
+  // TC-014-02
   it('handles multiple lines', () => {
     const text = '2 Äpfel\n200 ml Milch\nSalz';
     const results = parseIngredientsFromText(text, mockIngredients);

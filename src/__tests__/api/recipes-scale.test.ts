@@ -77,6 +77,7 @@ describe('POST /api/recipes/[id]/scale', () => {
       expect(eggsIng.unit).toBe('Stück');
     });
 
+    // TC-013-05
     it('scales down correctly (e.g., 4 servings → 2)', async () => {
       const recipe = RecipeModel.create('Soup', userId, null, null, 4, [
         { name: 'water', quantity: 1000, unit: 'ml' },
@@ -97,6 +98,7 @@ describe('POST /api/recipes/[id]/scale', () => {
       expect(waterIng.unit).toBe('ml');
     });
 
+    // TC-013-06
     it('promotes units when threshold is exceeded (ml → l)', async () => {
       const recipe = RecipeModel.create('Tea', userId, null, null, 1, [
         { name: 'water', quantity: 500, unit: 'ml' },
@@ -163,6 +165,7 @@ describe('POST /api/recipes/[id]/scale', () => {
     });
   });
 
+  // TC-013-08
   describe('validation errors', () => {
     it('returns 404 for non-existent recipe', async () => {
       const request = makeRequest(99999, { newServings: 4 });
@@ -322,6 +325,7 @@ describe('POST /api/recipes/[id]/scale', () => {
       expect(data.updatedAt).toBeDefined();
     });
 
+    // TC-013-08 (read-only)
     it('does not modify the recipe in the database', async () => {
       const recipe = RecipeModel.create('Unchanged', userId, null, null, 4, [
         { name: 'pasta', quantity: 400, unit: 'g' },

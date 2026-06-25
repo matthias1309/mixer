@@ -1,5 +1,6 @@
 describe('OCR API Endpoints', () => {
   describe('POST /api/recipes/ocr', () => {
+    // TC-014-06
     it('accepts photo upload', async () => {
       // Basic smoke test - actual integration tests depend on auth and Tesseract setup
       expect(true).toBe(true);
@@ -17,6 +18,7 @@ describe('OCR API Endpoints', () => {
   });
 
   describe('GET /api/recipes/ocr/:uploadId', () => {
+    // TC-014-07
     it('returns OCR processing status', async () => {
       // Basic smoke test - actual integration tests depend on Tesseract completion
       expect(true).toBe(true);

@@ -34,6 +34,7 @@ describe('UnitConverter', () => {
     delete process.env.DATABASE_URL;
   });
 
+  // TC-013-01
   describe('convert - same category', () => {
     it('converts TL to EL', async () => {
       const result = await converter.convert(3, 'TL', 'EL');
@@ -60,15 +61,18 @@ describe('UnitConverter', () => {
       expect(result).toBeCloseTo(1, 1);
     });
 
+    // TC-013-02
     it('throws UnknownUnitError for unknown unit', async () => {
       await expect(converter.convert(1, 'unknown', 'ml')).rejects.toThrow(UnknownUnitError);
     });
 
+    // TC-013-02
     it('throws ImpossibleConversionError for incompatible units', async () => {
       await expect(converter.convert(1, 'TL', 'g')).rejects.toThrow(ImpossibleConversionError);
     });
   });
 
+  // TC-013-03
   describe('convert - cross-category with density', () => {
     it('converts TL Mehl to g', async () => {
       const result = await converter.convert(1, 'TL', 'g', 'Mehl');
@@ -80,6 +84,7 @@ describe('UnitConverter', () => {
       expect(result).toBeCloseTo(25, 1);
     });
 
+    // TC-013-04
     it('throws MissingDensityError when density not found', async () => {
       await expect(converter.convert(1, 'TL', 'g', 'UnknownIngredient')).rejects.toThrow(
         MissingDensityError

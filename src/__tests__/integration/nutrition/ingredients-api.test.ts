@@ -36,7 +36,7 @@ describe('GET /api/nutrition/ingredients', () => {
     delete process.env.DATABASE_URL;
   });
 
-  // TC-008-01
+  // TC-008-01, TC-012-03
   it('returns 200 with ingredients ordered by category, then name', async () => {
     const db = getSqliteDb();
     const insert = db.prepare(
@@ -55,7 +55,7 @@ describe('GET /api/nutrition/ingredients', () => {
     expect(body.data.map((i: { name: string }) => i.name)).toEqual(['Reis', 'Apfel', 'Banane']);
   });
 
-  // TC-008-02
+  // TC-008-02, TC-012-04
   it('returns 200 with an empty list when no ingredients exist', async () => {
     const request = new NextRequest('http://localhost:3000/api/nutrition/ingredients');
     const response = await GET(request);

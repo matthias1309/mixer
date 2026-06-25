@@ -199,6 +199,7 @@ describe('Recipe CRUD API', () => {
       expect(data.error).toContain('50');
     });
 
+    // TC-004-07
     test('should return 401 if not authenticated', async () => {
       const request = new NextRequest('http://localhost:3000/api/recipes', {
         method: 'POST',
@@ -492,6 +493,7 @@ describe('Recipe CRUD API', () => {
       expect(unchanged?.name).toBe('Recipe');
     });
 
+    // TC-004-07
     test('should return 401 if not authenticated', async () => {
       const recipe = RecipeModel.create('Recipe', user1Id);
 
@@ -577,6 +579,7 @@ describe('Recipe CRUD API', () => {
       expect(unchanged).not.toBeNull();
     });
 
+    // TC-004-07
     test('should return 401 if not authenticated for delete', async () => {
       const recipe = RecipeModel.create('Recipe', user1Id);
 
