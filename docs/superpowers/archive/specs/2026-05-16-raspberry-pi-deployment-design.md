@@ -1,5 +1,10 @@
 # Raspberry Pi Deployment Design
 
+> **⚠️ OBSOLETE.** The Raspberry Pi + Docker + PostgreSQL deployment described
+> here was retired in MAINT-003 (production moved to Uberspace + SQLite) and the
+> Docker/Pi tooling was removed in ADR-008. Kept for historical reference only.
+> Current deployment: `docs/deployment/uberspace-setup.md`.
+
 **Date:** 2026-05-16  
 **Feature:** Complete Docker deployment to Raspberry Pi with PostgreSQL  
 **Status:** Design Phase  

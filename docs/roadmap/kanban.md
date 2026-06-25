@@ -107,7 +107,13 @@ Feature work is tracked in the V-Model docs (`requirements/`, `architecture/`,
 - [x] **REQ-007** - Skeleton Loader & Filter Search - ✅ implemented & tested
 - [x] **REQ-008** - Fix `/api/nutrition/ingredients` Endpoint - ✅ implemented & tested
 - [x] **REQ-009** - Recipe Photo Upload & Dashboard Display - ✅ 2026-06 (PR #25)
-- [x] **REC-109** - Unit Conversion & Recipe Scaling (ADR-006) - ✅ implemented & tested
+
+**Formalised retroactively (V-Model docs written after the as-built feature):**
+- [x] **REQ-010** - Menstrual Cycle Tracking - ✅ implemented & tested
+- [x] **REQ-011** - Cycle-Based Recipe Scoring - ✅ implemented & tested
+- [x] **REQ-012** - Nutrition Database & Recipe Nutrient Calculation - ✅ implemented & tested
+- [x] **REQ-013** - Unit Conversion & Recipe Scaling (formerly REC-109; ADR-006) - ✅ implemented & tested
+- [x] **REQ-014** - Recipe Photo OCR & Ingredient Extraction - ✅ implemented & tested
 
 ### ✅ Completed — Maintenance & Quality
 

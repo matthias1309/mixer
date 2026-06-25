@@ -1,5 +1,10 @@
 # DOCS-102: Deployment Guide Implementation Plan
 
+> **⚠️ OBSOLETE.** This plan targets the Raspberry Pi + Docker deployment,
+> retired in MAINT-003 (production moved to Uberspace + SQLite; Docker removed in
+> ADR-008). Kept for historical reference only.
+> Current deployment: `docs/deployment/uberspace-setup.md`.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Create a comprehensive, tested deployment guide for deploying the Recipe Manager application to Raspberry Pi with Docker.
