@@ -35,6 +35,10 @@ likely to break something else.
 | **Nutrition DB & Calculation** | REQ-012 / ARCH-012 / TEST-012 (+ REQ-008 endpoint fix) | `src/lib/nutrition/*`, `ingredientMasterAsync.ts`, `RecipeModelAsync.getNutrients()`, `src/app/api/{nutrition/ingredients,ingredients-master,recipes/[id]/calculate}/*`, migrations `002`,`004`,`005` | Recipe CRUD, `ingredients_master` | **Cycle Scoring (011)**, OCR matching (014), nutrient display |
 | **Unit Conversion & Recipe Scaling** | REQ-013 / ARCH-013 / TEST-013, ADR-006 | `src/lib/units/*`, `src/app/api/recipes/[id]/scale/route.ts`, ingredient normalisation in `recipes/[id]/ingredients/route.ts`, migrations `006`–`009`, `src/db/seeds/units.ts` | DB seeds | Recipe scaling UI, ingredient add |
 | **Recipe Photo OCR & Extraction** | REQ-014 / ARCH-014 / TEST-014 | `src/lib/ocr/*`, `src/app/api/recipes/ocr/*`, `src/components/recipe/{PhotoUploadForm,OcrReview,OcrLoading}.tsx`, `src/config/upload.ts` | **Nutrition (012)** for matching, Recipe CRUD for create, upload config | Recipe creation from photo |
+| **REWE Redesign: Layout & Cards** | REQ-015 / ARCH-015 / TEST-015 | `tailwind.config.*`, `src/app/globals.css`, `src/components/{RecipeImage,RecipeCard,FilterPanel,Pagination,RecipeList,Navigation}.tsx`, `src/app/dashboard/page.tsx` | Recipe CRUD, Filtering, Phase filter | Provides design tokens + card/filter shell to 016/017/018 (presentation only, no DB change) |
+| **REWE Redesign: Metadata & Tags** | REQ-016 / ARCH-016 / TEST-016 | migration `011`, `src/lib/constants.ts` (vocabulary), `recipe_tags` table, `src/lib/db/models/recipe*.ts`, `src/lib/validation.ts`, `src/types/recipe.ts`, `RecipeForm.tsx`, `RecipeCard.tsx`, `src/app/api/recipes/{route,[id]/route}.ts` | REQ-015 (tag slot/card), Recipe CRUD | **Filter Engine (017)**, card chips/meta |
+| **REWE Redesign: Filter & Sort Engine** | REQ-017 / ARCH-017 / TEST-017 | `buildRecipeQuery()` in `recipe*.ts`, `src/app/api/recipes/route.ts`, `src/components/{FilterPanel,SortDropdown,RecipeList}.tsx`, `src/hooks/useFilter.ts`, `src/lib/constants.ts` | REQ-016 (metadata), Phase + Ingredient filters | Dashboard filtering/sorting |
+| **REWE Redesign: Star Ratings** | REQ-018 / ARCH-018 / TEST-018 | migration `012`, `recipe_ratings` table, `src/lib/db/models/rating.ts`, `recipe*.ts` (aggregate join), `src/app/api/recipes/[id]/rating/route.ts`, `src/components/{recipe/StarRating,RecipeCard,FilterPanel}.tsx` | Auth, Recipe CRUD | Filter Engine (017) `minRating`/`sort=rating`, card rating display |
 
 ---
 
@@ -46,13 +50,16 @@ feature in the "Features affected" column (and running their tests).
 | Seam (file / table) | Features affected |
 |---|---|
 | `src/lib/db/models/recipe-async.ts` | Recipe CRUD, **Scoring (011)** (`listAllWithScoreAsync`), **Nutrition (012)** (`getNutrients`), **Photo (009)** (`setImage`), Filtering (`getUniqueIngredients`) |
-| `src/app/api/recipes/route.ts` (list) | Recipe CRUD, Filtering, **Scoring (011)** (`?phase=`), search/sort |
+| `src/app/api/recipes/route.ts` (list) | Recipe CRUD, Filtering, **Scoring (011)** (`?phase=`), search/sort, **Filter Engine (017)** (difficulty/maxTime/mealType/tags/minRating/sort), **Ratings (018)** |
+| `src/components/{RecipeCard,FilterPanel}.tsx` | Redesign (015), Metadata chips/meta (016), Filter groups (017), Rating display/min-rating (018) |
+| `recipe_tags` table | Metadata (016) writes, **Filter Engine (017)** reads (AND tag filter) |
 | `ingredients_master` table | Nutrition (012), Scoring (011), OCR matching (014), ingredient autocomplete |
 | `src/lib/db/init.ts` | **All features** — engine, migration runner, seeding (ADR-008 SQLite-only) |
 | `src/lib/auth/middleware.ts` | **All protected/mutating endpoints** |
 | `src/components/forms/RecipeForm.tsx` | Recipe CRUD, Photo upload (009), ingredient autocomplete |
 | `src/config/upload.ts` | Photo (009) **and** OCR (014) share file validation |
-| `src/lib/constants.ts` | Scoring (011) phases, recipe sort/filter options |
+| `src/lib/constants.ts` | Scoring (011) phases, recipe sort/filter options, **REWE tag vocabulary / difficulty / meal types (016)**, **extended sort options (017)** |
+| `src/components/forms/RecipeForm.tsx` (also a seam below) | Recipe CRUD, Photo (009), autocomplete, **Metadata inputs (016)** |
 | migrations `src/lib/db/migrations/*.sql` | schema changes ripple to every model/query that reads the table |
 
 ---
