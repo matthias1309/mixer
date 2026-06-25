@@ -42,6 +42,13 @@ Claude should read those files before writing or modifying code.
 - **V-Model & traceability:** `.claude/rules/v-model.md`
 - **Project learnings:** `.claude/rules/learnings.md`
 
+**Before changing or adding a feature, read [`docs/feature-map.md`](docs/feature-map.md).**
+It maps each feature to its REQ/ARCH/TEST and key files, lists dependency edges
+(depends on / used by), and flags the **shared seams** — files and tables that
+multiple features touch, where a change is most likely to break another feature.
+The test suite (run in CI) is the actual regression guard; the feature map tells
+you which features to re-check.
+
 When in doubt, follow the existing patterns in the codebase rather than inventing new ones.
 If a convention is unclear, ask before proceeding.
 
