@@ -1,6 +1,4 @@
-import { getDb, isPostgres } from '@/lib/db/init';
-import Database from 'better-sqlite3';
-import { Pool } from 'pg';
+import { getDb } from '@/lib/db/init';
 import {
   Unit,
   IngredientDensity,
@@ -17,15 +15,7 @@ export class UnitConverter {
   private densities: Map<string, IngredientDensity[]> = new Map();
 
   async initialize(): Promise<void> {
-    if (isPostgres()) {
-      await this.initializeFromPostgres();
-    } else {
-      this.initializeFromSqlite();
-    }
-  }
-
-  private initializeFromSqlite(): void {
-    const db = getDb() as Database.Database;
+    const db = getDb();
 
     // Load units
     const unitRows = db.prepare('SELECT * FROM units').all() as Unit[];
@@ -49,39 +39,6 @@ export class UnitConverter {
     // Load densities
     const densityRows = db.prepare('SELECT * FROM ingredient_densities').all() as IngredientDensity[];
     densityRows.forEach((density) => {
-      const key = density.ingredient_name.toLowerCase();
-      if (!this.densities.has(key)) {
-        this.densities.set(key, []);
-      }
-      this.densities.get(key)!.push(density);
-    });
-  }
-
-  private async initializeFromPostgres(): Promise<void> {
-    const pool = getDb() as Pool;
-
-    // Load units
-    const unitResult = await pool.query('SELECT * FROM units');
-    unitResult.rows.forEach((unit: Unit) => {
-      this.units.set(unit.abbreviation, unit);
-    });
-
-    // Load conversions
-    const convResult = await pool.query(
-      `SELECT u1.abbreviation as from_unit, u2.abbreviation as to_unit, uc.conversion_factor
-       FROM unit_conversions uc
-       JOIN units u1 ON uc.from_unit_id = u1.id
-       JOIN units u2 ON uc.to_unit_id = u2.id`
-    );
-    convResult.rows.forEach(
-      (conv: { from_unit: string; to_unit: string; conversion_factor: number }) => {
-        this.conversions.set(`${conv.from_unit}->${conv.to_unit}`, conv.conversion_factor);
-      }
-    );
-
-    // Load densities
-    const densityResult = await pool.query('SELECT * FROM ingredient_densities');
-    densityResult.rows.forEach((density: IngredientDensity) => {
       const key = density.ingredient_name.toLowerCase();
       if (!this.densities.has(key)) {
         this.densities.set(key, []);

@@ -5,7 +5,7 @@
 
 import { seedUnits, seedUnitConversions, seedUnitDensities } from './units';
 
-export type DbClient = any; // better-sqlite3.Database or pg.Pool
+export type DbClient = any; // better-sqlite3.Database
 
 /**
  * Seed SQLite database (synchronous)
@@ -20,21 +20,6 @@ export function seedDatabase(db: DbClient): void {
   seedUnits(db);
   seedUnitConversions(db);
   seedUnitDensities(db);
-
-  // eslint-disable-next-line no-console
-  console.log('✓ Database seed complete');
-}
-
-/**
- * Seed PostgreSQL database (async)
- * For future use when async seed functions are implemented
- */
-export async function seedDatabaseAsync(db: DbClient): Promise<void> {
-  // eslint-disable-next-line no-console
-  console.log('Starting database seed (async)...');
-
-  // TODO: Implement async versions of seed functions for PostgreSQL
-  // seedUnitsAsync, seedUnitConversionsAsync, etc.
 
   // eslint-disable-next-line no-console
   console.log('✓ Database seed complete');

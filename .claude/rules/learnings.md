@@ -19,6 +19,8 @@ Claude reads this file every session and factors the entries into suggestions an
 **Learning:** SQLite is lenient with types (strings vs. integers), PostgreSQL is strict. ILIKE vs. LIKE for case-insensitive search.
 **Action:** Always use `$1::text` casts in PostgreSQL queries and use `ILIKE` for case-insensitive matching. Test against both databases locally before pushing.
 
+> **⚠️ Superseded (ADR-008, 2026-06-25):** The app is now **SQLite-only** — PostgreSQL/`pg` and the dual-database code paths were removed. This learning is kept for historical context but no longer applies; there is no PostgreSQL path to test against.
+
 ## 2026-05-30 — Test isolation requires fresh database per test file
 
 **Context:** Flaky tests appeared when multiple test files shared the same in-memory SQLite database.

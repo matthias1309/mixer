@@ -5,9 +5,7 @@ import { UnitConverter } from '@/lib/units/converter';
 import { UnknownUnitError } from '@/lib/units/types';
 import { withDatabase } from '@/lib/api/withDatabase';
 import { HTTP_STATUS, VALIDATION } from '@/lib/constants';
-import { getDb, isPostgres } from '@/lib/db/init';
-import Database from 'better-sqlite3';
-import { Pool } from 'pg';
+import { getDb } from '@/lib/db/init';
 
 type Params = Promise<{ id: string }>;
 
@@ -109,24 +107,11 @@ async function handlePOST(request: NextRequest, props: { params: Params }) {
 
     // Insert ingredient into DB
     const db = getDb();
-    let ingredientId: number;
-
-    if (isPostgres()) {
-      const pool = db as Pool;
-      const result = await pool.query(
-        `INSERT INTO ingredients (recipe_id, name, quantity, unit, normalized_quantity, normalized_unit)
-         VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
-        [recipeId, ingredientName, ingredientQuantity, ingredientUnit, normalizedQuantity, normalizedUnit]
-      );
-      ingredientId = result.rows[0].id;
-    } else {
-      const sqlite = db as Database.Database;
-      const info = sqlite.prepare(
-        `INSERT INTO ingredients (recipe_id, name, quantity, unit, normalized_quantity, normalized_unit)
-         VALUES (?, ?, ?, ?, ?, ?)`
-      ).run(recipeId, ingredientName, ingredientQuantity, ingredientUnit, normalizedQuantity, normalizedUnit) as { lastInsertRowid: number };
-      ingredientId = Number(info.lastInsertRowid);
-    }
+    const info = db.prepare(
+      `INSERT INTO ingredients (recipe_id, name, quantity, unit, normalized_quantity, normalized_unit)
+       VALUES (?, ?, ?, ?, ?, ?)`
+    ).run(recipeId, ingredientName, ingredientQuantity, ingredientUnit, normalizedQuantity, normalizedUnit) as { lastInsertRowid: number };
+    const ingredientId = Number(info.lastInsertRowid);
 
     const ingredient = {
       id: ingredientId,

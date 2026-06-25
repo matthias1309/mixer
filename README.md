@@ -203,17 +203,10 @@ which runs lint / type-check / tests, deploys, and runs a smoke test.
 
 Setup guide: [Uberspace Setup](docs/deployment/uberspace-setup.md)
 
-### Local PostgreSQL (Docker, optional)
-
-To develop against PostgreSQL instead of SQLite:
-
-```bash
-docker compose -f docker-compose.local.yml up -d
-```
-
-> The legacy Raspberry Pi + Caddy + PostgreSQL deployment was retired in
-> MAINT-003 (2026-06). Its docs remain under `docs/deployment/` for historical
-> reference only.
+> The app is **SQLite-only**. The legacy Raspberry Pi + Caddy + PostgreSQL +
+> Docker stack was retired in MAINT-003 (2026-06) and the PostgreSQL/`pg`
+> code paths were removed in ADR-008. Pi-era docs remain under
+> `docs/deployment/` for historical reference only.
 
 ## Technology Stack
 

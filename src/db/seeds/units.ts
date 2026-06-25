@@ -96,16 +96,6 @@ export const DENSITY_SEEDS: DensitySeed[] = [
  * @param db - Database instance (better-sqlite3 Database or pg Pool)
  */
 export function seedUnits(db: any) {
-  // Check if we're using SQLite or PostgreSQL
-  const isPostgres = db.query !== undefined;
-
-  if (isPostgres) {
-    // PostgreSQL - use async/await pattern (handled by caller)
-    // This function would need to be async for PostgreSQL
-    throw new Error('Use seedUnitsAsync for PostgreSQL');
-  }
-
-  // SQLite - synchronous
   const existingCount = db.prepare(
     'SELECT COUNT(*) as count FROM units'
   ).get() as { count: number };
@@ -136,15 +126,6 @@ export function seedUnits(db: any) {
  * @param db - Database instance (better-sqlite3 Database)
  */
 export function seedUnitConversions(db: any) {
-  // Check if we're using SQLite or PostgreSQL
-  const isPostgres = db.query !== undefined;
-
-  if (isPostgres) {
-    // PostgreSQL - use async/await pattern
-    throw new Error('Use seedUnitConversionsAsync for PostgreSQL');
-  }
-
-  // SQLite - synchronous
   const existingCount = db.prepare(
     'SELECT COUNT(*) as count FROM unit_conversions'
   ).get() as { count: number };
@@ -181,15 +162,6 @@ export function seedUnitConversions(db: any) {
  * @param db - Database instance (better-sqlite3 Database)
  */
 export function seedUnitDensities(db: any) {
-  // Check if we're using SQLite or PostgreSQL
-  const isPostgres = db.query !== undefined;
-
-  if (isPostgres) {
-    // PostgreSQL - use async/await pattern
-    throw new Error('Use seedUnitDensitiesAsync for PostgreSQL');
-  }
-
-  // SQLite - synchronous
   const existingCount = db.prepare(
     'SELECT COUNT(*) as count FROM ingredient_densities'
   ).get() as { count: number };

@@ -1,8 +1,13 @@
 # ADR-002: SQLite and PostgreSQL Dual-Database Support
 
-**Status**: Accepted  
+**Status**: Superseded by [ADR-008](ADR-008-sqlite-only.md) (2026-06-25)  
 **Date**: 2026-05-19  
 **Context**: Application needs to work locally (SQLite) for development and on Raspberry Pi (PostgreSQL) for production.
+
+> **⚠️ Superseded:** After production moved to Uberspace on SQLite (MAINT-003),
+> the PostgreSQL/`pg` dual-database support was removed entirely. The app is now
+> SQLite-only — see [ADR-008](ADR-008-sqlite-only.md). This record is kept for
+> historical context.
 
 ## Decision
 

@@ -1,20 +1,15 @@
 import Database from 'better-sqlite3';
-import { Pool } from 'pg';
 import path from 'path';
 import fs from 'fs';
 import { seedDatabase } from '@/db/seeds';
 
 let db: Database.Database;
-let pgPool: Pool | null = null;
 let initPromise: Promise<void> | null = null;
 let lastDatabaseUrl: string | undefined;
 
-export type DbClient = Database.Database | Pool;
+export type DbClient = Database.Database;
 
 export function getDb(): DbClient {
-  if (pgPool) {
-    return pgPool;
-  }
   if (db) {
     return db;
   }
@@ -26,13 +21,9 @@ export function getDatabase(): DbClient {
   return getDb();
 }
 
-// For call sites that only ever run against SQLite (no PostgreSQL branch).
+// Explicit SQLite accessor (kept for call sites that document the engine).
 export function getSqliteDb(): Database.Database {
-  return getDb() as Database.Database;
-}
-
-export function isPostgres(): boolean {
-  return !!pgPool;
+  return getDb();
 }
 
 export async function initializeDatabase(): Promise<void> {
@@ -58,83 +49,46 @@ export async function initializeDatabase(): Promise<void> {
 async function _initializeDatabaseInternal(): Promise<void> {
   const databaseUrl = process.env.DATABASE_URL;
 
-  // Check if it's PostgreSQL (postgres:// or postgresql://) or SQLite otherwise
-  const isPostgresUrl = databaseUrl && (databaseUrl.startsWith('postgres://') || databaseUrl.startsWith('postgresql://'));
+  // SQLite path: a `file:` URL, a direct file path, or the default location.
+  let dbPath: string;
 
-  if (isPostgresUrl) {
-    // Initialize PostgreSQL
-    pgPool = new Pool({
-      connectionString: databaseUrl,
-    });
-
-    // Test connection
-    try {
-      const client = await pgPool.connect();
-      console.log('Connected to PostgreSQL');
-      client.release();
-    } catch (error) {
-      console.error('Failed to connect to PostgreSQL:', error);
-      if (process.env.NODE_ENV === 'production') {
-        throw error;
-      }
-      console.log('Continuing despite connection error (likely during build)');
-      pgPool = null;
-      return;
-    }
-
-    // Run migrations
-    await runMigrations(pgPool);
-
-    // Seed database with default data
-    // Note: PostgreSQL async seed functions not yet implemented
-    try {
-      seedDatabase(pgPool);
-    } catch (error) {
-      console.warn('PostgreSQL seeding not yet available:', (error as Error).message);
-      // Continue anyway - seeding can happen separately
+  if (databaseUrl) {
+    if (databaseUrl.startsWith('file:')) {
+      // Extract path from file: URL
+      dbPath = databaseUrl.replace(/^file:/, '');
+    } else {
+      // Assume it's a direct file path
+      dbPath = databaseUrl;
     }
   } else {
-    // Initialize SQLite (development or file: DATABASE_URL)
-    let dbPath: string;
-
-    if (databaseUrl) {
-      if (databaseUrl.startsWith('file:')) {
-        // Extract path from file: URL
-        dbPath = databaseUrl.replace(/^file:/, '');
-      } else {
-        // Assume it's a direct file path
-        dbPath = databaseUrl;
-      }
-    } else {
-      // Default path
-      dbPath = path.join(process.cwd(), '.data', 'app.db');
-    }
-
-    const dbDir = path.dirname(dbPath);
-
-    if (!fs.existsSync(dbDir)) {
-      fs.mkdirSync(dbDir, { recursive: true });
-    }
-
-    db = new Database(dbPath);
-
-    // WAL mode for better concurrency, except in test environments
-    if (process.env.NODE_ENV !== 'test') {
-      db.pragma('journal_mode = WAL');
-      db.pragma('synchronous = NORMAL');  // Balanced between safety and performance
-    } else {
-      // Use DELETE journal mode for tests for better isolation
-      db.pragma('journal_mode = DELETE');
-    }
-
-    console.log('Connected to SQLite');
-
-    // Run migrations
-    runMigrationsSync(db);
-
-    // Seed database with default data
-    seedDatabase(db);
+    // Default path
+    dbPath = path.join(process.cwd(), '.data', 'app.db');
   }
+
+  const dbDir = path.dirname(dbPath);
+
+  if (!fs.existsSync(dbDir)) {
+    fs.mkdirSync(dbDir, { recursive: true });
+  }
+
+  db = new Database(dbPath);
+
+  // WAL mode for better concurrency, except in test environments
+  if (process.env.NODE_ENV !== 'test') {
+    db.pragma('journal_mode = WAL');
+    db.pragma('synchronous = NORMAL');  // Balanced between safety and performance
+  } else {
+    // Use DELETE journal mode for tests for better isolation
+    db.pragma('journal_mode = DELETE');
+  }
+
+  console.log('Connected to SQLite');
+
+  // Run migrations
+  runMigrationsSync(db);
+
+  // Seed database with default data
+  seedDatabase(db);
 }
 
 function runMigrationsSync(database: Database.Database): void {
@@ -184,55 +138,10 @@ function runMigrationsSync(database: Database.Database): void {
   }
 }
 
-async function runMigrations(pool: Pool): Promise<void> {
-  const migrationsDir = path.join(process.cwd(), 'src', 'lib', 'db', 'migrations');
-
-  if (!fs.existsSync(migrationsDir)) {
-    console.log('No migrations directory found');
-    return;
-  }
-
-  const migrationFiles = fs
-    .readdirSync(migrationsDir)
-    .filter((f) => f.endsWith('.sql'))
-    .sort();
-
-  for (const file of migrationFiles) {
-    const filePath = path.join(migrationsDir, file);
-    const sql = fs.readFileSync(filePath, 'utf-8');
-
-    const statements = sql
-      .split(';')
-      .map((s) => s.trim())
-      .filter((s) => s.split('\n').some((line) => line.trim().length > 0 && !line.trim().startsWith('--')));
-
-    for (const statement of statements) {
-      try {
-        await pool.query(statement);
-      } catch (error: unknown) {
-        const isAlterAddColumn = /ALTER\s+TABLE\s+\S+\s+ADD\s+COLUMN/i.test(statement);
-        const isDuplicateColumn = error instanceof Error && (error as any).code === '42701';
-        if (isAlterAddColumn && isDuplicateColumn) {
-          // Column already exists — safe to skip
-          continue;
-        }
-        console.error(`Migration failed: ${file}`, error);
-        throw error;
-      }
-    }
-
-    console.log(`Migration executed: ${file}`);
-  }
-}
-
 export function closeDatabase(): void {
   if (db) {
     db.close();
     db = undefined as any;
-  }
-  if (pgPool) {
-    pgPool.end();
-    pgPool = null;
   }
   // Reset initialization promise so next init is allowed
   initPromise = null;
