@@ -15,18 +15,13 @@
     "test:coverage": "jest --coverage",
     "test:e2e": "cypress open",
     "test:e2e:headless": "cypress run",
-    "db:start": "docker compose -f docker-compose.local.yml up -d",
-    "db:stop": "docker compose -f docker-compose.local.yml down",
-    "db:setup": "bash scripts/setup-local.sh",
-    "db:seed": "bash scripts/seed-local.sh",
-    "db:migrate-pg-to-sqlite": "ts-node --compiler-options '{\"module\":\"commonjs\"}' scripts/migrate-pg-to-sqlite.ts"
+    "db:seed": "bash scripts/seed-local.sh"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
     "better-sqlite3": "^10.1.0",
     "jsonwebtoken": "^9.0.2",
     "next": "^15.0.0",
-    "pg": "^8.20.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "tesseract.js": "^7.0.0"
@@ -40,7 +35,6 @@
     "@types/jest": "^29.5.8",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^20.0.0",
-    "@types/pg": "^8.20.0",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
     "autoprefixer": "^10.5.0",
@@ -53,7 +47,6 @@
     "postcss": "^8.5.14",
     "prettier": "^3.1.0",
     "tailwindcss": "^3.4.19",
-    "ts-node": "^10.9.1",
     "typescript": "^5.3.3"
   },
   "engines": {

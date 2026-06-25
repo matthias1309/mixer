@@ -1,6 +1,4 @@
-import { getDb, isPostgres } from '../init';
-import { Pool } from 'pg';
-import Database from 'better-sqlite3';
+import { getDb } from '../init';
 
 export interface IngredientMaster {
   id: number;
@@ -54,91 +52,43 @@ export interface CreateIngredientMasterRequest {
 export class IngredientMasterModelAsync {
   static async create(data: CreateIngredientMasterRequest): Promise<IngredientMaster> {
     const db = getDb();
+    const stmt = db.prepare(`
+      INSERT INTO ingredients_master (
+        name, category, base_unit, base_size,
+        kcal, iron, sugar, fat, protein, carbohydrates, fiber,
+        salt, sodium, calcium, vitamin_d, magnesium, vitamin_b6, vitamin_b12, vitamin_e, zinc
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+    const info = stmt.run(
+      data.name.trim(),
+      data.category?.trim() || null,
+      data.base_unit || 'g',
+      data.base_size || 100,
+      data.kcal || null,
+      data.iron || null,
+      data.sugar || null,
+      data.fat || null,
+      data.protein || null,
+      data.carbohydrates || null,
+      data.fiber || null,
+      data.salt || null,
+      data.sodium || null,
+      data.calcium || null,
+      data.vitamin_d || null,
+      data.magnesium || null,
+      data.vitamin_b6 || null,
+      data.vitamin_b12 || null,
+      data.vitamin_e || null,
+      data.zinc || null
+    ) as { lastInsertRowid: number };
 
-    if (isPostgres()) {
-      const pool = db as Pool;
-      const result = await pool.query(
-        `INSERT INTO ingredients_master (
-          name, category, base_unit, base_size,
-          kcal, iron, sugar, fat, protein, carbohydrates, fiber,
-          salt, sodium, calcium, vitamin_d, magnesium, vitamin_b6, vitamin_b12, vitamin_e, zinc
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20)
-        RETURNING id`,
-        [
-          data.name.trim(),
-          data.category?.trim() || null,
-          data.base_unit || 'g',
-          data.base_size || 100,
-          data.kcal || null,
-          data.iron || null,
-          data.sugar || null,
-          data.fat || null,
-          data.protein || null,
-          data.carbohydrates || null,
-          data.fiber || null,
-          data.salt || null,
-          data.sodium || null,
-          data.calcium || null,
-          data.vitamin_d || null,
-          data.magnesium || null,
-          data.vitamin_b6 || null,
-          data.vitamin_b12 || null,
-          data.vitamin_e || null,
-          data.zinc || null,
-        ]
-      );
-      return (await this.findById(result.rows[0].id))!;
-    } else {
-      const sqlite = db as Database.Database;
-      const stmt = sqlite.prepare(`
-        INSERT INTO ingredients_master (
-          name, category, base_unit, base_size,
-          kcal, iron, sugar, fat, protein, carbohydrates, fiber,
-          salt, sodium, calcium, vitamin_d, magnesium, vitamin_b6, vitamin_b12, vitamin_e, zinc
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `);
-      const info = stmt.run(
-        data.name.trim(),
-        data.category?.trim() || null,
-        data.base_unit || 'g',
-        data.base_size || 100,
-        data.kcal || null,
-        data.iron || null,
-        data.sugar || null,
-        data.fat || null,
-        data.protein || null,
-        data.carbohydrates || null,
-        data.fiber || null,
-        data.salt || null,
-        data.sodium || null,
-        data.calcium || null,
-        data.vitamin_d || null,
-        data.magnesium || null,
-        data.vitamin_b6 || null,
-        data.vitamin_b12 || null,
-        data.vitamin_e || null,
-        data.zinc || null
-      ) as { lastInsertRowid: number };
-
-      return (await this.findById(Number(info.lastInsertRowid)))!;
-    }
+    return (await this.findById(Number(info.lastInsertRowid)))!;
   }
 
   static async findById(id: number): Promise<IngredientMaster | null> {
     const db = getDb();
-
-    if (isPostgres()) {
-      const pool = db as Pool;
-      const result = await pool.query(
-        'SELECT * FROM ingredients_master WHERE id = $1',
-        [id]
-      );
-      return (result.rows[0] as IngredientMaster) || null;
-    } else {
-      const sqlite = db as Database.Database;
-      const stmt = sqlite.prepare('SELECT * FROM ingredients_master WHERE id = ?');
-      return (stmt.get(id) as IngredientMaster) || null;
-    }
+    const stmt = db.prepare('SELECT * FROM ingredients_master WHERE id = ?');
+    return (stmt.get(id) as IngredientMaster) || null;
   }
 
   static async findAll(
@@ -150,73 +100,36 @@ export class IngredientMasterModelAsync {
     const offset = (page - 1) * pageSize;
     const searchParam = search ? `%${search}%` : null;
 
-    if (isPostgres()) {
-      const pool = db as Pool;
+    if (searchParam) {
+      const countStmt = db.prepare(
+        'SELECT COUNT(*) as count FROM ingredients_master WHERE name LIKE ?'
+      );
+      const countResult = countStmt.get(searchParam) as { count: number };
 
-      if (searchParam) {
-        const countResult = await pool.query(
-          'SELECT COUNT(*) as count FROM ingredients_master WHERE name ILIKE $1',
-          [searchParam]
-        );
+      const stmt = db.prepare(
+        'SELECT * FROM ingredients_master WHERE name LIKE ? ORDER BY name ASC LIMIT ? OFFSET ?'
+      );
+      const ingredients = (stmt.all(searchParam, pageSize, offset) as IngredientMaster[]) || [];
 
-        const result = await pool.query(
-          'SELECT * FROM ingredients_master WHERE name ILIKE $1 ORDER BY name ASC LIMIT $2 OFFSET $3',
-          [searchParam, pageSize, offset]
-        );
-
-        return {
-          ingredients: result.rows as IngredientMaster[],
-          total: parseInt(countResult.rows[0].count, 10),
-        };
-      } else {
-        const countResult = await pool.query(
-          'SELECT COUNT(*) as count FROM ingredients_master'
-        );
-
-        const result = await pool.query(
-          'SELECT * FROM ingredients_master ORDER BY name ASC LIMIT $1 OFFSET $2',
-          [pageSize, offset]
-        );
-
-        return {
-          ingredients: result.rows as IngredientMaster[],
-          total: parseInt(countResult.rows[0].count, 10),
-        };
-      }
+      return {
+        ingredients,
+        total: countResult.count,
+      };
     } else {
-      const sqlite = db as Database.Database;
+      const countStmt = db.prepare(
+        'SELECT COUNT(*) as count FROM ingredients_master'
+      );
+      const countResult = countStmt.get() as { count: number };
 
-      if (searchParam) {
-        const countStmt = sqlite.prepare(
-          'SELECT COUNT(*) as count FROM ingredients_master WHERE name LIKE ?'
-        );
-        const countResult = countStmt.get(searchParam) as { count: number };
+      const stmt = db.prepare(
+        'SELECT * FROM ingredients_master ORDER BY name ASC LIMIT ? OFFSET ?'
+      );
+      const ingredients = (stmt.all(pageSize, offset) as IngredientMaster[]) || [];
 
-        const stmt = sqlite.prepare(
-          'SELECT * FROM ingredients_master WHERE name LIKE ? ORDER BY name ASC LIMIT ? OFFSET ?'
-        );
-        const ingredients = (stmt.all(searchParam, pageSize, offset) as IngredientMaster[]) || [];
-
-        return {
-          ingredients,
-          total: countResult.count,
-        };
-      } else {
-        const countStmt = sqlite.prepare(
-          'SELECT COUNT(*) as count FROM ingredients_master'
-        );
-        const countResult = countStmt.get() as { count: number };
-
-        const stmt = sqlite.prepare(
-          'SELECT * FROM ingredients_master ORDER BY name ASC LIMIT ? OFFSET ?'
-        );
-        const ingredients = (stmt.all(pageSize, offset) as IngredientMaster[]) || [];
-
-        return {
-          ingredients,
-          total: countResult.count,
-        };
-      }
+      return {
+        ingredients,
+        total: countResult.count,
+      };
     }
   }
 
@@ -255,88 +168,44 @@ export class IngredientMasterModelAsync {
     };
 
     const db = getDb();
-
-    if (isPostgres()) {
-      const pool = db as Pool;
-      await pool.query(
-        `UPDATE ingredients_master SET
-          name = $1, category = $2, base_unit = $3, base_size = $4,
-          kcal = $5, iron = $6, sugar = $7, fat = $8, protein = $9, carbohydrates = $10, fiber = $11,
-          salt = $12, sodium = $13, calcium = $14, vitamin_d = $15, magnesium = $16, vitamin_b6 = $17, vitamin_b12 = $18, vitamin_e = $19, zinc = $20,
-          updated_at = CURRENT_TIMESTAMP
-        WHERE id = $21`,
-        [
-          updateData.name,
-          updateData.category,
-          updateData.base_unit,
-          updateData.base_size,
-          updateData.kcal,
-          updateData.iron,
-          updateData.sugar,
-          updateData.fat,
-          updateData.protein,
-          updateData.carbohydrates,
-          updateData.fiber,
-          updateData.salt,
-          updateData.sodium,
-          updateData.calcium,
-          updateData.vitamin_d,
-          updateData.magnesium,
-          updateData.vitamin_b6,
-          updateData.vitamin_b12,
-          updateData.vitamin_e,
-          updateData.zinc,
-          id,
-        ]
-      );
-    } else {
-      const sqlite = db as Database.Database;
-      const stmt = sqlite.prepare(`
-        UPDATE ingredients_master SET
-          name = ?, category = ?, base_unit = ?, base_size = ?,
-          kcal = ?, iron = ?, sugar = ?, fat = ?, protein = ?, carbohydrates = ?, fiber = ?,
-          salt = ?, sodium = ?, calcium = ?, vitamin_d = ?, magnesium = ?, vitamin_b6 = ?, vitamin_b12 = ?, vitamin_e = ?, zinc = ?,
-          updated_at = CURRENT_TIMESTAMP
-        WHERE id = ?
-      `);
-      stmt.run(
-        updateData.name,
-        updateData.category,
-        updateData.base_unit,
-        updateData.base_size,
-        updateData.kcal,
-        updateData.iron,
-        updateData.sugar,
-        updateData.fat,
-        updateData.protein,
-        updateData.carbohydrates,
-        updateData.fiber,
-        updateData.salt,
-        updateData.sodium,
-        updateData.calcium,
-        updateData.vitamin_d,
-        updateData.magnesium,
-        updateData.vitamin_b6,
-        updateData.vitamin_b12,
-        updateData.vitamin_e,
-        updateData.zinc,
-        id
-      );
-    }
+    const stmt = db.prepare(`
+      UPDATE ingredients_master SET
+        name = ?, category = ?, base_unit = ?, base_size = ?,
+        kcal = ?, iron = ?, sugar = ?, fat = ?, protein = ?, carbohydrates = ?, fiber = ?,
+        salt = ?, sodium = ?, calcium = ?, vitamin_d = ?, magnesium = ?, vitamin_b6 = ?, vitamin_b12 = ?, vitamin_e = ?, zinc = ?,
+        updated_at = CURRENT_TIMESTAMP
+      WHERE id = ?
+    `);
+    stmt.run(
+      updateData.name,
+      updateData.category,
+      updateData.base_unit,
+      updateData.base_size,
+      updateData.kcal,
+      updateData.iron,
+      updateData.sugar,
+      updateData.fat,
+      updateData.protein,
+      updateData.carbohydrates,
+      updateData.fiber,
+      updateData.salt,
+      updateData.sodium,
+      updateData.calcium,
+      updateData.vitamin_d,
+      updateData.magnesium,
+      updateData.vitamin_b6,
+      updateData.vitamin_b12,
+      updateData.vitamin_e,
+      updateData.zinc,
+      id
+    );
 
     return (await this.findById(id))!;
   }
 
   static async delete(id: number): Promise<void> {
     const db = getDb();
-
-    if (isPostgres()) {
-      const pool = db as Pool;
-      await pool.query('DELETE FROM ingredients_master WHERE id = $1', [id]);
-    } else {
-      const sqlite = db as Database.Database;
-      const stmt = sqlite.prepare('DELETE FROM ingredients_master WHERE id = ?');
-      stmt.run(id);
-    }
+    const stmt = db.prepare('DELETE FROM ingredients_master WHERE id = ?');
+    stmt.run(id);
   }
 }

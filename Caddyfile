@@ -1,7 +1,0 @@
-# Caddyfile
-raspberrypi.local {
-  reverse_proxy mixer-app:3001 {
-    header_up X-Forwarded-Proto https
-    header_up X-Forwarded-Host {host}
-  }
-}
