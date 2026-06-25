@@ -15,6 +15,10 @@ interface RecipeData {
   imagePath: string | null;
   ingredients: Array<{ name: string; quantity: number; unit: string }>;
   canEdit: boolean;
+  difficulty: string | null;
+  totalTimeMinutes: number | null;
+  mealType: string | null;
+  tags: string[];
 }
 
 export default function EditRecipePage() {
@@ -24,25 +28,28 @@ export default function EditRecipePage() {
   const params = useParams();
   const id = params.id;
 
-  const fetchRecipe = useCallback(async function fetchRecipe() {
-    try {
-      const response = await fetch(apiUrl(`/api/recipes/${id}`), {
-        credentials: 'include',
-      });
+  const fetchRecipe = useCallback(
+    async function fetchRecipe() {
+      try {
+        const response = await fetch(apiUrl(`/api/recipes/${id}`), {
+          credentials: 'include',
+        });
 
-      const data = await response.json();
+        const data = await response.json();
 
-      if (!response.ok || !data.canEdit) {
-        throw new Error('Cannot edit this recipe');
+        if (!response.ok || !data.canEdit) {
+          throw new Error('Cannot edit this recipe');
+        }
+
+        setRecipe(data);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to load recipe');
+      } finally {
+        setIsLoading(false);
       }
-
-      setRecipe(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load recipe');
-    } finally {
-      setIsLoading(false);
-    }
-  }, [id]);
+    },
+    [id]
+  );
 
   useEffect(() => {
     fetchRecipe();

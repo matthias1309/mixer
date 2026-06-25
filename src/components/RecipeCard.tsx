@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { RecipeImage } from './RecipeImage';
+import { DIFFICULTY_LABELS, DifficultyLevel } from '@/lib/constants';
 
 export interface RecipeCardProps {
   id: number;
@@ -13,6 +14,8 @@ export interface RecipeCardProps {
   createdAt: string;
   score?: number | null;
   tags?: string[];
+  totalTimeMinutes?: number | null;
+  difficulty?: string | null;
 }
 
 function getScoreBadgeColor(score: number): string {
@@ -67,9 +70,15 @@ export function RecipeCard(props: RecipeCardProps) {
 
           <div
             data-testid="recipe-card-meta"
-            className="mt-3 flex justify-between text-sm text-gray-500"
+            className="mt-3 flex flex-wrap justify-between gap-1 text-sm text-gray-500"
           >
             <span>{props.ingredientCount} Zutaten</span>
+            {props.totalTimeMinutes !== null && props.totalTimeMinutes !== undefined && (
+              <span>{props.totalTimeMinutes} min</span>
+            )}
+            {props.difficulty !== null && props.difficulty !== undefined && (
+              <span>{DIFFICULTY_LABELS[props.difficulty as DifficultyLevel]}</span>
+            )}
             <span>{new Date(props.createdAt).toLocaleDateString()}</span>
           </div>
         </div>

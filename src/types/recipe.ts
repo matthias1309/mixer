@@ -28,10 +28,23 @@ export interface Recipe {
   is_duplicate: boolean;
   // File name of the recipe photo on disk (UPLOAD_CONFIG.UPLOAD_DIR), or null.
   image_path: string | null;
+  difficulty: string | null;
+  total_time_minutes: number | null;
+  meal_type: string | null;
   created_at: string;
   updated_at: string;
   // Include nutrients in recipe
   nutrients?: RecipeNutrients;
+}
+
+// Optional metadata accepted by RecipeModel(Async).create/update (REQ-016).
+// Validated against the fixed vocabulary in src/lib/constants.ts before
+// reaching the model layer.
+export interface RecipeMetadataInput {
+  difficulty?: string | null;
+  totalTimeMinutes?: number | null;
+  mealType?: string | null;
+  tags?: string[];
 }
 
 export interface RecipeWithIngredients extends Recipe {
@@ -49,6 +62,10 @@ export interface RecipeListItem {
   creatorName: string;
   ingredientCount: number;
   createdAt: string;
+  difficulty?: string | null;
+  totalTimeMinutes?: number | null;
+  mealType?: string | null;
+  tags?: string[];
 }
 
 export interface CreateRecipeRequest {
@@ -57,6 +74,10 @@ export interface CreateRecipeRequest {
   instructions?: string;
   servings?: number;
   ingredients?: CreateIngredientRequest[];
+  difficulty?: string | null;
+  totalTimeMinutes?: number | null;
+  mealType?: string | null;
+  tags?: string[];
 }
 
 export interface UpdateRecipeRequest {
@@ -65,6 +86,10 @@ export interface UpdateRecipeRequest {
   instructions?: string;
   servings?: number;
   ingredients?: CreateIngredientRequest[];
+  difficulty?: string | null;
+  totalTimeMinutes?: number | null;
+  mealType?: string | null;
+  tags?: string[];
 }
 
 export interface RecipeIngredient {

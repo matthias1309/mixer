@@ -1,7 +1,14 @@
 import { getDb } from '../init';
-import { Recipe, CreateIngredientRequest, Ingredient, RecipeListItem } from '@/types';
+import {
+  Recipe,
+  CreateIngredientRequest,
+  Ingredient,
+  RecipeListItem,
+  RecipeMetadataInput,
+} from '@/types';
 
 import { calculateScore, AggregatedNutrients } from '@/lib/scoring/phaseScore';
+import { replaceRecipeTags, getRecipeTags, getTagsForRecipeIds } from './recipeTags';
 
 export type RecipeListItemWithScore = RecipeListItem & { score?: number | null };
 
@@ -13,14 +20,17 @@ export class RecipeModelAsync {
     instructions?: string,
     servings?: number,
     ingredients?: CreateIngredientRequest[],
-    canonicalId?: number | null
+    canonicalId?: number | null,
+    metadata?: RecipeMetadataInput
   ): Promise<Recipe> {
     const db = getDb();
     const isDuplicate = canonicalId !== null && canonicalId !== undefined;
 
     const stmt = db.prepare(
-      `INSERT INTO recipes (name, description, instructions, servings, creator_id, canonical_id, is_duplicate)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`
+      `INSERT INTO recipes
+        (name, description, instructions, servings, creator_id, canonical_id, is_duplicate,
+         difficulty, total_time_minutes, meal_type)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
     );
 
     const info = stmt.run(
@@ -30,7 +40,10 @@ export class RecipeModelAsync {
       servings || 1,
       creatorId,
       canonicalId || null,
-      isDuplicate ? 1 : 0
+      isDuplicate ? 1 : 0,
+      metadata?.difficulty || null,
+      metadata?.totalTimeMinutes || null,
+      metadata?.mealType || null
     ) as { lastInsertRowid: number };
 
     const recipeId = Number(info.lastInsertRowid);
@@ -41,16 +54,19 @@ export class RecipeModelAsync {
       );
 
       for (const ing of ingredients) {
-        ingredientStmt.run(
-          recipeId,
-          ing.name.trim().toLowerCase(),
-          ing.quantity,
-          ing.unit || null
-        );
+        ingredientStmt.run(recipeId, ing.name.trim().toLowerCase(), ing.quantity, ing.unit || null);
       }
     }
 
+    if (metadata?.tags) {
+      replaceRecipeTags(db, recipeId, metadata.tags);
+    }
+
     return (await this.findById(recipeId))!;
+  }
+
+  static async getTags(recipeId: number): Promise<string[]> {
+    return getRecipeTags(getDb(), recipeId);
   }
 
   static async findById(id: number): Promise<Recipe | null> {
@@ -59,10 +75,13 @@ export class RecipeModelAsync {
     return (stmt.get(id) as Recipe) || null;
   }
 
-  static async findByNameAndIngredients(name: string, ingredientNames: string[]): Promise<Recipe | null> {
+  static async findByNameAndIngredients(
+    name: string,
+    ingredientNames: string[]
+  ): Promise<Recipe | null> {
     const db = getDb();
     const normalizedName = name.trim().toLowerCase();
-    const normalizedIngredients = ingredientNames.map(i => i.trim().toLowerCase()).sort();
+    const normalizedIngredients = ingredientNames.map((i) => i.trim().toLowerCase()).sort();
 
     const candidates = db
       .prepare('SELECT id FROM recipes WHERE LOWER(name) = ? AND is_duplicate = 0')
@@ -76,9 +95,11 @@ export class RecipeModelAsync {
         .prepare('SELECT name FROM ingredients WHERE recipe_id = ? ORDER BY name ASC')
         .all(recipe.id) as { name: string }[];
 
-      const ingNames = recipeIngs.map(i => i.name).sort();
-      if (ingNames.length === normalizedIngredients.length &&
-          ingNames.every((val, idx) => val === normalizedIngredients[idx])) {
+      const ingNames = recipeIngs.map((i) => i.name).sort();
+      if (
+        ingNames.length === normalizedIngredients.length &&
+        ingNames.every((val, idx) => val === normalizedIngredients[idx])
+      ) {
         return recipe;
       }
     }
@@ -90,9 +111,9 @@ export class RecipeModelAsync {
     const db = getDb();
     const stmt = db.prepare('SELECT * FROM ingredients WHERE recipe_id = ? ORDER BY name ASC');
     const rows = stmt.all(recipeId) as Ingredient[];
-    return rows.map(row => ({
+    return rows.map((row) => ({
       ...row,
-      quantity: Math.round(row.quantity)
+      quantity: Math.round(row.quantity),
     }));
   }
 
@@ -105,9 +126,9 @@ export class RecipeModelAsync {
     const db = getDb();
 
     const sortByMap: Record<string, string> = {
-      'date': 'recipes.created_at DESC',
-      'name': 'recipes.name ASC',
-      'ingredients': 'COUNT(ingredients.id) ASC',
+      date: 'recipes.created_at DESC',
+      name: 'recipes.name ASC',
+      ingredients: 'COUNT(ingredients.id) ASC',
     };
     const orderBy = sortByMap[sortBy] || sortByMap['date'];
     const offset = (page - 1) * pageSize;
@@ -214,7 +235,8 @@ export class RecipeModelAsync {
     description?: string,
     instructions?: string,
     servings?: number,
-    ingredients?: CreateIngredientRequest[]
+    ingredients?: CreateIngredientRequest[],
+    metadata?: RecipeMetadataInput
   ): Promise<Recipe> {
     const db = getDb();
     const updates: string[] = [];
@@ -236,6 +258,18 @@ export class RecipeModelAsync {
       updates.push('servings = ?');
       values.push(servings);
     }
+    if (metadata?.difficulty !== undefined) {
+      updates.push('difficulty = ?');
+      values.push(metadata.difficulty);
+    }
+    if (metadata?.totalTimeMinutes !== undefined) {
+      updates.push('total_time_minutes = ?');
+      values.push(metadata.totalTimeMinutes);
+    }
+    if (metadata?.mealType !== undefined) {
+      updates.push('meal_type = ?');
+      values.push(metadata.mealType);
+    }
 
     values.push(new Date().toISOString());
     values.push(id);
@@ -253,16 +287,17 @@ export class RecipeModelAsync {
       db.prepare('DELETE FROM ingredients WHERE recipe_id = ?').run(id);
 
       for (const ing of ingredients) {
-        db.prepare(`
+        db.prepare(
+          `
           INSERT INTO ingredients (recipe_id, name, quantity, unit)
           VALUES (?, ?, ?, ?)
-        `).run(
-          id,
-          ing.name.trim().toLowerCase(),
-          ing.quantity,
-          ing.unit || null
-        );
+        `
+        ).run(id, ing.name.trim().toLowerCase(), ing.quantity, ing.unit || null);
       }
+    }
+
+    if (metadata?.tags !== undefined) {
+      replaceRecipeTags(db, id, metadata.tags);
     }
 
     return (await this.findById(id))!;
@@ -272,9 +307,11 @@ export class RecipeModelAsync {
     const db = getDb();
     const updatedAt = new Date().toISOString();
 
-    db
-      .prepare('UPDATE recipes SET image_path = ?, updated_at = ? WHERE id = ?')
-      .run(imagePath, updatedAt, id);
+    db.prepare('UPDATE recipes SET image_path = ?, updated_at = ? WHERE id = ?').run(
+      imagePath,
+      updatedAt,
+      id
+    );
 
     return (await this.findById(id))!;
   }
@@ -295,7 +332,7 @@ export class RecipeModelAsync {
       )
       ORDER BY name ASC
     `);
-    return (stmt.all() as { name: string }[]).map(i => i.name);
+    return (stmt.all() as { name: string }[]).map((i) => i.name);
   }
 
   static async listAllWithScoreAsync(
@@ -319,9 +356,9 @@ export class RecipeModelAsync {
     const countResult = countStmt.get(searchParam, searchParam) as { total: number };
 
     const sortByMap: Record<string, string> = {
-      'date': 'recipes.created_at DESC',
-      'name': 'recipes.name ASC',
-      'ingredients': 'COUNT(DISTINCT ingredients.id) ASC',
+      date: 'recipes.created_at DESC',
+      name: 'recipes.name ASC',
+      ingredients: 'COUNT(DISTINCT ingredients.id) ASC',
     };
     const orderBy = sortByMap[sortBy] || sortByMap['date'];
 
@@ -331,6 +368,9 @@ export class RecipeModelAsync {
         recipes.name,
         recipes.description,
         recipes.image_path as imagePath,
+        recipes.difficulty as difficulty,
+        recipes.total_time_minutes as totalTimeMinutes,
+        recipes.meal_type as mealType,
         users.email as creatorName,
         COUNT(DISTINCT ingredients.id) as ingredientCount,
         recipes.created_at as createdAt,
@@ -357,6 +397,13 @@ export class RecipeModelAsync {
     `);
 
     const rows = stmt.all(searchParam, searchParam, pageSize, offset) as any[];
+
+    // Fetched separately (not via LEFT JOIN) so the per-ingredient nutrient
+    // SUMs above aren't multiplied out by a second one-to-many join.
+    const tagsByRecipeId = getTagsForRecipeIds(
+      db,
+      rows.map((row: any) => row.id)
+    );
 
     const recipes: RecipeListItemWithScore[] = rows.map((row: any) => {
       let score: number | null = null;
@@ -386,6 +433,10 @@ export class RecipeModelAsync {
         ingredientCount: row.ingredientCount,
         createdAt: row.createdAt,
         score,
+        difficulty: row.difficulty || null,
+        totalTimeMinutes: row.totalTimeMinutes || null,
+        mealType: row.mealType || null,
+        tags: tagsByRecipeId.get(row.id) || [],
       };
     });
 

@@ -13,6 +13,7 @@ import {
   DEFAULT_PHASE,
 } from '@/lib/constants';
 import { withDatabase } from '@/lib/api/withDatabase';
+import { validateRecipeMetadataFields } from '@/lib/validation';
 
 // GET /api/recipes - List recipes with pagination, search, and sorting
 async function handleGET(request: NextRequest) {
@@ -174,6 +175,12 @@ async function handlePOST(request: NextRequest) {
       }
     }
 
+    // Validate metadata (REQ-016)
+    const metadataError = validateRecipeMetadataFields(body);
+    if (metadataError) {
+      return NextResponse.json({ error: metadataError }, { status: HTTP_STATUS.BAD_REQUEST });
+    }
+
     // Check for duplicates
     const normalizedIngredients = body.ingredients
       ? body.ingredients.map((i) => i.name.trim().toLowerCase()).sort()
@@ -201,7 +208,13 @@ async function handlePOST(request: NextRequest) {
       body.instructions?.trim(),
       body.servings,
       body.ingredients,
-      canonicalId
+      canonicalId,
+      {
+        difficulty: body.difficulty,
+        totalTimeMinutes: body.totalTimeMinutes,
+        mealType: body.mealType,
+        tags: body.tags,
+      }
     );
 
     let response = NextResponse.json(
@@ -211,6 +224,10 @@ async function handlePOST(request: NextRequest) {
         creatorId: recipe.creator_id,
         canonicalId: recipe.canonical_id,
         isDuplicate: Boolean(recipe.is_duplicate),
+        difficulty: recipe.difficulty,
+        totalTimeMinutes: recipe.total_time_minutes,
+        mealType: recipe.meal_type,
+        tags: await RecipeModelAsync.getTags(recipe.id),
       },
       { status: HTTP_STATUS.CREATED }
     );

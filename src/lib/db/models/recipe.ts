@@ -1,6 +1,13 @@
 import { getSqliteDb } from '../init';
-import { Recipe, RecipeListItem, CreateIngredientRequest, Ingredient } from '@/types';
+import {
+  Recipe,
+  RecipeListItem,
+  CreateIngredientRequest,
+  Ingredient,
+  RecipeMetadataInput,
+} from '@/types';
 import { calculateScore, AggregatedNutrients } from '@/lib/scoring/phaseScore';
+import { replaceRecipeTags, getRecipeTags, getTagsForRecipeIds } from './recipeTags';
 
 export class RecipeModel {
   static create(
@@ -10,13 +17,16 @@ export class RecipeModel {
     instructions?: string,
     servings?: number,
     ingredients?: CreateIngredientRequest[],
-    canonicalId?: number | null
+    canonicalId?: number | null,
+    metadata?: RecipeMetadataInput
   ): Recipe {
     const db = getSqliteDb();
 
     const stmt = db.prepare(`
-      INSERT INTO recipes (name, description, instructions, servings, creator_id, canonical_id, is_duplicate)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO recipes
+        (name, description, instructions, servings, creator_id, canonical_id, is_duplicate,
+         difficulty, total_time_minutes, meal_type)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
     const isDuplicate = canonicalId !== null && canonicalId !== undefined ? 1 : 0;
@@ -27,7 +37,10 @@ export class RecipeModel {
       servings || 1,
       creatorId,
       canonicalId || null,
-      isDuplicate
+      isDuplicate,
+      metadata?.difficulty || null,
+      metadata?.totalTimeMinutes || null,
+      metadata?.mealType || null
     ) as { lastInsertRowid: number };
 
     const recipeId = Number(info.lastInsertRowid);
@@ -40,16 +53,19 @@ export class RecipeModel {
       `);
 
       for (const ing of ingredients) {
-        ingredientStmt.run(
-          recipeId,
-          ing.name.trim().toLowerCase(),
-          ing.quantity,
-          ing.unit || null
-        );
+        ingredientStmt.run(recipeId, ing.name.trim().toLowerCase(), ing.quantity, ing.unit || null);
       }
     }
 
+    if (metadata?.tags) {
+      replaceRecipeTags(db, recipeId, metadata.tags);
+    }
+
     return this.findById(recipeId)!;
+  }
+
+  static getTags(recipeId: number): string[] {
+    return getRecipeTags(getSqliteDb(), recipeId);
   }
 
   static findById(id: number): Recipe | null {
@@ -103,9 +119,9 @@ export class RecipeModel {
 
     // Safe mapping of sort parameter
     const sortByMap: Record<string, string> = {
-      'date': 'recipes.created_at DESC',
-      'name': 'recipes.name ASC',
-      'ingredients': 'COUNT(ingredients.id) ASC',
+      date: 'recipes.created_at DESC',
+      name: 'recipes.name ASC',
+      ingredients: 'COUNT(ingredients.id) ASC',
     };
     const orderBy = sortByMap[sortBy] || sortByMap['date'];
 
@@ -153,7 +169,7 @@ export class RecipeModel {
 
     // Normalize for comparison
     const normalizedName = name.trim().toLowerCase();
-    const normalizedIngredients = ingredientNames.map(i => i.trim().toLowerCase()).sort();
+    const normalizedIngredients = ingredientNames.map((i) => i.trim().toLowerCase()).sort();
 
     // Find recipes with same name (and not duplicates)
     const candidates = db
@@ -165,12 +181,14 @@ export class RecipeModel {
       if (!recipe) continue;
 
       const recipeIngs = this.getIngredients(recipe.id)
-        .map(i => i.name)
+        .map((i) => i.name)
         .sort();
 
       // Direct array comparison (arrays are sorted)
-      if (recipeIngs.length === normalizedIngredients.length &&
-          recipeIngs.every((val, idx) => val === normalizedIngredients[idx])) {
+      if (
+        recipeIngs.length === normalizedIngredients.length &&
+        recipeIngs.every((val, idx) => val === normalizedIngredients[idx])
+      ) {
         return recipe;
       }
     }
@@ -184,7 +202,8 @@ export class RecipeModel {
     description?: string,
     instructions?: string,
     servings?: number,
-    ingredients?: CreateIngredientRequest[]
+    ingredients?: CreateIngredientRequest[],
+    metadata?: RecipeMetadataInput
   ): Recipe {
     const db = getSqliteDb();
 
@@ -207,6 +226,18 @@ export class RecipeModel {
       updates.push('servings = ?');
       values.push(servings);
     }
+    if (metadata?.difficulty !== undefined) {
+      updates.push('difficulty = ?');
+      values.push(metadata.difficulty);
+    }
+    if (metadata?.totalTimeMinutes !== undefined) {
+      updates.push('total_time_minutes = ?');
+      values.push(metadata.totalTimeMinutes);
+    }
+    if (metadata?.mealType !== undefined) {
+      updates.push('meal_type = ?');
+      values.push(metadata.mealType);
+    }
 
     values.push(new Date().toISOString());
     values.push(id);
@@ -225,16 +256,17 @@ export class RecipeModel {
       db.prepare('DELETE FROM ingredients WHERE recipe_id = ?').run(id);
 
       for (const ing of ingredients) {
-        db.prepare(`
+        db.prepare(
+          `
           INSERT INTO ingredients (recipe_id, name, quantity, unit)
           VALUES (?, ?, ?, ?)
-        `).run(
-          id,
-          ing.name.trim().toLowerCase(),
-          ing.quantity,
-          ing.unit || null
-        );
+        `
+        ).run(id, ing.name.trim().toLowerCase(), ing.quantity, ing.unit || null);
       }
+    }
+
+    if (metadata?.tags !== undefined) {
+      replaceRecipeTags(db, id, metadata.tags);
     }
 
     return this.findById(id)!;
@@ -250,9 +282,9 @@ export class RecipeModel {
     const db = getSqliteDb();
     const stmt = db.prepare('SELECT * FROM ingredients WHERE recipe_id = ? ORDER BY name ASC');
     const rows = stmt.all(recipeId) as Ingredient[];
-    return rows.map(row => ({
+    return rows.map((row) => ({
       ...row,
-      quantity: Math.round(row.quantity)
+      quantity: Math.round(row.quantity),
     }));
   }
 
@@ -267,13 +299,13 @@ export class RecipeModel {
       ORDER BY name ASC
     `);
 
-    return (stmt.all() as { name: string }[]).map(i => i.name);
+    return (stmt.all() as { name: string }[]).map((i) => i.name);
   }
 
   static filterByIngredients(ingredientNames: string[], page: number = 1, pageSize: number = 10) {
     const db = getSqliteDb();
 
-    const normalizedIngredients = ingredientNames.map(i => i.trim().toLowerCase());
+    const normalizedIngredients = ingredientNames.map((i) => i.trim().toLowerCase());
     const placeholders = normalizedIngredients.map(() => '?').join(',');
 
     const offset = (page - 1) * pageSize;
@@ -291,7 +323,9 @@ export class RecipeModel {
         )
     `);
 
-    const countResult = countStmt.get(...normalizedIngredients, normalizedIngredients.length) as { total: number };
+    const countResult = countStmt.get(...normalizedIngredients, normalizedIngredients.length) as {
+      total: number;
+    };
 
     const stmt = db.prepare(`
       SELECT
@@ -341,9 +375,9 @@ export class RecipeModel {
     const db = getSqliteDb();
 
     const sortByMap: Record<string, string> = {
-      'date': 'recipes.created_at DESC',
-      'name': 'recipes.name ASC',
-      'ingredients': 'COUNT(DISTINCT ingredients.id) ASC',
+      date: 'recipes.created_at DESC',
+      name: 'recipes.name ASC',
+      ingredients: 'COUNT(DISTINCT ingredients.id) ASC',
     };
     const orderBy = sortByMap[sortBy] || sortByMap['date'];
 
@@ -438,7 +472,7 @@ export class RecipeModel {
   ) {
     const db = getSqliteDb();
 
-    const normalizedIngredients = ingredientNames.map(i => i.trim().toLowerCase());
+    const normalizedIngredients = ingredientNames.map((i) => i.trim().toLowerCase());
     const placeholders = normalizedIngredients.map(() => '?').join(',');
 
     const offset = (page - 1) * pageSize;
@@ -456,7 +490,9 @@ export class RecipeModel {
         )
     `);
 
-    const countResult = countStmt.get(...normalizedIngredients, normalizedIngredients.length) as { total: number };
+    const countResult = countStmt.get(...normalizedIngredients, normalizedIngredients.length) as {
+      total: number;
+    };
 
     const stmt = db.prepare(`
       SELECT
@@ -464,6 +500,9 @@ export class RecipeModel {
         recipes.name,
         recipes.description,
         recipes.image_path as imagePath,
+        recipes.difficulty as difficulty,
+        recipes.total_time_minutes as totalTimeMinutes,
+        recipes.meal_type as mealType,
         users.email as creatorName,
         COUNT(DISTINCT ingredients.id) as ingredientCount,
         recipes.created_at as createdAt,
@@ -502,6 +541,13 @@ export class RecipeModel {
       offset
     ) as any[];
 
+    // Fetched separately (not via LEFT JOIN) so the per-ingredient nutrient
+    // SUMs above aren't multiplied out by a second one-to-many join.
+    const tagsByRecipeId = getTagsForRecipeIds(
+      db,
+      rows.map((row: any) => row.id)
+    );
+
     const recipes = rows.map((row: any) => {
       let score: number | null = null;
 
@@ -530,6 +576,10 @@ export class RecipeModel {
         ingredientCount: row.ingredientCount,
         createdAt: row.createdAt,
         score,
+        difficulty: row.difficulty || null,
+        totalTimeMinutes: row.totalTimeMinutes || null,
+        mealType: row.mealType || null,
+        tags: tagsByRecipeId.get(row.id) || [],
       };
     });
 
