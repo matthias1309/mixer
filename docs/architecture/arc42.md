@@ -1,5 +1,15 @@
 # Arc42 - Architecture Documentation
 
+> **⚠️ Deployment status (updated 2026-06-25):** Production now runs on
+> **Uberspace** shared hosting at **https://matt-maxx.de/rezepte** (sub-path
+> `BASE_PATH=/rezepte`) on **SQLite**, deployed automatically via GitHub Actions
+> on merge to `main` (see ADR-002 and `../deployment/uberspace-setup.md`).
+> The **Raspberry Pi + Docker Compose + PostgreSQL + Caddy** setup described in
+> several sections below (notably §7.2 and §8.9) reflects the original MVP
+> architecture and was **retired in MAINT-003 (2026-06)**. Those sections are
+> kept for historical context; treat the banner facts as authoritative where
+> they conflict.
+
 ## Table of Contents
 
 1. [Introduction and Goals](#introduction-and-goals)
@@ -46,13 +56,13 @@ Recipe Manager is a multi-user web application that helps users manage their rec
 - Allow users to filter recipes by available ingredients
 - Support multi-user access with secure authentication
 - Provide a simple, intuitive interface accessible from any device
-- Deploy efficiently on resource-constrained Raspberry Pi hardware
+- Deploy efficiently on modest shared-hosting resources (Uberspace)
 
 ### 1.3 Architectural Goals
 
 - **Simplicity**: Keep the architecture straightforward and maintainable
 - **Scalability**: Support multiple concurrent users
-- **Performance**: Responsive UI even on limited RPi hardware
+- **Performance**: Responsive UI even on modest shared-hosting resources
 - **Testability**: Enable comprehensive automated testing (80%+ coverage)
 - **Maintainability**: Clear separation of concerns, DRY principles
 - **Security**: Secure authentication and data isolation per user
@@ -67,7 +77,7 @@ Recipe Manager is a multi-user web application that helps users manage their rec
 
 **Non-Functional Requirements**:
 - Sub-second response times for common operations
-- Support 10+ concurrent users on RPi
+- Support 10+ concurrent users on shared hosting
 - 80%+ code coverage
 - Lean documentation (growing with features)
 
@@ -77,8 +87,8 @@ Recipe Manager is a multi-user web application that helps users manage their rec
 
 ### 2.1 Technical Constraints
 
-- **Deployment Platform**: Raspberry Pi with Docker
-- **Database**: SQLite (local dev), PostgreSQL (production)
+- **Deployment Platform**: Uberspace shared hosting (supervisord + Node.js). Local Docker Compose is available for PostgreSQL-based dev only. *(Originally: Raspberry Pi with Docker — retired in MAINT-003.)*
+- **Database**: SQLite (local dev & production). PostgreSQL remains supported for the local Docker setup and the one-off Pi→SQLite migration tooling.
 - **Frontend Framework**: Next.js with React
 - **Backend Runtime**: Node.js
 - **Language**: English for all code and documentation
@@ -92,12 +102,15 @@ Recipe Manager is a multi-user web application that helps users manage their rec
 - **Communication**: German with developer
 - **Testing Stack**: Jest + React Testing Library + Cypress
 
-### 2.3 Hardware Constraints
+### 2.3 Hosting Constraints
 
-- **CPU**: ARM processor (RPi)
-- **Memory**: Limited RAM (~1-4GB typical)
-- **Storage**: Limited disk space
-- **Network**: Local network deployment
+- **Platform**: Uberspace shared hosting (managed Linux, no root)
+- **Process management**: supervisord-managed Node.js process
+- **Storage**: Shared-hosting disk quota
+- **Network**: Public HTTPS under the sub-path `/rezepte`
+
+*(Historical: the MVP targeted Raspberry Pi 4 — ARM CPU, ~1–4 GB RAM, local
+network — retired in MAINT-003.)*
 
 ---
 
@@ -178,18 +191,19 @@ Recipe Manager is a multi-user web application that helps users manage their rec
 - TypeScript
 
 **Database**:
-- SQLite for local development (zero setup)
-- PostgreSQL for production on RPi
+- SQLite for local development (zero setup) and production
+- PostgreSQL kept for the local Docker setup and the one-off Pi→SQLite migration
 
 **Deployment**:
-- Docker containers for consistency
-- Docker Compose for local and production orchestration
+- Uberspace shared hosting, supervisord-managed Node.js process
+- GitHub Actions auto-deploy on merge to `main`
+- Docker Compose available for PostgreSQL-based local dev *(legacy Pi orchestration retired in MAINT-003)*
 
 ### 4.2 Architecture Pattern
 
 **Full-Stack Monolith**: 
 A single Next.js application that handles both frontend and backend. This is chosen over separate frontend/backend because:
-- Simpler deployment on RPi (single Docker container)
+- Simpler deployment (single Node.js process on Uberspace)
 - Reduced operational complexity
 - Faster development iteration
 - Sufficient for MVP scope
@@ -198,7 +212,7 @@ A single Next.js application that handles both frontend and backend. This is cho
 ### 4.3 Key Design Decisions
 
 1. **JWT Authentication**: Stateless, suitable for distributed systems and simple to implement
-2. **SQLite → PostgreSQL Migration**: SQLite for dev simplicity, PostgreSQL for production reliability
+2. **SQLite in dev & production**: zero-setup, file-based; the schema is engine-agnostic so PostgreSQL stays usable for local Docker and migration tooling (ADR-002)
 3. **Lean Documentation**: Grow documentation with features (Arc42/Req42), not upfront
 4. **TDD Approach**: Write tests first to ensure quality and maintainability
 5. **Code Review Focus**: Clean code principles (DRY, KISS, YAGNI) guide all reviews
@@ -553,7 +567,11 @@ User              Browser              Server                        Database
 └─────────────────────────────────────────────┘
 ```
 
-### 7.2 Production on Raspberry Pi
+### 7.2 Production on Raspberry Pi *(historical — MVP, retired in MAINT-003)*
+
+> **Current production** runs on Uberspace, not Raspberry Pi. See §7.4 below and
+> `../deployment/uberspace-setup.md`. The diagram in this section documents the
+> original MVP topology and is kept for historical reference.
 
 ```
 ┌──────────────────────────────────────────────────────┐
@@ -609,6 +627,33 @@ docker-compose logs -f app
 docker-compose down
 ```
 
+> The Docker commands above target local PostgreSQL dev (`docker-compose.local.yml`)
+> and the legacy Pi orchestration. They are **not** the current production path.
+
+### 7.4 Production on Uberspace *(current)*
+
+Production runs on Uberspace shared hosting, served under the sub-path
+`https://matt-maxx.de/rezepte` (`BASE_PATH=/rezepte`) on SQLite.
+
+```
+Developer merges PR to `main`
+    ↓
+GitHub Actions (.github/workflows/deploy.yml)
+    ↓
+lint → type-check → tests
+    ↓
+deploy to Uberspace (rsync/SSH, npm install, next build)
+    ↓
+supervisord (re)starts the Node.js process
+    ↓
+smoke test GET /rezepte → expect HTTP 200
+```
+
+- **Process management**: supervisord-managed Node.js process (no Docker in prod)
+- **Database**: SQLite file (`DATABASE_URL=file:...`), see `src/lib/db/init.ts`
+- **TLS & routing**: handled by Uberspace; app is mounted at `/rezepte`
+- **Setup guide**: `../deployment/uberspace-setup.md`
+
 ---
 
 ## 8. Cross-Cutting Concerns
@@ -653,7 +698,7 @@ The application uses stateless JWT-based authentication implemented in two layer
 
 **API Security**:
 - HTTPS enforced in production
-- CORS configured to allow local/RPi access
+- CORS configured for the production host and local development
 - httpOnly cookies prevent XSS token theft
 - Rate limiting on auth endpoints (future)
 - No plain-text tokens in logs or responses
@@ -866,53 +911,41 @@ RecipeList Component (reads state)
 3. **Linting**: `npm run lint` (ESLint code quality checks)
 4. **Build**: `npm run build` (Production Next.js build)
 
-**Production Deployment**:
-- **Container**: Docker image built from `Dockerfile`
-- **Orchestration**: Docker Compose on Raspberry Pi
-- **Database**: PostgreSQL container with persistent volume
-- **Reverse Proxy**: Nginx (optional, for SSL/TLS)
-- **Deployment Command**: `docker-compose up -d`
+**Production Deployment (current — Uberspace)**:
+- **Platform**: Uberspace shared hosting, served under `BASE_PATH=/rezepte`
+- **Process management**: supervisord-managed Node.js process (no Docker in prod)
+- **Database**: SQLite file (`DATABASE_URL=file:...`)
+- **TLS & routing**: provided by Uberspace
+- **Trigger**: automatic on merge to `main` via GitHub Actions
 
 **Deployment Diagram**:
 ```
-Code pushed to repository
+Developer merges PR to `main`
     ↓
-GitHub / Git server detects push
+GitHub Actions (.github/workflows/deploy.yml)
     ↓
-(Future: Automated build trigger)
+lint → type-check → tests
     ↓
-Docker build: npm install → npm run build
+deploy to Uberspace (SSH, npm install, next build)
     ↓
-Docker image created
+supervisord (re)starts the Node.js process
     ↓
-Push to Raspberry Pi
-    ↓
-docker-compose pull
-docker-compose up -d
-    ↓
-Application running (accessible at raspberrypi.local)
+smoke test GET /rezepte → expect HTTP 200
 ```
 
 **Environment Configuration**:
-- `.env.local`: Local development (SQLite)
-- `.env.production`: RPi production (PostgreSQL)
-- Docker secrets (production JWT_SECRET, DB passwords)
+- `.env.local`: local development (SQLite by default)
+- Production env (`DATABASE_URL`, `JWT_SECRET`, `BASE_PATH`) set on the Uberspace host
+- Local PostgreSQL dev via `docker-compose.local.yml`
 
-**Health Checks** (future):
-- `/api/health` endpoint for monitoring
-- Database connection verification
-- Health check in docker-compose.yml
-
-**Future CI/CD Enhancements**:
-- GitHub Actions or GitLab CI for automated testing
-- Automated building/pushing to RPi
-- Database migration automation
-- Rollback strategy for failed deployments
+**Health / Smoke Check**:
+- Post-deploy smoke test asserts HTTP 200 on the production sub-path
 
 **Related Files**:
-- `Dockerfile` (container image)
-- `docker-compose.yml` (production RPi)
-- `docker-compose.local.yml` (local development)
+- `.github/workflows/deploy.yml` (CI/CD + auto-deploy)
+- `docs/deployment/uberspace-setup.md` (host setup, supervisord template)
+- `docker-compose.local.yml` (local PostgreSQL development)
+- `Dockerfile`, `docker-compose.yml` *(legacy Pi setup — retired in MAINT-003)*
 - `.env.local.example` (environment template)
 
 ### 8.10 Data Validation Strategy
@@ -964,9 +997,10 @@ All architecture decisions are documented as Architecture Decision Records (ADRs
 #### ADR-002: SQLite and PostgreSQL Dual-Database Support
 **Status**: Accepted  
 **Key Points**:
-- SQLite for local development (zero configuration)
-- PostgreSQL for production on Raspberry Pi
+- SQLite for local development (zero configuration) and production (Uberspace)
+- PostgreSQL kept for local Docker dev and the one-off Pi→SQLite migration tooling
 - Database selection via `DATABASE_URL` environment variable
+- *(Originally PostgreSQL was the production engine on Raspberry Pi; production moved to SQLite in MAINT-003.)*
 - Models use raw SQL with prepared statements (no ORM)
 - Schema migrations in `src/lib/db/migrations/`
 - Tested for SQL dialect compatibility
@@ -1005,7 +1039,7 @@ All architecture decisions are documented as Architecture Decision Records (ADRs
 ### 9.2 Future Decision Candidates
 
 - **Caching Strategy**: Redis for recipe caching (when performance becomes critical)
-- **Scalability**: When RPi constraints are reached, consider separate backend service
+- **Scalability**: When shared-hosting constraints are reached, consider a separate backend service
 - **State Management**: Migrate from Context API to Redux if state complexity grows
 - **API Documentation**: OpenAPI/Swagger integration for automated API docs
 
@@ -1033,7 +1067,7 @@ All architecture decisions are documented as Architecture Decision Records (ADRs
 ### 10.3 Performance
 
 - API response time: <500ms for typical requests
-- Page load time: <2s on RPi
+- Page load time: <2s on production hosting
 - Support ≥10 concurrent users
 
 ### 10.4 Security
@@ -1060,7 +1094,7 @@ All architecture decisions are documented as Architecture Decision Records (ADRs
 | Risk | Likelihood | Impact | Mitigation |
 |------|-----------|--------|-----------|
 | SQLite performance issues at scale | Medium | Medium | Migrate to PostgreSQL early |
-| RPi memory constraints | Medium | High | Monitor resource usage, optimize queries |
+| Shared-hosting resource constraints | Medium | High | Monitor resource usage, optimize queries |
 | JWT token theft | Low | High | Use httpOnly cookies, HTTPS |
 | Over-engineering early | High | Medium | Strict YAGNI in reviews |
 

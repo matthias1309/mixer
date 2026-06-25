@@ -5,6 +5,13 @@
 **Status**: MVP Phase Complete (Phase 1-4 Implemented)  
 **Developer**: Matthias Bender
 
+> **⚠️ Historical snapshot (as of 2026-05-14).** This document captures the
+> MVP-era implementation. It still describes Raspberry Pi + Docker + PostgreSQL
+> as the deployment target; that was **retired in MAINT-003 (2026-06)**.
+> Production now runs on **Uberspace** at `https://matt-maxx.de/rezepte` on
+> **SQLite** with GitHub Actions auto-deploy. For current architecture and
+> deployment see `architecture/arc42.md` and `deployment/uberspace-setup.md`.
+
 ---
 
 ## Table of Contents

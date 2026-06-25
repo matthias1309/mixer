@@ -1,6 +1,6 @@
 # Recipe Manager MVP
 
-A community recipe management application with ingredient-based filtering. Built with Next.js 14+, React, and TypeScript.
+A community recipe management application with ingredient-based filtering. Built with Next.js 15 (App Router), React, and TypeScript.
 
 ## Features
 
@@ -56,7 +56,7 @@ A community recipe management application with ingredient-based filtering. Built
 
 ### Frontend
 - Responsive design (mobile-first)
-- Next.js 14+ with App Router
+- Next.js 15 with App Router
 - React Context for state management
 - Tailwind CSS styling
 - E2E tests with Cypress
@@ -64,7 +64,7 @@ A community recipe management application with ingredient-based filtering. Built
 ## Getting Started
 
 ### Prerequisites
-- Node.js 18+ 
+- Node.js 22 LTS
 - npm or yarn
 
 ### Installation
@@ -102,7 +102,7 @@ npm run test:e2e:headless
 
 ### Backend (API Routes)
 - 8 RESTful endpoints
-- SQLite (local) / PostgreSQL (production)
+- SQLite (local dev & production)
 - JWT authentication with sliding-window refresh
 - Parameterized SQL queries (SQL injection protection)
 - Request validation and error handling
@@ -194,20 +194,26 @@ npm run build
 npm run start
 ```
 
-### Docker (Raspberry Pi)
+### Production (Uberspace)
+
+Production runs on **Uberspace** at **https://matt-maxx.de/rezepte**, served
+under the sub-path `BASE_PATH=/rezepte` on SQLite. Deploys are automatic:
+pushing to `main` triggers GitHub Actions (`.github/workflows/deploy.yml`),
+which runs lint / type-check / tests, deploys, and runs a smoke test.
+
+Setup guide: [Uberspace Setup](docs/deployment/uberspace-setup.md)
+
+### Local PostgreSQL (Docker, optional)
+
+To develop against PostgreSQL instead of SQLite:
+
 ```bash
-docker-compose up -d
+docker compose -f docker-compose.local.yml up -d
 ```
 
-### HTTPS Setup
-
-Die App läuft über HTTPS mit automatischem Zertifikat-Management durch Caddy.
-
-```bash
-docker-compose -f docker-compose.production.yml up -d
-```
-
-Details: [HTTPS Setup Guide](docs/deployment/HTTPS-SETUP.md)
+> The legacy Raspberry Pi + Caddy + PostgreSQL deployment was retired in
+> MAINT-003 (2026-06). Its docs remain under `docs/deployment/` for historical
+> reference only.
 
 ## Technology Stack
 
@@ -222,7 +228,7 @@ Details: [HTTPS Setup Guide](docs/deployment/HTTPS-SETUP.md)
 
 ### Backend
 - **Framework**: Next.js API Routes
-- **Database**: SQLite (dev) / PostgreSQL (prod)
+- **Database**: SQLite (dev & production)
 - **Auth**: JWT with sliding-window refresh
 - **Security**: Bcrypt (password hashing)
 
@@ -325,7 +331,6 @@ See `.claude/rules/` for coding style, testing practices, and git workflow guide
 - No password reset
 - No advanced user profiles
 - No recipe ratings/reviews
-- No images/media
 - Community-read-only (recipes shared but not rated)
 
 ### Performance
