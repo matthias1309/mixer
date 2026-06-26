@@ -21,17 +21,23 @@ interface RecipeListProps {
   minScore?: number;
   search?: string;
   sort?: string;
+  pageSize?: number;
 }
 
-export function RecipeList({ phase, minScore = 0, search, sort }: RecipeListProps) {
+export function RecipeList({ phase, minScore = 0, search, sort, pageSize = 10 }: RecipeListProps) {
   const [recipes, setRecipes] = useState<RecipeCardProps[]>([]);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const { selectedIngredients, selectedTags, difficulty, maxTime, minRating } = useFilter();
 
+  useEffect(() => {
+    setPage(1);
+  }, [pageSize]);
+
   const buildUrl = useCallback(() => {
     const params = new URLSearchParams();
     params.set('page', page.toString());
+    params.set('pageSize', pageSize.toString());
     if (selectedIngredients.length > 0) {
       params.set('ingredients', selectedIngredients.join(','));
     }
@@ -59,6 +65,7 @@ export function RecipeList({ phase, minScore = 0, search, sort }: RecipeListProp
     return apiUrl(`/api/recipes?${params}`);
   }, [
     page,
+    pageSize,
     selectedIngredients,
     phase,
     search,

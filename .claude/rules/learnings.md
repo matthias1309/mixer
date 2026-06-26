@@ -26,3 +26,9 @@ Claude reads this file every session and factors the entries into suggestions an
 **Context:** Flaky tests appeared when multiple test files shared the same in-memory SQLite database.
 **Learning:** Parallel Jest workers each need their own database instance; shared state causes race conditions and false failures.
 **Action:** Each test file initializes its own `:memory:` database. Never share database instances across test files.
+
+## 2026-06-26 — Don't skip the V-Model for "small" requests
+
+**Context:** User asked for a small dashboard tweak (configurable recipe page size). It was implemented directly (explore → code → verify) without first creating REQ/ARCH/TEST-SPEC, even though `.claude/rules/v-model.md` mandates the sequence with no exception for small changes. Docs were created retroactively only after the user asked why the V-Model wasn't followed.
+**Learning:** A request's phrasing ("kleine Änderung", "just add X") is not a reliable signal for whether it's in scope of the V-Model. Any change that adds new user-facing behavior is a new requirement, regardless of how small it sounds.
+**Action:** Before writing implementation code for a new behavior (not a pure bugfix), ask the user explicitly whether the V-Model should be skipped for this change. Only proceed straight to code if they confirm skipping is fine; otherwise run `/new-requirement` → `/new-arch` → `/new-test-spec` first.
