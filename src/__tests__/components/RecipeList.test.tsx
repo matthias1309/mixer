@@ -85,4 +85,64 @@ describe('RecipeList Component', () => {
     await waitFor(() => expect(screen.getByTestId('results-counter')).toBeInTheDocument());
     expect(screen.getByTestId('results-counter')).toHaveTextContent('2 Rezepte gefunden');
   });
+
+  // TC-019-03 — AC-019-02
+  // Given RecipeList is rendered with pageSize=20
+  // When it fetches recipes
+  // Then the request URL includes pageSize=20
+  it('includes pageSize in the API request', async () => {
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ recipes: [], total: 0, page: 1, pageSize: 20, totalPages: 1 }),
+    });
+
+    render(
+      <FilterProvider>
+        <RecipeList pageSize={20} />
+      </FilterProvider>
+    );
+
+    await waitFor(() => expect(global.fetch).toHaveBeenCalled());
+    const requestedUrl = (global.fetch as jest.Mock).mock.calls[0][0] as string;
+    expect(requestedUrl).toContain('pageSize=20');
+  });
+
+  // TC-019-04 — AC-019-03
+  // Given RecipeList is on page 3
+  // When the pageSize prop changes
+  // Then the next request is made for page=1
+  it('resets to page 1 when pageSize changes', async () => {
+    (global.fetch as jest.Mock).mockResolvedValue({
+      ok: true,
+      json: async () => ({ recipes: [], total: 50, page: 3, pageSize: 10, totalPages: 5 }),
+    });
+
+    const { rerender } = render(
+      <FilterProvider>
+        <RecipeList pageSize={10} />
+      </FilterProvider>
+    );
+
+    await waitFor(() => {
+      const lastUrl = (global.fetch as jest.Mock).mock.calls.at(-1)?.[0] as string;
+      expect(lastUrl).toContain('page=3');
+    });
+
+    (global.fetch as jest.Mock).mockResolvedValue({
+      ok: true,
+      json: async () => ({ recipes: [], total: 50, page: 1, pageSize: 50, totalPages: 1 }),
+    });
+
+    rerender(
+      <FilterProvider>
+        <RecipeList pageSize={50} />
+      </FilterProvider>
+    );
+
+    await waitFor(() => {
+      const lastUrl = (global.fetch as jest.Mock).mock.calls.at(-1)?.[0] as string;
+      expect(lastUrl).toContain('page=1');
+      expect(lastUrl).toContain('pageSize=50');
+    });
+  });
 });

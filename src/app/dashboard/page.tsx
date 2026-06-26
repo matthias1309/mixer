@@ -11,6 +11,7 @@ import { DifficultyFilter } from '../../components/recipe/DifficultyFilter';
 import { MaxTimeFilter } from '../../components/recipe/MaxTimeFilter';
 import { MinRatingFilter } from '../../components/recipe/MinRatingFilter';
 import { SortDropdown } from '../../components/SortDropdown';
+import { PageSizeDropdown } from '../../components/PageSizeDropdown';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { useFilter } from '../../hooks/useFilter';
@@ -24,6 +25,7 @@ export default function DashboardPage() {
   const [minScore, setMinScore] = useState(0);
   const [search, setSearch] = useState('');
   const [sort, setSort] = useState('newest');
+  const [pageSize, setPageSize] = useState(10);
 
   useEffect(() => {
     if (!user) return;
@@ -170,10 +172,17 @@ export default function DashboardPage() {
         </div>
 
         <div className="lg:col-span-3">
-          <div className="flex justify-end mb-4">
+          <div className="flex justify-end gap-2 mb-4">
+            <PageSizeDropdown value={pageSize} onChange={setPageSize} />
             <SortDropdown value={sort} onChange={setSort} />
           </div>
-          <RecipeList phase={selectedPhase} minScore={minScore} search={search} sort={sort} />
+          <RecipeList
+            phase={selectedPhase}
+            minScore={minScore}
+            search={search}
+            sort={sort}
+            pageSize={pageSize}
+          />
         </div>
       </div>
     </div>

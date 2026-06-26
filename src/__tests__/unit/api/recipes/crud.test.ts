@@ -300,6 +300,50 @@ describe('Recipe CRUD API', () => {
       expect(data.totalPages).toBe(3);
     });
 
+    // TC-019-05 — AC-019-04
+    test('clamps pageSize above 100 to 100', async () => {
+      const request = new NextRequest('http://localhost:3000/api/recipes?pageSize=500', {
+        method: 'GET',
+      });
+
+      const response = await GET_LIST(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(data.pageSize).toBe(100);
+    });
+
+    // TC-019-06 — AC-019-05
+    test('falls back to the default pageSize of 10 for invalid input', async () => {
+      const request = new NextRequest('http://localhost:3000/api/recipes?pageSize=not-a-number', {
+        method: 'GET',
+      });
+
+      const response = await GET_LIST(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(data.pageSize).toBe(10);
+    });
+
+    // TC-019-07 — AC-019-06
+    test('computes totalPages from the requested pageSize', async () => {
+      for (let i = 0; i < 25; i++) {
+        RecipeModel.create(`Recipe ${i}`, user1Id);
+      }
+
+      const request = new NextRequest('http://localhost:3000/api/recipes?pageSize=5', {
+        method: 'GET',
+      });
+
+      const response = await GET_LIST(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(data.pageSize).toBe(5);
+      expect(data.totalPages).toBe(5);
+    });
+
     test('should exclude duplicate recipes from list', async () => {
       const original = RecipeModel.create('Original Recipe', user1Id);
       RecipeModel.create(
