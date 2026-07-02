@@ -148,4 +148,35 @@ describe('POST /api/auth/register', () => {
     expect(response.status).toBe(400);
     expect(data.error).toContain('Email and password are required');
   });
+
+  test('should rate-limit after limit even when the spoofable first XFF entry rotates', async () => {
+    // Attacker rotates the client-controlled first entry; the trusted last
+    // entry (set by our reverse proxy) stays the same real IP.
+    for (let i = 0; i < 5; i++) {
+      const request = new NextRequest('http://localhost:3000/api/auth/register', {
+        method: 'POST',
+        headers: { 'x-forwarded-for': `6.6.6.${i}, 203.0.113.7` },
+        body: JSON.stringify({
+          email: `user${i}@example.com`,
+          password: 'SecurePassword123',
+        }),
+      });
+      const response = await POST(request);
+      expect(response.status).not.toBe(429);
+    }
+
+    const blockedRequest = new NextRequest('http://localhost:3000/api/auth/register', {
+      method: 'POST',
+      headers: { 'x-forwarded-for': '6.6.6.99, 203.0.113.7' },
+      body: JSON.stringify({
+        email: 'blocked@example.com',
+        password: 'SecurePassword123',
+      }),
+    });
+
+    const blocked = await POST(blockedRequest);
+
+    expect(blocked.status).toBe(429);
+    expect(blocked.headers.get('Retry-After')).toBeTruthy();
+  });
 });

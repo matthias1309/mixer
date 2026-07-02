@@ -4,6 +4,7 @@ import { UserModel } from '../../../../lib/db/models/user';
 import { generateToken } from '../../../../lib/auth/tokenRefresh';
 import { setTokenCookie } from '../../../../lib/auth/middleware';
 import { checkRateLimit } from '../../../../lib/auth/rateLimiter';
+import { getClientIp } from '../../../../lib/api/client-ip';
 import { RegisterRequest } from '../../../../types';
 import { withDatabase } from '../../../../lib/api/withDatabase';
 
@@ -20,7 +21,7 @@ function validatePassword(password: string): boolean {
 // POST /api/auth/register
 async function handler(request: NextRequest) {
   try {
-    const ip = request.headers.get('x-forwarded-for')?.split(',')[0].trim() ?? 'unknown';
+    const ip = getClientIp(request);
     const { allowed, retryAfterMs } = checkRateLimit(`register:${ip}`, 5, 60 * 60 * 1000);
     if (!allowed) {
       return NextResponse.json(
