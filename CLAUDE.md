@@ -181,7 +181,9 @@ Use `/traceability` to check coverage gaps across all artifacts.
 
 - All database access uses raw SQL (better-sqlite3) — no ORM layer
 - Business logic lives in `src/lib/` — API routes are thin
-- Authentication uses JWT stored in httpOnly cookies (15-min access token + refresh rotation)
+- Authentication uses JWT stored in httpOnly cookies (1h sliding-window token,
+  refreshed on every authenticated request, capped at a 24h absolute session
+  lifetime — see REQ-020/ARCH-020)
 - Next.js App Router: all routes under `src/app/api/`
 - Unit conversion system: `src/lib/converters/` — see ADR-006
 - Ingredient master list: shared across users, user ingredients reference it via `masterId`

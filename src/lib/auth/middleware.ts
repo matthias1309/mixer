@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyTokenDetailed } from '@lib/auth/jwt';
-import { verifyToken, refreshToken } from '@lib/auth/tokenRefresh';
+import {
+  verifyToken,
+  refreshToken,
+  ABSOLUTE_SESSION_LIFETIME_SECONDS,
+} from '@lib/auth/tokenRefresh';
 import { HTTP_STATUS } from '@lib/constants';
 
 // Scope the auth cookie to the app's base path so it is not shared with other
@@ -43,8 +47,17 @@ export async function authMiddlewareWithRefresh(request: NextRequest) {
     return null;
   }
 
+  // Absolute cap (REQ-020): however often the sliding window renewed this
+  // token, the session ends 24h after the original login. Legacy tokens
+  // without the claim fall back to their own iat.
+  const authTime = payload.authTime ?? payload.iat;
+  const sessionAgeSeconds = Math.floor(Date.now() / 1000) - authTime;
+  if (sessionAgeSeconds > ABSOLUTE_SESSION_LIFETIME_SECONDS) {
+    return null;
+  }
+
   // Token is valid, refresh it (sliding window)
-  const newToken = refreshToken(payload.sub, payload.email);
+  const newToken = refreshToken(payload.sub, payload.email, authTime);
 
   return {
     userId: payload.sub,
