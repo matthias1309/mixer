@@ -11,6 +11,7 @@ import { calculateScore, AggregatedNutrients } from '@/lib/scoring/phaseScore';
 import { replaceRecipeTags, getRecipeTags, getTagsForRecipeIds } from './recipeTags';
 import { buildRecipeQuery, RecipeQueryFilters } from '@/lib/db/build-recipe-query';
 import { RATING_AGGREGATE_JOIN } from './rating';
+import { CREATOR_NAME_SQL } from '@/lib/users/display-name';
 
 export type RecipeListItemWithScore = RecipeListItem & { score?: number | null };
 
@@ -149,7 +150,7 @@ export class RecipeModelAsync {
           recipes.id,
           recipes.name,
           recipes.description,
-          users.email as creatorName,
+          ${CREATOR_NAME_SQL},
           COUNT(ingredients.id) as ingredientCount,
           recipes.created_at as createdAt
          FROM recipes
@@ -179,7 +180,7 @@ export class RecipeModelAsync {
           recipes.id,
           recipes.name,
           recipes.description,
-          users.email as creatorName,
+          ${CREATOR_NAME_SQL},
           COUNT(ingredients.id) as ingredientCount,
           recipes.created_at as createdAt
          FROM recipes
@@ -380,7 +381,7 @@ export class RecipeModelAsync {
         recipes.difficulty as difficulty,
         recipes.total_time_minutes as totalTimeMinutes,
         recipes.meal_type as mealType,
-        users.email as creatorName,
+        ${CREATOR_NAME_SQL},
         COUNT(DISTINCT ingredients.id) as ingredientCount,
         recipes.created_at as createdAt,
         rr.avg_rating as ratingAverage,

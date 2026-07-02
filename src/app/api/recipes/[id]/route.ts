@@ -9,6 +9,7 @@ import { withDatabase } from '@/lib/api/withDatabase';
 import { validateRecipeMetadataFields } from '@/lib/validation';
 import { getDb } from '@/lib/db/init';
 import { getRatingAggregate } from '@/lib/db/models/rating';
+import { displayNameFromEmail } from '@/lib/users/display-name';
 
 type Params = Promise<{ id: string }>;
 
@@ -32,7 +33,7 @@ async function handleGET(request: NextRequest, props: { params: Params }) {
 
     // Get creator info
     const creator = await UserModel.findById(recipe.creator_id);
-    const creatorName = creator ? creator.email : 'Unknown';
+    const creatorName = creator ? displayNameFromEmail(creator.email) : 'Unknown';
 
     // Get ingredients
     const ingredients = await RecipeModelAsync.getIngredients(recipeId);
@@ -241,7 +242,7 @@ export async function PUT(request: NextRequest, props: { params: Params }) {
 
     const ingredients = await RecipeModelAsync.getIngredients(recipeId);
     const creator = await UserModel.findById(updated.creator_id);
-    const creatorName = creator ? creator.email : 'Unknown';
+    const creatorName = creator ? displayNameFromEmail(creator.email) : 'Unknown';
 
     let response = NextResponse.json(
       {
