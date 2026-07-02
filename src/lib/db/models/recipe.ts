@@ -10,6 +10,7 @@ import { calculateScore, AggregatedNutrients } from '@/lib/scoring/phaseScore';
 import { replaceRecipeTags, getRecipeTags, getTagsForRecipeIds } from './recipeTags';
 import { buildRecipeQuery, RecipeQueryFilters } from '@/lib/db/build-recipe-query';
 import { RATING_AGGREGATE_JOIN } from './rating';
+import { CREATOR_NAME_SQL } from '@/lib/users/display-name';
 
 export class RecipeModel {
   static create(
@@ -145,7 +146,7 @@ export class RecipeModel {
         recipes.name,
         recipes.description,
         recipes.image_path as imagePath,
-        users.email as creatorName,
+        ${CREATOR_NAME_SQL},
         COUNT(ingredients.id) as ingredientCount,
         recipes.created_at as createdAt
       FROM recipes
@@ -335,7 +336,7 @@ export class RecipeModel {
         recipes.name,
         recipes.description,
         recipes.image_path as imagePath,
-        users.email as creatorName,
+        ${CREATOR_NAME_SQL},
         COUNT(ingredients.id) as ingredientCount,
         recipes.created_at as createdAt
       FROM recipes
@@ -402,7 +403,7 @@ export class RecipeModel {
         recipes.name,
         recipes.description,
         recipes.image_path as imagePath,
-        users.email as creatorName,
+        ${CREATOR_NAME_SQL},
         COUNT(DISTINCT ingredients.id) as ingredientCount,
         recipes.created_at as createdAt,
         SUM(COALESCE(ingredients_master.iron, 0) * COALESCE(ingredients.quantity, 0) / COALESCE(ingredients_master.base_size, 100)) as total_iron,
@@ -515,7 +516,7 @@ export class RecipeModel {
         recipes.difficulty as difficulty,
         recipes.total_time_minutes as totalTimeMinutes,
         recipes.meal_type as mealType,
-        users.email as creatorName,
+        ${CREATOR_NAME_SQL},
         COUNT(DISTINCT ingredients.id) as ingredientCount,
         recipes.created_at as createdAt,
         rr.avg_rating as ratingAverage,

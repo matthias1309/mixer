@@ -174,7 +174,8 @@ describe('RecipeModel', () => {
 
     it('should include creator name in results', () => {
       const result = RecipeModel.listAll(1, 10);
-      expect(result.recipes[0].creatorName).toBe('testuser@example.com');
+      // Listing is public: only the email local part is exposed as creatorName
+      expect(result.recipes[0].creatorName).toBe('testuser');
     });
 
     it('should include ingredient count in results', () => {

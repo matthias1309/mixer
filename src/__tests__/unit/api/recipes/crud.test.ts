@@ -398,7 +398,8 @@ describe('Recipe CRUD API', () => {
       expect(response.status).toBe(200);
       expect(data.id).toBe(recipe.id);
       expect(data.name).toBe('Pasta Carbonara');
-      expect(data.creatorName).toBe('user1@example.com');
+      // Public endpoint: only the email local part is exposed, never the full address
+      expect(data.creatorName).toBe('user1');
       expect(data.ingredients).toHaveLength(2);
       expect(data.canEdit).toBe(true);
       expect(data.canDelete).toBe(true);
