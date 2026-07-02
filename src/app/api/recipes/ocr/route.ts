@@ -6,6 +6,11 @@ import { extractTextFromImage } from '@/lib/ocr/tesseract';
 import { parseIngredientsFromText } from '@/lib/ocr/parser';
 import { getSqliteDb } from '@/lib/db/init';
 import { ocrCache } from '@/lib/ocr/cache';
+import { checkRateLimit } from '@/lib/auth/rateLimiter';
+
+// OCR runs Tesseract (CPU-heavy) per upload, so each user gets a hard limit
+// to keep a single account from exhausting the server (security review).
+const OCR_RATE_LIMIT = { maxRequests: 10, windowMs: 10 * 60 * 1000 };
 
 export async function POST(request: NextRequest) {
   try {
@@ -17,6 +22,21 @@ export async function POST(request: NextRequest) {
     const user = {
       userId: typeof auth.userId === 'string' ? parseInt(auth.userId, 10) : auth.userId,
     };
+
+    const { allowed, retryAfterMs } = checkRateLimit(
+      `ocr:user:${user.userId}`,
+      OCR_RATE_LIMIT.maxRequests,
+      OCR_RATE_LIMIT.windowMs
+    );
+    if (!allowed) {
+      return NextResponse.json(
+        { error: 'Too many OCR uploads. Please try again later.' },
+        {
+          status: 429,
+          headers: { 'Retry-After': String(Math.ceil(retryAfterMs / 1000)) },
+        }
+      );
+    }
 
     // Parse multipart form data
     const formData = await request.formData();

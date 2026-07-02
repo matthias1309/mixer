@@ -25,5 +25,5 @@ if (typeof setInterval !== 'undefined') {
       }
     },
     5 * 60 * 1000
-  ); // Check every 5 minutes
+  ).unref(); // Check every 5 minutes; unref so the timer never keeps the process alive
 }
