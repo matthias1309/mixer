@@ -11,16 +11,25 @@ function getSecret(): string {
 
 const TOKEN_EXPIRY = '1h';
 
-export function generateToken(userId: string, email: string): string {
+// Hard cap on the total session age (REQ-020): the sliding window may renew
+// a token many times, but never past this many seconds after the login.
+export const ABSOLUTE_SESSION_LIFETIME_SECONDS = 24 * 60 * 60;
+
+function signToken(userId: string, email: string, authTime: number): string {
   return jwt.sign(
     {
       sub: userId,
       email,
       type: 'access',
+      authTime,
     },
     getSecret(),
     { expiresIn: TOKEN_EXPIRY }
   );
+}
+
+export function generateToken(userId: string, email: string): string {
+  return signToken(userId, email, Math.floor(Date.now() / 1000));
 }
 
 export function verifyToken(token: string): JWTPayload | null {
@@ -40,7 +49,8 @@ export function shouldRefreshToken(token: string): boolean {
   return true;
 }
 
-export function refreshToken(userId: string, email: string): string {
-  // Generate a new token (resets the expiry)
-  return generateToken(userId, email);
+export function refreshToken(userId: string, email: string, authTime: number): string {
+  // New token with a fresh sliding-window expiry, but the original login
+  // time is preserved so the absolute lifetime is never extended (AC-020-03)
+  return signToken(userId, email, authTime);
 }
