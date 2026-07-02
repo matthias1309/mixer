@@ -10,9 +10,10 @@ import { initializeDatabase, closeDatabase } from '../../../../lib/db/init';
 import { generateToken } from '../../../../lib/auth/tokenRefresh';
 import { clearRateLimitStore } from '../../../../lib/auth/rateLimiter';
 
-// OCR runs Tesseract (CPU-heavy) per upload — without a rate limit a single
-// authenticated user can exhaust the server (security review finding 4).
-// Tesseract is mocked; only the route's limiting behaviour is under test.
+// TEST-021 (REQ-021 / ARCH-021) — OCR runs Tesseract (CPU-heavy) per upload;
+// without a rate limit a single authenticated user can exhaust the server
+// (security review finding 4). Tesseract is mocked; only the route's limiting
+// behaviour is under test.
 jest.mock('../../../../lib/ocr/tesseract', () => ({
   extractTextFromImage: jest.fn().mockResolvedValue(''),
 }));
@@ -59,6 +60,7 @@ describe('POST /api/recipes/ocr - rate limiting', () => {
     });
   }
 
+  // TC-021-01
   test('should return 429 with Retry-After once the per-user limit is reached', async () => {
     const token = await createUserToken('uploader@example.com');
 
@@ -73,6 +75,7 @@ describe('POST /api/recipes/ocr - rate limiting', () => {
     expect(blocked.headers.get('Retry-After')).toBeTruthy();
   });
 
+  // TC-021-02
   test('should limit users independently', async () => {
     const token1 = await createUserToken('heavy@example.com');
     const token2 = await createUserToken('normal@example.com');
