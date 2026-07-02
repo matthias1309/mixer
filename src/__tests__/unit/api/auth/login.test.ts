@@ -151,4 +151,59 @@ describe('POST /api/auth/login', () => {
     expect(data2.error).not.toContain('wrong password');
     expect(data2.error).not.toContain('Wrong password');
   });
+
+  describe('rate limiting', () => {
+    function loginRequest(email: string, xff: string): NextRequest {
+      return new NextRequest('http://localhost:3000/api/auth/login', {
+        method: 'POST',
+        headers: { 'x-forwarded-for': xff },
+        body: JSON.stringify({ email, password: 'WrongPassword123' }),
+      });
+    }
+
+    test('should block after limit even when the spoofable first XFF entry rotates', async () => {
+      // Attacker rotates the client-controlled first entry; the trusted last
+      // entry (set by our reverse proxy) stays the same real IP.
+      for (let i = 0; i < 10; i++) {
+        const response = await POST(loginRequest(`victim${i}@example.com`, `6.6.6.${i}, 203.0.113.7`));
+        expect(response.status).not.toBe(429);
+      }
+
+      const blocked = await POST(loginRequest('victim@example.com', '6.6.6.99, 203.0.113.7'));
+
+      expect(blocked.status).toBe(429);
+      expect(blocked.headers.get('Retry-After')).toBeTruthy();
+    });
+
+    test('should block the same email across different IPs (per-account limit)', async () => {
+      for (let i = 0; i < 10; i++) {
+        const response = await POST(loginRequest('victim@example.com', `203.0.113.${i}`));
+        expect(response.status).not.toBe(429);
+      }
+
+      const blocked = await POST(loginRequest('victim@example.com', '203.0.113.200'));
+
+      expect(blocked.status).toBe(429);
+    });
+
+    test('should treat the per-email limit case-insensitively', async () => {
+      for (let i = 0; i < 10; i++) {
+        await POST(loginRequest(i % 2 === 0 ? 'Victim@Example.com' : 'victim@example.com', `203.0.113.${i}`));
+      }
+
+      const blocked = await POST(loginRequest('VICTIM@example.com', '203.0.113.200'));
+
+      expect(blocked.status).toBe(429);
+    });
+
+    test('should not block different emails from different IPs', async () => {
+      for (let i = 0; i < 10; i++) {
+        await POST(loginRequest(`user${i}@example.com`, `203.0.113.${i}`));
+      }
+
+      const response = await POST(loginRequest('other@example.com', '203.0.113.201'));
+
+      expect(response.status).not.toBe(429);
+    });
+  });
 });
