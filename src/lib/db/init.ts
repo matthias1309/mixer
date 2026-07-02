@@ -3,9 +3,11 @@ import path from 'path';
 import fs from 'fs';
 import { seedDatabase } from '@/db/seeds';
 
-let db: Database.Database;
-let initPromise: Promise<void> | null = null;
-let lastDatabaseUrl: string | undefined;
+let db: Database.Database | undefined;
+// Absolute path of the database file the current `db` connection is bound to.
+// Used to detect a DATABASE_URL switch (tests reopen a fresh DB per case) and
+// reconcile against the *actually open* connection instead of a cached promise.
+let openDbPath: string | undefined;
 
 export type DbClient = Database.Database;
 
@@ -26,45 +28,43 @@ export function getSqliteDb(): Database.Database {
   return getDb();
 }
 
-export async function initializeDatabase(): Promise<void> {
-  const currentDatabaseUrl = process.env.DATABASE_URL;
-
-  // Allow re-initialization if DATABASE_URL has changed (for tests)
-  if (lastDatabaseUrl === currentDatabaseUrl && initPromise) {
-    return initPromise;
+// Resolve the target SQLite file from DATABASE_URL (`file:` URL or direct
+// path), falling back to the default location when unset.
+function resolveDbPath(): string {
+  const databaseUrl = process.env.DATABASE_URL;
+  if (!databaseUrl) {
+    return path.join(process.cwd(), '.data', 'app.db');
   }
-
-  // If DATABASE_URL changed, wait for old init to complete, then close
-  if (lastDatabaseUrl !== currentDatabaseUrl && initPromise) {
-    await initPromise;
-    closeDatabase();
-    initPromise = null;
-  }
-
-  lastDatabaseUrl = currentDatabaseUrl;
-  initPromise = _initializeDatabaseInternal();
-  return initPromise;
+  return databaseUrl.startsWith('file:') ? databaseUrl.slice('file:'.length) : databaseUrl;
 }
 
-async function _initializeDatabaseInternal(): Promise<void> {
-  const databaseUrl = process.env.DATABASE_URL;
+// Jest always sets JEST_WORKER_ID; rely on it (plus NODE_ENV) rather than
+// NODE_ENV alone, which is 'development' locally but 'test' in CI — that
+// asymmetry left tests running in WAL mode locally and DELETE mode in CI.
+function isTestEnvironment(): boolean {
+  return process.env.JEST_WORKER_ID !== undefined || process.env.NODE_ENV === 'test';
+}
 
-  // SQLite path: a `file:` URL, a direct file path, or the default location.
-  let dbPath: string;
+export async function initializeDatabase(): Promise<void> {
+  const targetPath = path.resolve(resolveDbPath());
 
-  if (databaseUrl) {
-    if (databaseUrl.startsWith('file:')) {
-      // Extract path from file: URL
-      dbPath = databaseUrl.replace(/^file:/, '');
-    } else {
-      // Assume it's a direct file path
-      dbPath = databaseUrl;
-    }
-  } else {
-    // Default path
-    dbPath = path.join(process.cwd(), '.data', 'app.db');
+  // Already initialized against exactly this database — nothing to do. This is
+  // the hot path for repeated per-request init via withDatabase().
+  if (db && openDbPath === targetPath) {
+    return;
   }
 
+  // DATABASE_URL switched (tests reopen a fresh DB per case) or a stale
+  // connection lingered — close it before opening the new one so callers never
+  // see a connection bound to a previous test's database.
+  if (db) {
+    closeDatabase();
+  }
+
+  _initializeDatabaseInternal(targetPath);
+}
+
+function _initializeDatabaseInternal(dbPath: string): void {
   const dbDir = path.dirname(dbPath);
 
   if (!fs.existsSync(dbDir)) {
@@ -72,14 +72,15 @@ async function _initializeDatabaseInternal(): Promise<void> {
   }
 
   db = new Database(dbPath);
+  openDbPath = dbPath;
 
-  // WAL mode for better concurrency, except in test environments
-  if (process.env.NODE_ENV !== 'test') {
+  // DELETE journal mode in tests for strict isolation (no WAL sidecar files
+  // that outlive teardown); WAL for real deployments for better concurrency.
+  if (isTestEnvironment()) {
+    db.pragma('journal_mode = DELETE');
+  } else {
     db.pragma('journal_mode = WAL');
     db.pragma('synchronous = NORMAL');  // Balanced between safety and performance
-  } else {
-    // Use DELETE journal mode for tests for better isolation
-    db.pragma('journal_mode = DELETE');
   }
 
   console.log('Connected to SQLite');
@@ -141,9 +142,7 @@ function runMigrationsSync(database: Database.Database): void {
 export function closeDatabase(): void {
   if (db) {
     db.close();
-    db = undefined as any;
+    db = undefined;
   }
-  // Reset initialization promise so next init is allowed
-  initPromise = null;
-  lastDatabaseUrl = undefined;
+  openDbPath = undefined;
 }
